@@ -13,35 +13,35 @@ const USERS_MAP = {
         id: 'usr_doc_01',
         name: 'Dr. Sarah Rao',
         role: 'Doctor',
-        desc: 'Cardiology & General Medicine • Metro Apex Hospital',
+        desc: 'Cardiology & General Medicine • SIT Students Hospital',
         avatar: '👨‍⚕️'
     },
     'usr_doc_02': {
         id: 'usr_doc_02',
         name: 'Dr. Rajesh Nair',
         role: 'Doctor',
-        desc: 'Orthopedics & Trauma • Metro Apex Hospital',
+        desc: 'Orthopedics & Trauma Wing • SIT Students Hospital',
         avatar: '👨‍⚕️'
     },
     'usr_doc_03': {
         id: 'usr_doc_03',
         name: 'Dr. Ananya Sen',
         role: 'Doctor',
-        desc: 'Pulmonology & Respiratory Care • City Care Clinic',
+        desc: 'Pulmonology & Respiratory Wing • SIT Students Hospital',
         avatar: '👩‍⚕️'
     },
     'usr_doc_04': {
         id: 'usr_doc_04',
         name: 'Dr. Vikram Mehta',
         role: 'Doctor',
-        desc: 'Neurology & Spine Care • Apex Neuro Institute',
+        desc: 'Neurology & Spine Wing • SIT Students Hospital',
         avatar: '👨‍⚕️'
     },
     'usr_lab_01': {
         id: 'usr_lab_01',
         name: 'Alex Smith',
         role: 'Lab Staff',
-        desc: 'Senior Technologist • Pathology Diagnostics Lab',
+        desc: 'Senior Technologist • SIT Central Pathology Lab',
         avatar: '🔬'
     },
     'usr_pat_01': {
@@ -49,7 +49,7 @@ const USERS_MAP = {
         name: 'John Doe',
         role: 'Patient',
         patientId: 'PT-9901',
-        desc: 'Patient ID: PT-9901 • Age: 48 • Blood Group: O+',
+        desc: 'SIT Hospital Patient ID: PT-9901 • Age: 48 • Blood Group: O+',
         avatar: '👤'
     },
     'usr_pat_02': {
@@ -57,7 +57,7 @@ const USERS_MAP = {
         name: 'Meera Patel',
         role: 'Patient',
         patientId: 'PT-9902',
-        desc: 'Patient ID: PT-9902 • Age: 34 • Blood Group: B+',
+        desc: 'SIT Hospital Patient ID: PT-9902 • Age: 34 • Blood Group: B+',
         avatar: '👩'
     },
     'usr_pat_03': {
@@ -65,7 +65,7 @@ const USERS_MAP = {
         name: 'Robert Chen',
         role: 'Patient',
         patientId: 'PT-9903',
-        desc: 'Patient ID: PT-9903 • Age: 54 • Blood Group: A+',
+        desc: 'SIT Hospital Patient ID: PT-9903 • Age: 54 • Blood Group: A+',
         avatar: '👨'
     },
     'usr_pat_04': {
@@ -73,14 +73,14 @@ const USERS_MAP = {
         name: 'Ayesha Khan',
         role: 'Patient',
         patientId: 'PT-9904',
-        desc: 'Patient ID: PT-9904 • Age: 29 • Blood Group: AB+',
+        desc: 'SIT Hospital Patient ID: PT-9904 • Age: 29 • Blood Group: AB+',
         avatar: '👩'
     },
     'usr_adm_01': {
         id: 'usr_adm_01',
-        name: 'Consortium SuperAdmin',
+        name: 'Hospital IT Admin',
         role: 'Admin',
-        desc: 'Healthcare Consortium Blockchain Authority',
+        desc: 'SIT Students Hospital Administration & Settings',
         avatar: '🛡️'
     }
 };
@@ -1808,7 +1808,32 @@ function escapeHtml(str) {
         .replace(/'/g, '&#039;');
 }
 
+function saveHospitalReceptionSettings() {
+    const settings = {
+        hospName: document.getElementById('setHospName')?.value || 'SIT Students Hospital & Health Center',
+        hospAddress: document.getElementById('setHospAddress')?.value || 'B.H. Road, SIT Campus, Tumakuru',
+        receptionMode: document.getElementById('setReceptionMode')?.value || 'prepared',
+        doctorSharingPolicy: document.getElementById('setDoctorSharingPolicy')?.value || 'all_hospital_doctors',
+        labRouting: document.getElementById('setLabRouting')?.value || 'auto_notify',
+        savedAt: new Date().toISOString()
+    };
+    localStorage.setItem('sit_hospital_reception_settings', JSON.stringify(settings));
+    showToast('✓ SIT Students Hospital & Receptionist module settings saved!', 'success');
+}
+
+function resetHospitalReceptionSettings() {
+    localStorage.removeItem('sit_hospital_reception_settings');
+    if (document.getElementById('setHospName')) document.getElementById('setHospName').value = 'SIT Students Hospital & Health Center';
+    if (document.getElementById('setHospAddress')) document.getElementById('setHospAddress').value = 'B.H. Road, SIT Campus, Tumakuru - 572103, Karnataka';
+    if (document.getElementById('setReceptionMode')) document.getElementById('setReceptionMode').value = 'prepared';
+    if (document.getElementById('setDoctorSharingPolicy')) document.getElementById('setDoctorSharingPolicy').value = 'all_hospital_doctors';
+    if (document.getElementById('setLabRouting')) document.getElementById('setLabRouting').value = 'auto_notify';
+    showToast('🔄 Reset to default SIT Students Hospital configuration.', 'info');
+}
+
 // Expose handlers globally on window object for inline onclick handlers
+window.saveHospitalReceptionSettings = saveHospitalReceptionSettings;
+window.resetHospitalReceptionSettings = resetHospitalReceptionSettings;
 window.openReportModal = openReportModal;
 window.downloadReportFile = downloadReportFile;
 window.switchModalView = switchModalView;

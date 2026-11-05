@@ -1,50 +1,45 @@
 {
   "users": [
     {
-      "password": "password123",
       "id": "usr_doc_01",
       "name": "Dr. Sarah Rao",
-      "email": "dr.sarah@hospital.org",
+      "email": "dr.sarah@sithospital.org",
       "role": "Doctor",
       "department": "Cardiology & General Medicine",
-      "hospital": "Metro Apex Hospital",
+      "hospital": "SIT Students Hospital",
       "license": "MC-2018-9941"
     },
     {
-      "password": "password123",
       "id": "usr_doc_02",
       "name": "Dr. Rajesh Nair",
-      "email": "dr.rajesh@hospital.org",
+      "email": "dr.rajesh@sithospital.org",
       "role": "Doctor",
       "department": "Orthopedics & Trauma",
-      "hospital": "Metro Apex Hospital",
+      "hospital": "SIT Students Hospital",
       "license": "MC-2015-4412"
     },
     {
-      "password": "password123",
       "id": "usr_doc_03",
       "name": "Dr. Ananya Sen",
-      "email": "dr.ananya@clinic.org",
+      "email": "dr.ananya@sithospital.org",
       "role": "Doctor",
       "department": "Pulmonology & Respiratory Care",
-      "hospital": "City Care Clinic",
+      "hospital": "SIT Students Hospital",
       "license": "MC-2019-3382"
     },
     {
-      "password": "password123",
       "id": "usr_doc_04",
       "name": "Dr. Vikram Mehta",
-      "email": "dr.vikram@neuro.org",
+      "email": "dr.vikram@sithospital.org",
       "role": "Doctor",
       "department": "Neurology & Spine Care",
-      "hospital": "Apex Neuro Institute",
+      "hospital": "SIT Students Hospital",
       "license": "MC-2014-8821"
     },
     {
-      "password": "password123",
       "id": "usr_pat_01",
       "name": "John Doe",
-      "email": "john.doe@patient.net",
+      "email": "john.doe@sit.ac.in",
       "role": "Patient",
       "patientId": "PT-9901",
       "age": 48,
@@ -53,10 +48,9 @@
       "contact": "+91 98765 43210"
     },
     {
-      "password": "password123",
       "id": "usr_pat_02",
       "name": "Meera Patel",
-      "email": "meera.patel@patient.net",
+      "email": "meera.patel@sit.ac.in",
       "role": "Patient",
       "patientId": "PT-9902",
       "age": 34,
@@ -65,10 +59,9 @@
       "contact": "+91 98450 11223"
     },
     {
-      "password": "password123",
       "id": "usr_pat_03",
       "name": "Robert Chen",
-      "email": "robert.chen@patient.net",
+      "email": "robert.chen@sit.ac.in",
       "role": "Patient",
       "patientId": "PT-9903",
       "age": 54,
@@ -77,10 +70,9 @@
       "contact": "+91 97112 33445"
     },
     {
-      "password": "password123",
       "id": "usr_pat_04",
       "name": "Ayesha Khan",
-      "email": "ayesha.khan@patient.net",
+      "email": "ayesha.khan@sit.ac.in",
       "role": "Patient",
       "patientId": "PT-9904",
       "age": 29,
@@ -89,73 +81,25 @@
       "contact": "+91 98221 55667"
     },
     {
-      "password": "password123",
       "id": "usr_lab_01",
       "name": "Alex Smith",
-      "email": "alex.lab@pathology.org",
+      "email": "alex.lab@sithospital.org",
       "role": "Lab Staff",
       "designation": "Senior Lab Technologist",
-      "laboratory": "Pathology Diagnostics Lab",
+      "laboratory": "SIT Hospital Central Diagnostic Lab",
+      "hospital": "SIT Students Hospital",
       "license": "LAB-TECH-772"
     },
     {
-      "password": "password123",
       "id": "usr_adm_01",
-      "name": "Consortium SuperAdmin",
-      "email": "admin@healthchain.gov",
+      "name": "Hospital IT Admin",
+      "email": "admin@sithospital.org",
       "role": "Admin",
-      "institution": "Healthcare Consortium Blockchain Authority"
+      "institution": "SIT Students Hospital Administration",
+      "hospital": "SIT Students Hospital"
     }
   ],
   "reports": [
-    {
-      "reportId": "REP-51BAF385",
-      "patientId": "usr_pat_01",
-      "patientName": "John Doe",
-      "patientPseudonym": "PT-9901",
-      "uploadedBy": "Alex Smith",
-      "uploaderId": "usr_lab_01",
-      "uploaderRole": "Lab Staff",
-      "title": "test",
-      "reportType": "Cardiovascular",
-      "testDate": "2026-10-23",
-      "notes": "",
-      "keywords": [
-        "Blood pressure",
-        "Hypertension"
-      ],
-      "categories": [
-        "Cardiovascular"
-      ],
-      "aiHighlights": {
-        "keyFindings": [
-          "Investigation: test",
-          "PATIENT DETAILS",
-          "Name: Jane Doe DOB: 50",
-          "Age: 1975-04-30 Gender: Female"
-        ],
-        "abnormalFlags": [
-          "No critical out-of-range anomalies flagged"
-        ],
-        "diagnosticImpression": "Investigated parameters appear consistent with expected clinical thresholds or baseline physiological limits.",
-        "recommendedAction": "Maintain routine clinical observation and follow-up as indicated by attending specialist.",
-        "aiEngine": "Local Clinical NLP (Fallback: Unterminated string in JSON at position ...)",
-        "analyzedAt": "2026-10-23T07:34:54.219Z"
-      },
-      "rawSnippet": "PATIENT DETAILS\n\nName: Jane Doe DOB: 50\n\nAge: 1975-04-30 Gender: Female\nMEDICAL HISTORY\n\nHypertension, start 2015\n\nSurgeries; Appendectomy\n\nAllergies: No known allergies\n\nVITALS\n\n+ Blood pressure 140/mmHg Pulse: 76 bpm\n\n+ Temperature 36,8 °C Respiratory rt: 16 / min\nDOCTOR'S OBSERVATIONS\n\n+ Alert,",
-      "fileName": "REP-51BAF385_standardized.pdf",
-      "mimeType": "application/pdf",
-      "reportHash": "7b61cce82fed5e5f2765d38196dbfcb3817c76a821756edb3c1bc46f0c4115db",
-      "storageReference": "REP-51BAF385_encrypted.bin",
-      "fileSize": 6757,
-      "encryptedSize": 6784,
-      "qrCodeDataUrl": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAALQAAAC0CAYAAAA9zQYyAAAAAklEQVR4AewaftIAAArMSURBVO3BMW5sOQxFwWOhQ4Zcxt3/SrgMhsw9DhnJEF7b3yOw6uPzC2NcYjHGRRZjXGQxxkUWY1xkMcZFFmNcZDHGRV58w1z8psqgMxc7lUFnLrrKoDMXXWXwhLnoKoMnzEVXGXTmoqsMTpiLrjLozMVOZdCZi99UGewsxrjIYoyLLMa4yItDlcE7mYsnzEVXGexUBn+JuegqgxPm4glz0VUGnbk4URm8k7k4sRjjIosxLrIY4yIvHjIXJyqDJyqDzlx05uJEZdCZi64yOGEuTlQGnbk4URl05mKnMujMRWcu3slcnKgMnliMcZHFGBdZjHGRF39cZbBTGXTmYqcy6MzFjrnoKoOuMtgxF11lsFMZnDAXXWXwTpXB/8lijIssxrjIYoyLvPifMRcnKoOdyuCdzEVXGXTmoqsMdsxFVxl0lcEJc3HCXHSVwV+2GOMiizEushjjIi8eqgx+krl4wlx0lcGOufhJlcGJyqAzF+9UGfykyuA3Lca4yGKMiyzGuMiLQ+biX6oMOnPRVQadudgxF11l0JmLrjLozEVXGXTmoqsMOnPRVQaduegqg85cdJVBZy66yqAzF11l0JmLrjLYMRf/0mKMiyzGuMhijIt8fH7hDzMXO5VBZy66yqAzF09UBjvmoqsMOnNxojI4YS66yuCEudipDP6yxRgXWYxxkcUYF/n4/MID5uJEZdCZi64y6MzFicrghLnYqQx2zMWJyqAzF11l0JmLrjJ4wlx0lcEJc3GiMtgxFycqg53FGBdZjHGRxRgX+fj8wh9mLnYqg85cdJVBZy52KoMnzEVXGXTmoqsMdszFTmWwYy66yqAzFycqg85cnKgMOnOxUxmcWIxxkcUYF1mMcZGPzy9smIuuMujMxU5lsGMu/qXK4Alz0VUGnbnoKoPOXHSVQWcuusqgMxc7lcE7mYsTlcET5qKrDHYWY1xkMcZFFmNc5MUhc9FVBjvmoqsMuspgx1x0lUFnLnYqgx1z0VUGnbnYqQxOmIuuMtipDP4lc7FTGXTmYsdcdJVBZy66yuDEYoyLLMa4yGKMi7w4VBl05qKrDHbMxU5l0FUGnbnoKoMT5uJEZdCZi85cdJVBVxl05qIzF11l8ERl0JmLncqgMxc7lUFnLp4wF11l8MRijIssxrjIYoyLvDhkLk5UBifMxU5l0JmLrjJ4J3OxUxnsmIuuMtgxF11l0JmLrjLozEVXGZyoDDpzcaIy6MzFTmWwYy66ymBnMcZFFmNcZDHGRV4cqgx2zMVOZdCZi64y2DEXXWWwYy66yuCJymDHXOyYiycqgxPm4onKoDMXT1QGJyqDE4sxLrIY4yKLMS7y4pC52KkMOnOxUxl05uIJc7FjLrrKYKcy2DEXXWWwYy6eMBddZbBTGeyYi7/EXHSVwYnFGBdZjHGRxRgX+fj8wgFz0VUGnbnoKoMdc3GiMujMRVcZnDAXT1QGnbnoKoMdc9FVBp256CqDzlw8URmcMBddZdCZi64y6MzFE5XBzmKMiyzGuMhijIu8+Ia56CqDE+ZipzLYMRc7lcETlcET5mLHXOxUBk9UBifMxY65OGEuusqgMxc7lcGOuTixGOMiizEushjjIi8eMhcnKoPOXJwwF11l8IS56CqDJyqDzlx0lcGOuXjCXHSVwYnKYMdcdJXBicrgRGVwYjHGRRZjXGQxxkU+Pr+wYS66ymDHXHSVwQlz0VUGO+aiqww6c9FVBp252KkMdszFTmXwhLn4TZXBjrnoKoMdc7FTGeyYi64y2FmMcZHFGBdZjHGRF29WGZwwF11lcKIy6MxFVxmcqAx2zEVXGeyYi64y6MxFVxnsVAaduThRGZwwF+9UGXTmYqcyOLEY4yKLMS6yGOMiLw6Zi64y2DEXO5VBZy66yuCdzMWOuThhLrrKoKsMOnNxojI4URl05mLHXJyoDDpz0VUGXWXQmYsT5qKrDHYWY1xkMcZFFmNc5MU3KoPOXLyTuegqgx1zsVMZdObiRGXwhLnoKoOdyqAzF11lcMJcdJVBZy52KoPOXHTmoqsMOnPRVQY7lcE7Lca4yGKMiyzGuMiLh8zFE5XBjrnoKoPOXOxUBjvm4p0qg3cyF11l0FUGO+aiqwx2zMUJc9FVBp256CqDzlx0lUFnLrrKYGcxxkUWY1xkMcZFXvyyyqAzF11lsGMunjAXXWXwhLnoKoOdyqAzF+9kLrrKoDMXXWWwUxmcMBddZdCZi64y6MzFE4sxLrIY4yKLMS7y4hvm4kRl0JmLzlx0lcGJyqAzF0+Yi64y6MxFVxl0lcFPqgxOVAaduegqg85c7JiLE5VBZy5+02KMiyzGuMhijIu8OFQZPFEZdObihLnoKoMdc3HCXOyYi64y2DEXXWWwUxl05uKJyqAzFzuVQWcuusqgMxcnKoOdyuCJxRgXWYxxkcUYF/n4/MIBc/FEZfCEuThRGZwwF11lsGMudiqDzlx0lUFnLk5UBp252KkMOnPxRGXQmYuuMujMRVcZdOaiqwxOLMa4yGKMiyzGuMiLb5iLE5VBZy52zMU7VQaduegqg53KYMdcPFEZdOaiqww6c9FVBjuVwY656CqDzlx0lUFnLjpz8YS5eKfFGBdZjHGRxRgXefHLzEVXGeyYi64y6MxFZy7eyVzsVAaduThRGXTmoqsMTpiLncqgMxc75uJEZdCZi64y6MzFjrnoKoOdxRgXWYxxkcUYF/n4/MKGuegqg85c7FQGO+aiqwxOmIsnKoMT5uKJyqAzF11l8H9iLnYqgx1z0VUGTyzGuMhijIssxrjIi4cqg85c7JiLrjI4YS66yqAzF11l0JmLzlzsVAY7lUFnLrrKoDMXv8lcdJVBZy52KoMTlUFnLrrKoKsMOnOxUxnsLMa4yGKMiyzGuMiLh8zFE+biRGXQmYuuMngnc9FVBp256CqDzlx0lUFnLnbMRVcZdOaiqwy6ymCnMujMRWcuTpiLHXOxUxl05uLEYoyLLMa4yGKMi3x8fuEPMxddZbBjLnYqgx1zcaIy6MzFicpgx1zsVAY75qKrDDpzcaIyOGEuTlQGnbnoKoOdxRgXWYxxkcUYF3nxDXPxmyqDrjLozMUT5mKnMtgxF525OFEZdObinczFbzIXXWVwojLYqQxOLMa4yGKMiyzGuMiLQ5XBO5mLJyqDHXPRVQaduejMRVcZdJXBCXPRmYuuMtgxF11l0JmLncpgpzLozMWJyuAnmYuuMthZjHGRxRgXWYxxkRcPmYsTlcEJc7FjLnYqg85c7FQGnbl4ojLYMRddZdBVBp252KkMTpiLrjLozEVnLp6oDDpz0VUGTyzGuMhijIssxrjIi8tUBp25OGEuusrgCXPRVQZdZbBjLrrKoDMXO+aiqwy6yqAzF11l0JmLrjLozEVXGexUBp25eGIxxkUWY1xkMcZFXvzPVQYnKoPOXHSVQWcudiqDzlx0lcEJc7FjLnbMxQlz8YS52DEXO5XBTmVwYjHGRRZjXGQxxkVePFQZ/KTK4IS52DEXXWVwojJ4wlx0lcFPqgx2KoMdc7FTGeyYix1z8U6LMS6yGOMiizEu8uKQufiXzMUTlcGOuegqg85cdJXBjrnYMRc7lUFnLrrK4IS56CqDncqgMxc75mKnMvhJizEushjjIosxLvLx+YUxLrEY4yKLMS6yGOMiizEushjjIosxLrIY4yL/AVyR3fpQ5JxLAAAAAElFTkSuQmCC",
-      "verificationUrl": "http://localhost:3000/verify.html?reportId=REP-51BAF385",
-      "blockIndex": 10,
-      "blockHash": "0042e26d2fd70d7a4a6af9dfe4381b780c61c27dc6da3b35375f21823b183ace",
-      "createdAt": "2026-10-23T07:34:54.413Z",
-      "status": "ANCHORED_ON_BLOCKCHAIN"
-    },
     {
       "reportId": "REP-7A91F2C4",
       "patientId": "usr_pat_01",
@@ -177,7 +121,7 @@
         "doctorName": "Dr. Sarah Rao, MD",
         "doctorId": "usr_doc_01",
         "department": "Cardiology & General Medicine",
-        "hospital": "Metro Apex Hospital",
+        "hospital": "SIT Students Hospital",
         "updatedAt": "2026-08-14T14:30:00Z",
         "status": "Reviewed & Prescribed"
       },
@@ -245,19 +189,19 @@
         ],
         "diagnosticImpression": "Confirmed Stage-2 Type 2 Diabetes Mellitus with moderate glycemic variability.",
         "recommendedAction": "Initiate metformin oral therapy; follow up in 90 days with repeat HbA1c.",
-        "aiEngine": "Local Clinical NLP Engine (Consortium Verified)"
+        "aiEngine": "Local Clinical Rule Engine (SIT Hospital Verified)"
       },
-      "sampleContent": "PATIENT DIAGNOSTIC REPORT - METRO APEX HOSPITAL\nPatient: John Doe | ID: PT-9901 | Age: 48 | Sex: M\nDate of Test: 14-Aug-2026 | Lab Ref: LAB-88910\n\nBIOCHEMISTRY INVESTIGATION:\n1. Fasting Blood Sugar (FBS): 142 mg/dL (Normal: 70 - 99 mg/dL) [HIGH]\n2. Postprandial Blood Glucose: 198 mg/dL (Normal: < 140 mg/dL) [ELEVATED]\n3. Glycated Hemoglobin (HbA1c): 7.4% (Normal: 4.0 - 5.6%) [DIABETIC RANGE]",
+      "sampleContent": "PATIENT DIAGNOSTIC REPORT - SIT STUDENTS HOSPITAL\nPatient: John Doe | ID: PT-9901 | Age: 48 | Sex: M\nDate of Test: 14-Aug-2026 | Lab Ref: LAB-88910\n\nBIOCHEMISTRY INVESTIGATION:\n1. Fasting Blood Sugar (FBS): 142 mg/dL (Normal: 70 - 99 mg/dL) [HIGH]\n2. Postprandial Blood Glucose: 198 mg/dL (Normal: < 140 mg/dL) [ELEVATED]\n3. Glycated Hemoglobin (HbA1c): 7.4% (Normal: 4.0 - 5.6%) [DIABETIC RANGE]",
       "blockIndex": 1,
-      "reportHash": "c36a5b79b3c87513d78bd232b4eef19b1978b218383eda3bf46e0f8029b151d2",
+      "reportHash": "7a831d4dc0570b45aa09cd30a89e887894997928f9645e36bf764debdbc24ccd",
       "storageReference": "REP-7A91F2C4_encrypted.bin",
-      "fileSize": 7206,
-      "encryptedSize": 7232,
+      "fileSize": 7340,
+      "encryptedSize": 7360,
       "qrCodeDataUrl": "data:image/png;base64,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",
       "verificationUrl": "http://localhost:3000/verify.html?reportId=REP-7A91F2C4",
       "createdAt": "2026-08-14T00:00:00.000Z",
       "status": "ANCHORED_ON_BLOCKCHAIN",
-      "blockHash": "00418948ea700f94d99d5dbf2fa47652ca2b93922a70220d1f7560d989a28322"
+      "blockHash": "002bb55ed56f384d1cbbd0b0a1dd844f3296c4ff7779203bc41b1e371058d1e3"
     },
     {
       "reportId": "REP-8D44B190",
@@ -280,7 +224,7 @@
         "doctorName": "Dr. Rajesh Nair, MS",
         "doctorId": "usr_doc_02",
         "department": "Orthopedics & Trauma",
-        "hospital": "Metro Apex Hospital",
+        "hospital": "SIT Students Hospital",
         "updatedAt": "2026-09-02T16:15:00Z",
         "status": "Evaluated & Rehabilitation Prescribed"
       },
@@ -349,19 +293,19 @@
         ],
         "diagnosticImpression": "Mild lumbar spondylosis with multilevel degenerative disc arthropathy; no fracture.",
         "recommendedAction": "Engage in core-strengthening physical therapy; ergonomic work posture modification.",
-        "aiEngine": "Local Clinical NLP Engine (Consortium Verified)"
+        "aiEngine": "Local Clinical Rule Engine (SIT Hospital Verified)"
       },
-      "sampleContent": "RADIOLOGY & IMAGING REPORT - METRO APEX HOSPITAL\nPatient: John Doe | ID: PT-9901 | Age: 48 | Sex: M\nExam: Digital X-Ray Lumbosacral Spine AP & Lateral Views\nDate: 02-Sep-2026\n\nFINDINGS:\n- Alignment of lumbar vertebral bodies is preserved.\n- No obvious acute cortical fracture or dislocation identified.\n- Mild degenerative disc space narrowing at L4-L5 and L5-S1 interspaces.\n- Early anterior osteophytic spurring noted.\n\nIMPRESSION:\nNo acute fracture. Mild lumbar spondylosis with degenerative disc changes.",
+      "sampleContent": "RADIOLOGY & IMAGING REPORT - SIT STUDENTS HOSPITAL\nPatient: John Doe | ID: PT-9901 | Age: 48 | Sex: M\nExam: Digital X-Ray Lumbosacral Spine AP & Lateral Views\nDate: 02-Sep-2026\n\nFINDINGS:\n- Alignment of lumbar vertebral bodies is preserved.\n- No obvious acute cortical fracture or dislocation identified.\n- Mild degenerative disc space narrowing at L4-L5 and L5-S1 interspaces.\n- Early anterior osteophytic spurring noted.\n\nIMPRESSION:\nNo acute fracture. Mild lumbar spondylosis with degenerative disc changes.",
       "blockIndex": 2,
-      "reportHash": "849db79f5f09bf9354551505d0645ce8d02af640d2956db41468340796389f9f",
+      "reportHash": "b27d44c3be719937098925b461bcee3aabbed9ae586c9ce623703ebbddac1295",
       "storageReference": "REP-8D44B190_encrypted.bin",
-      "fileSize": 7227,
-      "encryptedSize": 7248,
+      "fileSize": 7352,
+      "encryptedSize": 7376,
       "qrCodeDataUrl": "data:image/png;base64,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",
       "verificationUrl": "http://localhost:3000/verify.html?reportId=REP-8D44B190",
       "createdAt": "2026-09-02T00:00:00.000Z",
       "status": "ANCHORED_ON_BLOCKCHAIN",
-      "blockHash": "00b2768a4fef2e41161d4390c762bd0b22555bddec91d6e7632bb56ec55c6b7b"
+      "blockHash": "00c89556da6048d9816cef5ff0279652fdf7bb3195831539e10d05096e211b90"
     },
     {
       "reportId": "REP-9E11C83F",
@@ -384,7 +328,7 @@
         "doctorName": "Dr. Sarah Rao, MD",
         "doctorId": "usr_doc_01",
         "department": "Cardiology & General Medicine",
-        "hospital": "Metro Apex Hospital",
+        "hospital": "SIT Students Hospital",
         "updatedAt": "2026-09-28T11:45:00Z",
         "status": "Verified Normal"
       },
@@ -465,19 +409,19 @@
         ],
         "diagnosticImpression": "Complete blood count within optimal physiological reference parameters.",
         "recommendedAction": "Routine preventive healthcare monitoring in 6-12 months.",
-        "aiEngine": "Local Clinical NLP Engine (Consortium Verified)"
+        "aiEngine": "Local Clinical Rule Engine (SIT Hospital Verified)"
       },
-      "sampleContent": "HEMATOLOGY WORKUP REPORT - METRO APEX HOSPITAL\nPatient: John Doe | ID: PT-9901 | Age: 48 | Sex: M\nDate: 28-Sep-2026 | Automated Cell Counter Analyzer\n\nCOMPLETE BLOOD COUNT:\n- Hemoglobin (Hb): 14.8 g/dL (Ref: 13.5 - 17.5 g/dL) [NORMAL]\n- Total Leucocyte Count (WBC): 6,900 /cumm (Ref: 4,000 - 11,000) [NORMAL]\n- Platelet Count: 265,000 /cumm (Ref: 150,000 - 450,000) [NORMAL]\n- RBC Count: 4.9 million/cumm (Ref: 4.5 - 5.9) [NORMAL]",
+      "sampleContent": "HEMATOLOGY WORKUP REPORT - SIT STUDENTS HOSPITAL\nPatient: John Doe | ID: PT-9901 | Age: 48 | Sex: M\nDate: 28-Sep-2026 | Automated Cell Counter Analyzer\n\nCOMPLETE BLOOD COUNT:\n- Hemoglobin (Hb): 14.8 g/dL (Ref: 13.5 - 17.5 g/dL) [NORMAL]\n- Total Leucocyte Count (WBC): 6,900 /cumm (Ref: 4,000 - 11,000) [NORMAL]\n- Platelet Count: 265,000 /cumm (Ref: 150,000 - 450,000) [NORMAL]\n- RBC Count: 4.9 million/cumm (Ref: 4.5 - 5.9) [NORMAL]",
       "blockIndex": 3,
-      "reportHash": "690b39d257bdf0adb8176bd6d215f48159159095822e6e055398892e3e9206c9",
+      "reportHash": "455af224227c9c9abf24abc0f8a5ac0112b4d9823b7af95c29659a7b516d1254",
       "storageReference": "REP-9E11C83F_encrypted.bin",
-      "fileSize": 7216,
-      "encryptedSize": 7248,
+      "fileSize": 7214,
+      "encryptedSize": 7232,
       "qrCodeDataUrl": "data:image/png;base64,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",
       "verificationUrl": "http://localhost:3000/verify.html?reportId=REP-9E11C83F",
       "createdAt": "2026-09-28T00:00:00.000Z",
       "status": "ANCHORED_ON_BLOCKCHAIN",
-      "blockHash": "00e44884fdd33a8065239f87c602c62bd6504433290261f0acb4ef683b95117e"
+      "blockHash": "003285cc52ed6ac09fcc39a8415d1ec7a86c4b988e2f10c0ef3c97318fd87929"
     },
     {
       "reportId": "REP-3C55A701",
@@ -500,7 +444,7 @@
         "doctorName": "Dr. Sarah Rao, MD",
         "doctorId": "usr_doc_01",
         "department": "Cardiology & General Medicine",
-        "hospital": "Metro Apex Hospital",
+        "hospital": "SIT Students Hospital",
         "updatedAt": "2026-09-15T15:00:00Z",
         "status": "Reviewed & Advised"
       },
@@ -574,19 +518,19 @@
         ],
         "diagnosticImpression": "Favorable global lipid panel with isolated mild borderline LDL cholesterol elevation.",
         "recommendedAction": "Adopt dietary saturated fat reduction; recheck fasting profile in 12 months.",
-        "aiEngine": "Local Clinical NLP Engine (Consortium Verified)"
+        "aiEngine": "Local Clinical Rule Engine (SIT Hospital Verified)"
       },
-      "sampleContent": "LIPID PROFILE INVESTIGATION - PATHOLOGY DIAGNOSTICS LAB\nPatient: Meera Patel | ID: PT-9902 | Age: 34 | Sex: F\nDate: 15-Sep-2026\n\nLIPID PANEL:\n- Total Serum Cholesterol: 185 mg/dL (Desirable: < 200 mg/dL) [NORMAL]\n- Serum Triglycerides: 132 mg/dL (Normal: < 150 mg/dL) [NORMAL]\n- HDL Cholesterol: 54 mg/dL (Protective: > 50 mg/dL) [GOOD]\n- LDL Cholesterol: 105 mg/dL (Optimal: < 100 mg/dL) [BORDERLINE]",
+      "sampleContent": "LIPID PROFILE INVESTIGATION - SIT HOSPITAL CENTRAL PATHOLOGY LAB\nPatient: Meera Patel | ID: PT-9902 | Age: 34 | Sex: F\nDate: 15-Sep-2026\n\nLIPID PANEL:\n- Total Serum Cholesterol: 185 mg/dL (Desirable: < 200 mg/dL) [NORMAL]\n- Serum Triglycerides: 132 mg/dL (Normal: < 150 mg/dL) [NORMAL]\n- HDL Cholesterol: 54 mg/dL (Protective: > 50 mg/dL) [GOOD]\n- LDL Cholesterol: 105 mg/dL (Optimal: < 100 mg/dL) [BORDERLINE]",
       "blockIndex": 4,
-      "reportHash": "bd5eaecdd0f62cbac4d9c53f6aca202a6e51e3352ec9a5c0dfca25abf9570611",
+      "reportHash": "f6f8bf0a4fc6d9dc0b512a411709088db9ad271ed4e48cf3b0991781610a4eb6",
       "storageReference": "REP-3C55A701_encrypted.bin",
-      "fileSize": 7207,
-      "encryptedSize": 7232,
+      "fileSize": 7286,
+      "encryptedSize": 7312,
       "qrCodeDataUrl": "data:image/png;base64,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",
       "verificationUrl": "http://localhost:3000/verify.html?reportId=REP-3C55A701",
       "createdAt": "2026-09-15T00:00:00.000Z",
       "status": "ANCHORED_ON_BLOCKCHAIN",
-      "blockHash": "003dd867c2b56c813a7113ce04bb58de5e72c7b0cee6d3c8275944ced5664bde"
+      "blockHash": "003ae95f6eaeb9eac3b89ef7fafd10a6567349826e7c40f7ff5f889ae3ed967b"
     },
     {
       "reportId": "REP-5C32F810",
@@ -609,7 +553,7 @@
         "doctorName": "Dr. Sarah Rao, MD",
         "doctorId": "usr_doc_01",
         "department": "Cardiology & General Medicine",
-        "hospital": "Metro Apex Hospital",
+        "hospital": "SIT Students Hospital",
         "updatedAt": "2026-10-02T12:00:00Z",
         "status": "Prescribed & Monitoring"
       },
@@ -668,19 +612,19 @@
         ],
         "diagnosticImpression": "Subclinical hypothyroidism with preserved peripheral thyroid hormone levels.",
         "recommendedAction": "Trial low-dose levothyroxine 25 mcg; repeat serum TSH in 8 weeks.",
-        "aiEngine": "Local Clinical NLP Engine (Consortium Verified)"
+        "aiEngine": "Local Clinical Rule Engine (SIT Hospital Verified)"
       },
-      "sampleContent": "ENDOCRINE INVESTIGATION - PATHOLOGY DIAGNOSTICS LAB\nPatient: Meera Patel | ID: PT-9902 | Age: 34 | Sex: F\nDate: 02-Oct-2026\n\nTHYROID PANEL:\n- TSH: 5.42 uIU/mL (Ref: 0.45 - 4.50 uIU/mL) [ELEVATED]\n- Free T4: 1.18 ng/dL (Ref: 0.82 - 1.77 ng/dL) [NORMAL]\n- Free T3: 3.12 pg/mL (Ref: 2.00 - 4.40 pg/mL) [NORMAL]\n\nImpression: Subclinical hypothyroidism with normal free hormone levels.",
+      "sampleContent": "ENDOCRINE INVESTIGATION - SIT HOSPITAL CENTRAL PATHOLOGY LAB\nPatient: Meera Patel | ID: PT-9902 | Age: 34 | Sex: F\nDate: 02-Oct-2026\n\nTHYROID PANEL:\n- TSH: 5.42 uIU/mL (Ref: 0.45 - 4.50 uIU/mL) [ELEVATED]\n- Free T4: 1.18 ng/dL (Ref: 0.82 - 1.77 ng/dL) [NORMAL]\n- Free T3: 3.12 pg/mL (Ref: 2.00 - 4.40 pg/mL) [NORMAL]\n\nImpression: Subclinical hypothyroidism with normal free hormone levels.",
       "blockIndex": 5,
-      "reportHash": "cce6a3ea05cba2e68673f56a495dff08105dca878aeab3a0d266810e1f71b8f5",
+      "reportHash": "1628026e1536e30a694a2469e07cfe7e35d548fae615a1add4f7b01c9d1ce64e",
       "storageReference": "REP-5C32F810_encrypted.bin",
-      "fileSize": 7091,
-      "encryptedSize": 7120,
+      "fileSize": 7224,
+      "encryptedSize": 7248,
       "qrCodeDataUrl": "data:image/png;base64,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",
       "verificationUrl": "http://localhost:3000/verify.html?reportId=REP-5C32F810",
       "createdAt": "2026-10-02T00:00:00.000Z",
       "status": "ANCHORED_ON_BLOCKCHAIN",
-      "blockHash": "002dda9bc8ef652d26852e020051f84b816f23c9d623bd145e184610fe32c3a5"
+      "blockHash": "00c5be7552513e30a8af9778f417048bbbc884895bfba3faeff69fd754c91744"
     },
     {
       "reportId": "REP-6A18D902",
@@ -703,7 +647,7 @@
         "doctorName": "Dr. Sarah Rao, MD",
         "doctorId": "usr_doc_01",
         "department": "Cardiology & General Medicine",
-        "hospital": "Metro Apex Hospital",
+        "hospital": "SIT Students Hospital",
         "updatedAt": "2026-09-10T18:00:00Z",
         "status": "Stabilized & Investigated"
       },
@@ -763,19 +707,19 @@
         ],
         "diagnosticImpression": "Atypical chest discomfort with negative cardiac biomarkers; acute ischemia ruled out.",
         "recommendedAction": "Schedule outpatient stress echocardiography to assess inducible ischemia.",
-        "aiEngine": "Local Clinical NLP Engine (Consortium Verified)"
+        "aiEngine": "Local Clinical Rule Engine (SIT Hospital Verified)"
       },
-      "sampleContent": "CARDIOLOGY EMERGENCY ASSESSMENT - METRO APEX HOSPITAL\nPatient: Robert Chen | ID: PT-9903 | Age: 54 | Sex: M\nDate: 10-Sep-2026\n\nCARDIAC EVALUATION:\n- Heart Rate: 96 bpm (Sinus rhythm)\n- hs-Troponin-I: 0.008 ng/mL (Ref: < 0.014 ng/mL) [NORMAL]\n- CK-MB: 18.4 U/L (Ref: < 25.0 U/L) [NORMAL]\n\nImpression: Negative serial cardiac biomarkers. Acute coronary necrosis excluded.",
+      "sampleContent": "CARDIOLOGY EMERGENCY ASSESSMENT - SIT STUDENTS HOSPITAL\nPatient: Robert Chen | ID: PT-9903 | Age: 54 | Sex: M\nDate: 10-Sep-2026\n\nCARDIAC EVALUATION:\n- Heart Rate: 96 bpm (Sinus rhythm)\n- hs-Troponin-I: 0.008 ng/mL (Ref: < 0.014 ng/mL) [NORMAL]\n- CK-MB: 18.4 U/L (Ref: < 25.0 U/L) [NORMAL]\n\nImpression: Negative serial cardiac biomarkers. Acute coronary necrosis excluded.",
       "blockIndex": 6,
-      "reportHash": "66bc338086d0f167e3ec40f414459fc48ed0d3a9fe026f26cfe8e34de01e3d8d",
+      "reportHash": "a5c260ccdad8db40a442bea098de19df8a261978bdb74e484b6c2fd46fd031d3",
       "storageReference": "REP-6A18D902_encrypted.bin",
-      "fileSize": 7214,
-      "encryptedSize": 7232,
+      "fileSize": 7325,
+      "encryptedSize": 7344,
       "qrCodeDataUrl": "data:image/png;base64,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",
       "verificationUrl": "http://localhost:3000/verify.html?reportId=REP-6A18D902",
       "createdAt": "2026-09-10T00:00:00.000Z",
       "status": "ANCHORED_ON_BLOCKCHAIN",
-      "blockHash": "00d287a68bd57b44ab454cb86811a5c4da3562cd014b343c83a8b96a08360d57"
+      "blockHash": "0005567ecf0a739da07313c75494528a72c6a93e4cc0dc37e8cbce915403f6f9"
     },
     {
       "reportId": "REP-9F71E304",
@@ -798,7 +742,7 @@
         "doctorName": "Dr. Sarah Rao, MD",
         "doctorId": "usr_doc_01",
         "department": "Cardiology & General Medicine",
-        "hospital": "Metro Apex Hospital",
+        "hospital": "SIT Students Hospital",
         "updatedAt": "2026-09-18T14:30:00Z",
         "status": "Cleared & Outpatient Follow-up"
       },
@@ -857,19 +801,19 @@
         ],
         "diagnosticImpression": "Normal functional stress echocardiogram with preserved cardiac reserve.",
         "recommendedAction": "Discharge from acute cardiology monitoring; routine lifestyle maintenance.",
-        "aiEngine": "Local Clinical NLP Engine (Consortium Verified)"
+        "aiEngine": "Local Clinical Rule Engine (SIT Hospital Verified)"
       },
-      "sampleContent": "STRESS ECHOCARDIOGRAPHY - METRO APEX HOSPITAL\nPatient: Robert Chen | ID: PT-9903 | Age: 54 | Sex: M\nDate: 18-Sep-2026\n\nFUNCTIONAL STUDY:\n- Left Ventricular Ejection Fraction: 62% [NORMAL]\n- Peak Workload: 9.2 METs [EXCELLENT]\n- Regional Wall Motion Abnormality: None [NEGATIVE]\n\nImpression: Normal stress echocardiogram. No inducible ischemia.",
+      "sampleContent": "STRESS ECHOCARDIOGRAPHY - SIT STUDENTS HOSPITAL\nPatient: Robert Chen | ID: PT-9903 | Age: 54 | Sex: M\nDate: 18-Sep-2026\n\nFUNCTIONAL STUDY:\n- Left Ventricular Ejection Fraction: 62% [NORMAL]\n- Peak Workload: 9.2 METs [EXCELLENT]\n- Regional Wall Motion Abnormality: None [NEGATIVE]\n\nImpression: Normal stress echocardiogram. No inducible ischemia.",
       "blockIndex": 7,
-      "reportHash": "c7d57a0f311baa5a37012be2cbbfdb7c5587c2b46d9a5401f0e8ee0308973263",
+      "reportHash": "148b19b4fb23b64cabc2fb2ae940221f597ba0a821af2e10a3537e8f49fe5cae",
       "storageReference": "REP-9F71E304_encrypted.bin",
-      "fileSize": 7130,
-      "encryptedSize": 7152,
+      "fileSize": 7261,
+      "encryptedSize": 7280,
       "qrCodeDataUrl": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAALQAAAC0CAYAAAA9zQYyAAAAAklEQVR4AewaftIAAArCSURBVO3BMXJkOw5FwSNGmTCxDOx/JXcZMOFrZMJiB+NVqftzkPn1/YMxLrEY4yKLMS6yGOMiizEushjjIosxLrIY4yIv/sA8+E2VojMPdipFZx50laIzD7pKccI82KkUO+ZBVyk686CrFJ150FWKE+ZBVyk682CnUnTmwW+qFDuLMS6yGOMiizEu8uJQpXgn8+BEpejMg65S7FSKd6oUJyrFTqU4YR6cqBSdedBVis48OFEp3sk8OLEY4yKLMS6yGOMiLx4yD05UineqFJ15cKJSdOZBVym6SrFjHvymStGZB0+YB+9kHpyoFE8sxrjIYoyLLMa4yIt/XKXozIPfZB50laIzD7pK0ZkHJyrFCfOgqxTvVCn+SxZjXGQxxkUWY1zkxeUqxYlK8YR50FWKzjzoKsWOedBViq5SnDAPTpgHXaX4ly3GuMhijIssxrjIi4cqxSeZB0+YB12l2DEPPqlSnKgUnXnwTpXikyrFb1qMcZHFGBdZjHGRF4fMg7+pUnTmQVcpOvNgxzzoKkVnHnSVojMPukrRmQddpejMg65SdOZBVyk686CrFJ150FWKzjzoKkVnHnSVYsc8+JsWY1xkMcZFFmNc5Ov7B/8w82CnUnTmQVcpOvPgiUqxYx50laIzD05UihPmQVcpTpgHO5XiX7YY4yKLMS6yGOMiX98/eMA8OFEpOvOgqxSdeXCiUpwwD3YqxY55cKJSdOZBVyk686CrFE+YB12lOGEenKgUO+bBiUqxsxjjIosxLrIY4yJf3z/YMA+6SvGbzIOdStGZB12l6MyDnUrxhHnQVYrOPOgqxY55sFMpdsyDrlJ05sGJStGZBycqRWce7FSKE4sxLrIY4yKLMS7y4iHz4ESl6MyDJ8yDHfNgp1I8YR50laIzD7pK0ZkHXaXYqRSdebBTKXYqxQnzoKsUnXnQVYqdSrFjHnSVYmcxxkUWY1xkMcZFXvxBpdipFDvmwU6l2DEPukrRmQc7lWLHPOgqRWce7FSKE+ZBVyl2KsXfZB68k3nQVYrOPOgqxYnFGBdZjHGRxRgXefEH5sGJSrFjHuxUiq5SdOZBVylOmAcnKkVnHnTmQVcpTpgHXaXozIOuUuxUis482KkUnXnQVYrOPOjMgyfMg65SPLEY4yKLMS6yGOMiLw5Vis482KkUnXnQVYrOPNipFJ150FWKzjz4pEpxolLsmAc75kFXKTrzoKsUJyrFTqU4YR7sVIod86CrFDuLMS6yGOMiizEu8uKhStGZBzuVojMPukqxYx50laIzD3YqxQnzoKsUO+bBjnmwUyneyTw4USl2zIOdSrFTKU5UihOLMS6yGOMiizEu8uKQebBTKTrzYKdSdObBJ5kHXaXozIMT5kFXKXbMgyfMg65S7FSKHfPgX2IedJXixGKMiyzGuMhijIt8ff/ggHnQVYrOPOgqxY55cKJSdOZBVylOmAdPVIonzIOuUnTmQVcpOvPgiUpxwjzoKkVnHnSVojMPnqgUO4sxLrIY4yKLMS7y4g/Mg65SnDAPdirFjnnQmQddpXiiUjxhHpyoFF2leKJSnDAPdsyDE+ZBVyk682CnUuyYBycWY1xkMcZFFmNc5MVD5sGJStGZBycqRWcedJVixzzYqRQ75kFXKXbMg8486CpFZx48YR50leJEpdgxD7pKcaJSnKgUJxZjXGQxxkUWY1zkxUOVojMPukqxUyk686CrFE+YB12l2DEPukpxwjzoKsWOedBVis482DEPdsyDHfOgqxSfZB50lWLHPOgqxc5ijIssxrjIYoyLvHizSnHCPOgqRWcedJWiqxSdedBVis482KkUO5WiMw+6StGZB12leMI8eKJSnDAPTpgHO5WiMw92KsWJxRgXWYxxkcUYF3lxyDx4p0rRmQd/k3lwolLsVIrOPDhRKXbMg65SdObBjnlwolJ05kFXKXbMgxPmQVcpdhZjXGQxxkUWY1zk6/sHB8yDrlLsmAe/qVJ05sGJSvGEedBVis486CpFZx50lWLHPNipFJ15sFMpOvNgp1KcMA+6SvFOizEushjjIosxLvLizcyDE5WiMw+6SrFjHuxUih3z4J0qxTuZB12l6CrFjnnQVYod8+CEeXCiUnTmQVcpOvOgqxQ7izEushjjIosxLvLil1WKzjzoKkVnHryTedBViifMg65S7FSKzjx4J/OgqxSdedBVip1KccI86CpFZx50laIzD55YjHGRxRgXWYxxkRcPmQddpejMg8486CrFiUrRmQdPmAddpejMg65SdJXikyrFiUrRmQddpejMgx3z4ESl6MyD37QY4yKLMS6yGOMiLw5ViicqRWcenDAPukqxYx6cMA92zIOuUuyYB12l2KkUnXnwRKXozIOdStGZB12l6MyDE5Vip1I8sRjjIosxLrIY4yJf3z/YMA+6StGZBycqxRPmwYlKccI86CrFjnmwUyk686CrFJ15cKJSdObBTqXozINPqhSdedBVis486CrFicUYF1mMcZHFGBd5ccg82KkUJ8yDd6oUnXnQVYqdStGZB+9UKTrzoKsUT1SKHfOgqxSdeXCiUnTmwQnz4J0WY1xkMcZFFmNc5Ov7BxvmwYlK0ZkHO5VixzzoKkVnHpyoFDvmwYlK0ZkHO5Xik8yDnUrRmQddpdgxD3YqRWcedJWiMw9OVIqdxRgXWYxxkcUYF/n6/sGGedBVis482KkUO+ZBVylOmAddpejMg51K0ZkHXaXozIOdSnHCPDhRKT7JPNipFJ15sFMpdsyDrlI8sRjjIosxLrIY4yIvHqoUnXmwYx50leKEedBVis48OGEePFEpOvPgiUrxTuZBVyk68+CdKkVnHnSVoqsUnXmwUyl2FmNcZDHGRRZjXOTFQ+bBE+bBiUrRmQc7laIzD06YB12l6MyDE5WiMw92zIOuUnTmQVcpukqxUyl2zIPOPNgxD3bMg51K0ZkHJxZjXGQxxkUWY1zkxR9Uip1KcaJSnDAPdipFZx505kFXKXbMgx3zoKsUnXlwolI8USl2zIOuUnTmwYlKccI8+E2LMS6yGOMiizEu8uIPzIPfVCm6StGZB12leMI86CrFJ5kHXaXozIMd8+BfYh50leJEpdipFCcWY1xkMcZFFmNc5MWhSvFO5sGJSrFTKTrz4IR50FWKzjzoKkVXKTrzoKsUO5WiMw92KkVnHnSVYqdSdObBiUrxSeZBVyl2FmNcZDHGRRZjXOTFQ+bBiUpxwjzoKkVnHuxUis486CrFjnnQVYrOPNipFJ150FWKnUpxolKcMA+6StGZB5158ESl6MyDrlI8sRjjIosxLrIY4yIv/mPMg65S7JgHO+bBTqU4USk686CrFCfMg65SdOZBVyk686CrFF2l6MyDrlJ05kFXKTrzoKsUO5WiMw+eWIxxkcUYF1mMcZEX/2cqRWcedJWiMw92KkVnHnSV4oR5sGMe7JgHJ8yDJ8yDHfNgp1LsVIoTizEushjjIosxLvLioUrxSZXihHmwYx50leJEpXjCPOgqxSdVip1KsWMe7FSKHfNgxzx4p8UYF1mMcZHFGBd5ccg8+JvMgycqxY550FWKzjzoKsWOebBjHuxUis486CrFCfOgqxQ7laIzD3bMg51K8UmLMS6yGOMiizEu8vX9gzEusRjjIosxLrIY4yKLMS6yGOMiizEushjjIv8Dik/icak8zIwAAAAASUVORK5CYII=",
       "verificationUrl": "http://localhost:3000/verify.html?reportId=REP-9F71E304",
       "createdAt": "2026-09-18T00:00:00.000Z",
       "status": "ANCHORED_ON_BLOCKCHAIN",
-      "blockHash": "007c36c54f5e2d2afa4d5b16acf0b85704e1713475a835f63da1f504cc35a913"
+      "blockHash": "006cea2bbbcab84fed2937d9793a1f1ac0b387e5ae806315ef8232e50a98dbe6"
     },
     {
       "reportId": "REP-2D44C119",
@@ -892,7 +836,7 @@
         "doctorName": "Dr. Ananya Sen, MD",
         "doctorId": "usr_doc_03",
         "department": "Pulmonology & Respiratory Care",
-        "hospital": "City Care Clinic",
+        "hospital": "SIT Students Hospital",
         "updatedAt": "2026-09-05T16:00:00Z",
         "status": "Diagnosed & Managed"
       },
@@ -953,19 +897,19 @@
         ],
         "diagnosticImpression": "Mild persistent bronchial asthma responsive to inhaled bronchodilators.",
         "recommendedAction": "Commence maintenance ICS-LABA combination therapy; repeat spirometry in 60 days.",
-        "aiEngine": "Local Clinical NLP Engine (Consortium Verified)"
+        "aiEngine": "Local Clinical Rule Engine (SIT Hospital Verified)"
       },
-      "sampleContent": "PULMONARY FUNCTION TEST - CITY CARE CLINIC NODE\nPatient: Ayesha Khan | ID: PT-9904 | Age: 29 | Sex: F\nDate: 05-Sep-2026\n\nSPIROMETRY:\n- FEV1 (Pre-BD): 2.42 L (78% Predicted) [MILD DECREASE]\n- FEV1 (Post-BD): 2.78 L (+15% Reversibility) [SIGNIFICANT REVERSIBILITY]\n- FEV1/FVC: 68.4% [OBSTRUCTIVE PATTERN]\n\nImpression: Reversible airflow limitation diagnostic of bronchial asthma.",
+      "sampleContent": "PULMONARY FUNCTION TEST - SIT STUDENTS HOSPITAL (PULMONOLOGY WING)\nPatient: Ayesha Khan | ID: PT-9904 | Age: 29 | Sex: F\nDate: 05-Sep-2026\n\nSPIROMETRY:\n- FEV1 (Pre-BD): 2.42 L (78% Predicted) [MILD DECREASE]\n- FEV1 (Post-BD): 2.78 L (+15% Reversibility) [SIGNIFICANT REVERSIBILITY]\n- FEV1/FVC: 68.4% [OBSTRUCTIVE PATTERN]\n\nImpression: Reversible airflow limitation diagnostic of bronchial asthma.",
       "blockIndex": 8,
-      "reportHash": "622b5e885cec44fcb6a4346e46a8463b12a68a8a98f476128c16f154f2589a7e",
+      "reportHash": "bb2258b6f0f4024ae22fcd954f7592ecb71861808c95859bc3aeb9a9bfe2df2b",
       "storageReference": "REP-2D44C119_encrypted.bin",
-      "fileSize": 7144,
-      "encryptedSize": 7168,
+      "fileSize": 7290,
+      "encryptedSize": 7312,
       "qrCodeDataUrl": "data:image/png;base64,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",
       "verificationUrl": "http://localhost:3000/verify.html?reportId=REP-2D44C119",
       "createdAt": "2026-09-05T00:00:00.000Z",
       "status": "ANCHORED_ON_BLOCKCHAIN",
-      "blockHash": "00ab33c975a1a9a298af6d61474d4d732946ecd5d1660fda5d8dbb4d0a03910b"
+      "blockHash": "003203cca6a3fb4943865f63af9cc83b00f4231738d39d8d6ac5a1ba517ed4be"
     },
     {
       "reportId": "REP-8B99A045",
@@ -988,7 +932,7 @@
         "doctorName": "Dr. Ananya Sen, MD",
         "doctorId": "usr_doc_03",
         "department": "Pulmonology & Respiratory Care",
-        "hospital": "City Care Clinic",
+        "hospital": "SIT Students Hospital",
         "updatedAt": "2026-09-22T17:15:00Z",
         "status": "Reviewed & Addressed"
       },
@@ -1048,19 +992,19 @@
         ],
         "diagnosticImpression": "Extrinsic allergic asthma driven primarily by domestic dust mite aeroallergens.",
         "recommendedAction": "Implement strict house dust mite mitigation; consider sublingual allergen immunotherapy.",
-        "aiEngine": "Local Clinical NLP Engine (Consortium Verified)"
+        "aiEngine": "Local Clinical Rule Engine (SIT Hospital Verified)"
       },
-      "sampleContent": "IMMUNOLOGY & ALLERGEN SCREEN - PATHOLOGY DIAGNOSTICS LAB\nPatient: Ayesha Khan | ID: PT-9904 | Age: 29 | Sex: F\nDate: 22-Sep-2026\n\nALLERGEN PANEL:\n- Total Serum IgE: 480 IU/mL (Ref: < 100 IU/mL) [HIGH]\n- D. pteronyssinus: 18.6 kUA/L [CLASS 4 VERY HIGH]\n- D. farinae: 14.2 kUA/L [CLASS 3 HIGH]\n\nImpression: Severe atopic sensitization to house dust mites.",
+      "sampleContent": "IMMUNOLOGY & ALLERGEN SCREEN - SIT HOSPITAL CENTRAL PATHOLOGY LAB\nPatient: Ayesha Khan | ID: PT-9904 | Age: 29 | Sex: F\nDate: 22-Sep-2026\n\nALLERGEN PANEL:\n- Total Serum IgE: 480 IU/mL (Ref: < 100 IU/mL) [HIGH]\n- D. pteronyssinus: 18.6 kUA/L [CLASS 4 VERY HIGH]\n- D. farinae: 14.2 kUA/L [CLASS 3 HIGH]\n\nImpression: Severe atopic sensitization to house dust mites.",
       "blockIndex": 9,
-      "reportHash": "261a929a1b209a3df0b06a13121b4095636830b0fdd86bb21b2f304b3aa41a4f",
+      "reportHash": "e9bf0f9d09fa644882c9eeeb61c8775646484fc1aa17fdf46fc6ec71b3435ed4",
       "storageReference": "REP-8B99A045_encrypted.bin",
-      "fileSize": 7138,
-      "encryptedSize": 7168,
+      "fileSize": 7284,
+      "encryptedSize": 7312,
       "qrCodeDataUrl": "data:image/png;base64,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",
       "verificationUrl": "http://localhost:3000/verify.html?reportId=REP-8B99A045",
       "createdAt": "2026-09-22T00:00:00.000Z",
       "status": "ANCHORED_ON_BLOCKCHAIN",
-      "blockHash": "002c52c63856ab68acf72f807fc835077dacf108bdf8d87dd14ff5378068c11e"
+      "blockHash": "00206251cd9456dbeff03be6f07f1a8cc9ff1632590abc7fa4f139c49c769b79"
     }
   ],
   "sharedLinks": [
@@ -1096,749 +1040,25 @@
       "durationMinutes": 2,
       "expiresAt": "2026-10-06T10:54:55.383Z",
       "createdAt": "2026-10-06T10:52:55.383Z"
+    },
+    {
+      "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyZXBvcnRJZCI6IlJFUC01MUJBRjM4NSIsInBhdGllbnRJZCI6InVzcl9wYXRfMDEiLCJwYXRpZW50TmFtZSI6IkpvaG4gRG9lIiwiYWNjZXNzQ29udGV4dCI6ImRvY3Rvcl9jb25zdWx0YXRpb25fdGltZV9saW1pdGVkIiwicmVjaXBpZW50RG9jdG9yIjoiQ29uc3VsdGluZyBTcGVjaWFsaXN0Iiwibm90ZXMiOiIiLCJjcmVhdGVkQXQiOjE3OTMyNzIyMDIsImlhdCI6MTc5MzI3MjIwMiwiZXhwIjoxNzkzMjcyMzIyfQ.-ctby4wcjj790s6chzRaAO1FknJfNqP4VGMYeydke9E",
+      "reportId": "REP-51BAF385",
+      "patientId": "usr_pat_01",
+      "patientName": "John Doe",
+      "reportTitle": "test",
+      "recipientDoctor": "Consulting Specialist",
+      "durationMinutes": 2,
+      "expiresAt": "2026-10-29T11:12:02.202Z",
+      "createdAt": "2026-10-29T11:10:02.202Z"
     }
   ],
   "auditLogs": [
     {
-      "id": "log_1793034030642_7sbt",
-      "action": "ANTI_FORGERY_VERIFICATION",
-      "actor": "Doctor / Verification Scanner",
-      "details": "Verification check on REP-51BAF385: MATCH (Authentic)",
-      "timestamp": "2026-10-26T17:00:30.642Z"
-    },
-    {
-      "id": "log_1793034016560_s3gk",
-      "action": "ANTI_FORGERY_VERIFICATION",
-      "actor": "Doctor / Verification Scanner",
-      "details": "Verification check on REP-51BAF385: MATCH (Authentic)",
-      "timestamp": "2026-10-26T17:00:16.560Z"
-    },
-    {
-      "id": "log_1793031161508_zk6a",
-      "action": "ANTI_FORGERY_VERIFICATION",
-      "actor": "Doctor / Verification Scanner",
-      "details": "Verification check on REP-7A91F2C4: MATCH (Authentic)",
-      "timestamp": "2026-10-26T16:12:41.508Z"
-    },
-    {
-      "id": "log_1793029974160_fi3k",
-      "action": "REPORT_DELETED",
-      "actor": "Dr. Sarah Rao",
-      "details": "Report REP-7F56AA14 (\"test2.0\") deleted from storage and active registry by Doctor Dr. Sarah Rao",
-      "timestamp": "2026-10-26T15:52:54.160Z"
-    },
-    {
-      "id": "log_1793029965848_qoy5",
-      "action": "USER_LOGIN",
-      "actor": "Dr. Sarah Rao",
-      "details": "User authenticated successfully with role: Doctor",
-      "timestamp": "2026-10-26T15:52:45.848Z"
-    },
-    {
-      "id": "log_1793029958891_bkc1",
-      "action": "REPORT_DELETED",
-      "actor": "Alex Smith",
-      "details": "Report REP-8F1EF89A (\"test2\") deleted from storage and active registry by Lab Staff Alex Smith",
-      "timestamp": "2026-10-26T15:52:38.891Z"
-    },
-    {
-      "id": "log_1793029921309_h3nr",
-      "action": "REPORT_DECRYPTED",
-      "actor": "Alex Smith",
-      "details": "Decrypted and accessed report REP-8F1EF89A",
-      "timestamp": "2026-10-26T15:52:01.309Z"
-    },
-    {
-      "id": "log_1793029874423_hz4w",
-      "action": "REPORT_UPLOADED",
-      "actor": "Alex Smith",
-      "details": "Uploaded report REP-7F56AA14 for patient John Doe. Anchored to Block #16",
-      "timestamp": "2026-10-26T15:51:14.423Z"
-    },
-    {
-      "id": "log_1793029839405_n5gk",
-      "action": "REPORT_DECRYPTED",
-      "actor": "Alex Smith",
-      "details": "Decrypted and accessed report REP-8F1EF89A",
-      "timestamp": "2026-10-26T15:50:39.405Z"
-    },
-    {
-      "id": "log_1793029835563_a213",
-      "action": "REPORT_UPLOADED",
-      "actor": "Alex Smith",
-      "details": "Uploaded report REP-8F1EF89A for patient John Doe. Anchored to Block #15",
-      "timestamp": "2026-10-26T15:50:35.563Z"
-    },
-    {
-      "id": "log_1793029816761_mfwe",
-      "action": "USER_LOGIN",
-      "actor": "Alex Smith",
-      "details": "User authenticated successfully with role: Lab Staff",
-      "timestamp": "2026-10-26T15:50:16.761Z"
-    },
-    {
-      "id": "log_1793029772496_2plp",
-      "action": "USER_LOGIN",
-      "actor": "Consortium SuperAdmin",
-      "details": "User authenticated successfully with role: Admin",
-      "timestamp": "2026-10-26T15:49:32.496Z"
-    },
-    {
-      "id": "log_1793029546471_jit6",
-      "action": "USER_LOGIN",
-      "actor": "Alex Smith",
-      "details": "User authenticated successfully with role: Lab Staff",
-      "timestamp": "2026-10-26T15:45:46.471Z"
-    },
-    {
-      "id": "log_1793029538879_luz7",
-      "action": "USER_LOGIN",
-      "actor": "Dr. Sarah Rao",
-      "details": "User authenticated successfully with role: Doctor",
-      "timestamp": "2026-10-26T15:45:38.879Z"
-    },
-    {
-      "id": "log_1793005861097_qkoe",
-      "action": "USER_LOGIN",
-      "actor": "Dr. Sarah Rao",
-      "details": "User authenticated successfully with role: Doctor",
-      "timestamp": "2026-10-26T09:11:01.097Z"
-    },
-    {
-      "id": "log_1793005831056_805y",
-      "action": "USER_LOGIN",
-      "actor": "Consortium SuperAdmin",
-      "details": "User authenticated successfully with role: Admin",
-      "timestamp": "2026-10-26T09:10:31.056Z"
-    },
-    {
-      "id": "log_1793005815293_1otk",
-      "action": "USER_LOGIN",
-      "actor": "John Doe",
-      "details": "User authenticated successfully with role: Patient",
-      "timestamp": "2026-10-26T09:10:15.293Z"
-    },
-    {
-      "id": "log_1793005796519_6p3r",
-      "action": "USER_LOGIN",
-      "actor": "Alex Smith",
-      "details": "User authenticated successfully with role: Lab Staff",
-      "timestamp": "2026-10-26T09:09:56.520Z"
-    },
-    {
-      "id": "log_1793005778803_r7cu",
-      "action": "USER_LOGIN",
-      "actor": "Dr. Sarah Rao",
-      "details": "User authenticated successfully with role: Doctor",
-      "timestamp": "2026-10-26T09:09:38.803Z"
-    },
-    {
-      "id": "log_1793005751720_yac9",
-      "action": "USER_LOGIN",
-      "actor": "Dr. Sarah Rao",
-      "details": "User authenticated successfully with role: Doctor",
-      "timestamp": "2026-10-26T09:09:11.720Z"
-    },
-    {
-      "id": "log_1793004022979_q3rf",
-      "action": "AI_GATEWAY_CONFIGURED",
-      "actor": "Consortium SuperAdmin",
-      "details": "Admin verified and activated Google Gemini cloud gateway (Model: gemini-3-flash-preview)",
-      "timestamp": "2026-10-26T08:40:22.979Z"
-    },
-    {
-      "id": "log_1793004011105_l3j5",
-      "action": "USER_LOGIN",
-      "actor": "Consortium SuperAdmin",
-      "details": "User authenticated successfully with role: Admin",
-      "timestamp": "2026-10-26T08:40:11.105Z"
-    },
-    {
-      "id": "log_1793003950290_v8sf",
-      "action": "REPORT_DELETED",
-      "actor": "Alex Smith",
-      "details": "Report REP-689EC9C5 (\"test2\") deleted from storage and active registry by Lab Staff Alex Smith",
-      "timestamp": "2026-10-26T08:39:10.290Z"
-    },
-    {
-      "id": "log_1793003943681_dzqq",
-      "action": "REPORT_DECRYPTED",
-      "actor": "Alex Smith",
-      "details": "Decrypted and accessed report REP-689EC9C5",
-      "timestamp": "2026-10-26T08:39:03.681Z"
-    },
-    {
-      "id": "log_1793003938567_10y7",
-      "action": "REPORT_UPLOADED",
-      "actor": "Alex Smith",
-      "details": "Uploaded report REP-689EC9C5 for patient John Doe. Anchored to Block #14",
-      "timestamp": "2026-10-26T08:38:58.567Z"
-    },
-    {
-      "id": "log_1793003929528_zksh",
-      "action": "DUPLICATE_REPORT_PREVENTED",
-      "actor": "Alex Smith",
-      "details": "Duplicate upload rejected. Hash: b8028574117c97be... matched existing report ID: REP-0C259B06",
-      "timestamp": "2026-10-26T08:38:49.528Z"
-    },
-    {
-      "id": "log_1793003906558_umbp",
-      "action": "USER_LOGIN",
-      "actor": "Alex Smith",
-      "details": "User authenticated successfully with role: Lab Staff",
-      "timestamp": "2026-10-26T08:38:26.558Z"
-    },
-    {
-      "id": "log_1793003903850_tzze",
-      "action": "REPORT_DELETED",
-      "actor": "Dr. Sarah Rao",
-      "details": "Report REP-E3197131 (\"test2\") deleted from storage and active registry by Doctor Dr. Sarah Rao",
-      "timestamp": "2026-10-26T08:38:23.850Z"
-    },
-    {
-      "id": "log_1793003898261_4h1u",
-      "action": "REPORT_DECRYPTED",
-      "actor": "Dr. Sarah Rao",
-      "details": "Decrypted and accessed report REP-E3197131",
-      "timestamp": "2026-10-26T08:38:18.261Z"
-    },
-    {
-      "id": "log_1793003894419_3c2s",
-      "action": "USER_LOGIN",
-      "actor": "Dr. Sarah Rao",
-      "details": "User authenticated successfully with role: Doctor",
-      "timestamp": "2026-10-26T08:38:14.419Z"
-    },
-    {
-      "id": "log_1793003849754_ty5s",
-      "action": "AI_GATEWAY_RESET",
-      "actor": "Consortium SuperAdmin",
-      "details": "Admin reset AI Gateway to Local Clinical NLP Engine (Offline Fallback)",
-      "timestamp": "2026-10-26T08:37:29.754Z"
-    },
-    {
-      "id": "log_1793003837739_vjea",
-      "action": "USER_LOGIN",
-      "actor": "Consortium SuperAdmin",
-      "details": "User authenticated successfully with role: Admin",
-      "timestamp": "2026-10-26T08:37:17.739Z"
-    },
-    {
-      "id": "log_1793003815391_tbeh",
-      "action": "REPORT_DECRYPTED",
-      "actor": "Alex Smith",
-      "details": "Decrypted and accessed report REP-E3197131",
-      "timestamp": "2026-10-26T08:36:55.391Z"
-    },
-    {
-      "id": "log_1793003811698_y0cg",
-      "action": "REPORT_UPLOADED",
-      "actor": "Alex Smith",
-      "details": "Uploaded report REP-E3197131 for patient John Doe. Anchored to Block #13",
-      "timestamp": "2026-10-26T08:36:51.698Z"
-    },
-    {
-      "id": "log_1793003780613_weij",
-      "action": "USER_LOGIN",
-      "actor": "Alex Smith",
-      "details": "User authenticated successfully with role: Lab Staff",
-      "timestamp": "2026-10-26T08:36:20.613Z"
-    },
-    {
-      "id": "log_1793003775815_qi0x",
-      "action": "REPORT_DELETED",
-      "actor": "Dr. Sarah Rao",
-      "details": "Report REP-0C259B06 (\"test2\") deleted from storage and active registry by Doctor Dr. Sarah Rao",
-      "timestamp": "2026-10-26T08:36:15.815Z"
-    },
-    {
-      "id": "log_1793003755248_rzj8",
-      "action": "USER_LOGIN",
-      "actor": "Dr. Sarah Rao",
-      "details": "User authenticated successfully with role: Doctor",
-      "timestamp": "2026-10-26T08:35:55.248Z"
-    },
-    {
-      "id": "log_1793002168901_fjbe",
-      "action": "REPORT_DELETED",
-      "actor": "Alex Smith",
-      "details": "Report REP-02C0B824 (\"Automated Test Blood Glucose PDF\") deleted from storage and active registry by Lab Staff Alex Smith",
-      "timestamp": "2026-10-26T08:09:28.901Z"
-    },
-    {
-      "id": "log_1793002168898_7g4q",
-      "action": "ANTI_FORGERY_VERIFICATION",
-      "actor": "Doctor / Verification Scanner",
-      "details": "Verification check on REP-02C0B824: MATCH (Authentic)",
-      "timestamp": "2026-10-26T08:09:28.898Z"
-    },
-    {
-      "id": "log_1793002168894_145f",
-      "action": "REPORT_DECRYPTED",
-      "actor": "Alex Smith",
-      "details": "Decrypted and accessed report REP-02C0B824",
-      "timestamp": "2026-10-26T08:09:28.894Z"
-    },
-    {
-      "id": "log_1793002168887_jtlz",
-      "action": "REPORT_UPLOADED",
-      "actor": "Alex Smith",
-      "details": "Uploaded report REP-02C0B824 for patient John Doe. Anchored to Block #12",
-      "timestamp": "2026-10-26T08:09:28.887Z"
-    },
-    {
-      "id": "log_1793002142518_12el",
-      "action": "USER_LOGIN",
-      "actor": "Alex Smith",
-      "details": "User authenticated successfully with role: Lab Staff",
-      "timestamp": "2026-10-26T08:09:02.518Z"
-    },
-    {
-      "id": "log_1793001209912_dges",
-      "action": "USER_LOGIN",
-      "actor": "Dr. Sarah Rao",
-      "details": "User authenticated successfully with role: Doctor",
-      "timestamp": "2026-10-26T07:53:29.912Z"
-    },
-    {
-      "id": "log_1793001164258_b5ba",
-      "action": "USER_LOGIN",
-      "actor": "Consortium SuperAdmin",
-      "details": "User authenticated successfully with role: Admin",
-      "timestamp": "2026-10-26T07:52:44.258Z"
-    },
-    {
-      "id": "log_1793001135615_pjre",
-      "action": "REPORT_DECRYPTED",
-      "actor": "Dr. Sarah Rao",
-      "details": "Decrypted and accessed report REP-51BAF385",
-      "timestamp": "2026-10-26T07:52:15.615Z"
-    },
-    {
-      "id": "log_1793001109469_csqo",
-      "action": "REPORT_DECRYPTED",
-      "actor": "Dr. Sarah Rao",
-      "details": "Decrypted and accessed report REP-51BAF385",
-      "timestamp": "2026-10-26T07:51:49.469Z"
-    },
-    {
-      "id": "log_1793001099508_9u7d",
-      "action": "REPORT_DECRYPTED",
-      "actor": "Dr. Sarah Rao",
-      "details": "Decrypted and accessed report REP-0C259B06",
-      "timestamp": "2026-10-26T07:51:39.508Z"
-    },
-    {
-      "id": "log_1793001093821_l00t",
-      "action": "ANTI_FORGERY_VERIFICATION",
-      "actor": "Doctor / Verification Scanner",
-      "details": "Verification check on REP-0C259B06: MATCH (Authentic)",
-      "timestamp": "2026-10-26T07:51:33.821Z"
-    },
-    {
-      "id": "log_1793001084909_8koz",
-      "action": "REPORT_DECRYPTED",
-      "actor": "Dr. Sarah Rao",
-      "details": "Decrypted and accessed report REP-0C259B06",
-      "timestamp": "2026-10-26T07:51:24.909Z"
-    },
-    {
-      "id": "log_1793001081571_e2sq",
-      "action": "REPORT_DECRYPTED",
-      "actor": "Dr. Sarah Rao",
-      "details": "Decrypted and accessed report REP-0C259B06",
-      "timestamp": "2026-10-26T07:51:21.571Z"
-    },
-    {
-      "id": "log_1793001065845_z6ir",
-      "action": "REPORT_DECRYPTED",
-      "actor": "Dr. Sarah Rao",
-      "details": "Decrypted and accessed report REP-0C259B06",
-      "timestamp": "2026-10-26T07:51:05.845Z"
-    },
-    {
-      "id": "log_1793001062673_mipi",
-      "action": "USER_LOGIN",
-      "actor": "Dr. Sarah Rao",
-      "details": "User authenticated successfully with role: Doctor",
-      "timestamp": "2026-10-26T07:51:02.673Z"
-    },
-    {
-      "id": "log_1793001058004_3ybw",
-      "action": "REPORT_UPLOADED",
-      "actor": "Alex Smith",
-      "details": "Uploaded report REP-0C259B06 for patient John Doe. Anchored to Block #11",
-      "timestamp": "2026-10-26T07:50:58.004Z"
-    },
-    {
-      "id": "log_1793001048414_oxpj",
-      "action": "USER_LOGIN",
-      "actor": "Alex Smith",
-      "details": "User authenticated successfully with role: Lab Staff",
-      "timestamp": "2026-10-26T07:50:48.414Z"
-    },
-    {
-      "id": "log_1793000640818_rf6r",
-      "action": "USER_LOGIN",
-      "actor": "Dr. Sarah Rao",
-      "details": "User authenticated successfully with role: Doctor",
-      "timestamp": "2026-10-26T07:44:00.818Z"
-    },
-    {
-      "id": "log_1793000279637_3r48",
-      "action": "BLOCKCHAIN_INTEGRITY_AUDIT",
-      "actor": "System Auditor",
-      "details": "Full chain integrity verification: VALID",
-      "timestamp": "2026-10-26T07:37:59.637Z"
-    },
-    {
-      "id": "log_1793000262180_d9cx",
-      "action": "USER_LOGIN",
-      "actor": "Dr. Sarah Rao",
-      "details": "User authenticated successfully with role: Doctor",
-      "timestamp": "2026-10-26T07:37:42.180Z"
-    },
-    {
-      "id": "log_1792999871895_5d1n",
-      "action": "USER_LOGIN",
-      "actor": "Dr. Sarah Rao",
-      "details": "User authenticated successfully with role: Doctor",
-      "timestamp": "2026-10-26T07:31:11.895Z"
-    },
-    {
-      "id": "log_1792999576187_x6vn",
-      "action": "USER_LOGIN",
-      "actor": "Alex Smith",
-      "details": "User authenticated successfully with role: Lab Staff",
-      "timestamp": "2026-10-26T07:26:16.187Z"
-    },
-    {
-      "id": "log_1792999573598_u8wk",
-      "action": "USER_LOGIN",
-      "actor": "Dr. Sarah Rao",
-      "details": "User authenticated successfully with role: Doctor",
-      "timestamp": "2026-10-26T07:26:13.598Z"
-    },
-    {
-      "id": "log_1792944877096_5hzd",
-      "action": "USER_LOGIN",
-      "actor": "Dr. Sarah Rao",
-      "details": "User authenticated successfully with role: Doctor",
-      "timestamp": "2026-10-25T16:14:37.096Z"
-    },
-    {
-      "id": "log_1792837798574_6efu",
-      "action": "USER_LOGIN",
-      "actor": "Dr. Sarah Rao",
-      "details": "User authenticated successfully with role: Doctor",
-      "timestamp": "2026-10-24T10:29:58.574Z"
-    },
-    {
-      "id": "log_1792740907067_o2yx",
-      "action": "REPORT_DECRYPTED",
-      "actor": "Alex Smith",
-      "details": "Decrypted and accessed report REP-51BAF385",
-      "timestamp": "2026-10-23T07:35:07.067Z"
-    },
-    {
-      "id": "log_1792740899873_jtd8",
-      "action": "REPORT_DECRYPTED",
-      "actor": "Alex Smith",
-      "details": "Decrypted and accessed report REP-51BAF385",
-      "timestamp": "2026-10-23T07:34:59.873Z"
-    },
-    {
-      "id": "log_1792740894416_8wts",
-      "action": "REPORT_UPLOADED",
-      "actor": "Alex Smith",
-      "details": "Uploaded report REP-51BAF385 for patient John Doe. Anchored to Block #10",
-      "timestamp": "2026-10-23T07:34:54.416Z"
-    },
-    {
-      "id": "log_1792740848638_k6mu",
-      "action": "USER_LOGIN",
-      "actor": "Alex Smith",
-      "details": "User authenticated successfully with role: Lab Staff",
-      "timestamp": "2026-10-23T07:34:08.638Z"
-    },
-    {
-      "id": "log_1792740803098_z5d4",
-      "action": "REPORT_DECRYPTED",
-      "actor": "Dr. Sarah Rao",
-      "details": "Decrypted and accessed report REP-7A91F2C4",
-      "timestamp": "2026-10-23T07:33:23.098Z"
-    },
-    {
-      "id": "log_1791472311011_h8j1",
-      "action": "ANTI_FORGERY_VERIFICATION",
-      "actor": "Doctor / Verification Scanner",
-      "details": "Verification check on REP-7A91F2C4: MATCH (Authentic)",
-      "timestamp": "2026-10-08T15:11:51.011Z"
-    },
-    {
-      "id": "log_1791472298740_mawb",
-      "action": "ANTI_FORGERY_VERIFICATION",
-      "actor": "Doctor / Verification Scanner",
-      "details": "Verification check on REP-7A91F2C4: MATCH (Authentic)",
-      "timestamp": "2026-10-08T15:11:38.740Z"
-    },
-    {
-      "id": "log_1791472243927_dbb8",
-      "action": "USER_LOGIN",
-      "actor": "Dr. Sarah Rao",
-      "details": "User authenticated successfully with role: Doctor",
-      "timestamp": "2026-10-08T15:10:43.927Z"
-    },
-    {
-      "id": "log_1791471895050_rya7",
-      "action": "ANTI_FORGERY_VERIFICATION",
-      "actor": "Doctor / Verification Scanner",
-      "details": "Verification check on REP-7A91F2C4: MATCH (Authentic)",
-      "timestamp": "2026-10-08T15:04:55.050Z"
-    },
-    {
-      "id": "log_1791471832784_zkts",
-      "action": "ANTI_FORGERY_VERIFICATION",
-      "actor": "Doctor / Verification Scanner",
-      "details": "Verification check on REP-7A91F2C4: MATCH (Authentic)",
-      "timestamp": "2026-10-08T15:03:52.784Z"
-    },
-    {
-      "id": "log_1791471749493_5y5b",
-      "action": "ANTI_FORGERY_VERIFICATION",
-      "actor": "Doctor / Verification Scanner",
-      "details": "Verification check on REP-7A91F2C4: MATCH (Authentic)",
-      "timestamp": "2026-10-08T15:02:29.493Z"
-    },
-    {
-      "id": "log_1791471741276_1lc8",
-      "action": "ANTI_FORGERY_VERIFICATION",
-      "actor": "Doctor / Verification Scanner",
-      "details": "Verification check on REP-7A91F2C4: MATCH (Authentic)",
-      "timestamp": "2026-10-08T15:02:21.276Z"
-    },
-    {
-      "id": "log_1791471161978_12yg",
-      "action": "USER_LOGIN",
-      "actor": "John Doe",
-      "details": "User authenticated successfully with role: Patient",
-      "timestamp": "2026-10-08T14:52:41.978Z"
-    },
-    {
-      "id": "log_1791457062687_4x56",
-      "action": "ANTI_FORGERY_VERIFICATION",
-      "actor": "Doctor / Verification Scanner",
-      "details": "Verification check on REP-7A91F2C4: MATCH (Authentic)",
-      "timestamp": "2026-10-08T10:57:42.687Z"
-    },
-    {
-      "id": "log_1791456861119_uazz",
-      "action": "REPORT_DECRYPTED",
-      "actor": "Dr. Sarah Rao",
-      "details": "Decrypted and accessed report REP-7A91F2C4",
-      "timestamp": "2026-10-08T10:54:21.119Z"
-    },
-    {
-      "id": "log_1791456859357_cnvh",
-      "action": "USER_LOGIN",
-      "actor": "Dr. Sarah Rao",
-      "details": "User authenticated successfully with role: Doctor",
-      "timestamp": "2026-10-08T10:54:19.357Z"
-    },
-    {
-      "id": "log_1791456850196_sdm6",
-      "action": "USER_LOGIN",
-      "actor": "Alex Smith",
-      "details": "User authenticated successfully with role: Lab Staff",
-      "timestamp": "2026-10-08T10:54:10.196Z"
-    },
-    {
-      "id": "log_1791456844825_njsx",
-      "action": "USER_LOGIN",
-      "actor": "Meera Patel",
-      "details": "User authenticated successfully with role: Patient",
-      "timestamp": "2026-10-08T10:54:04.825Z"
-    },
-    {
-      "id": "log_1791456835088_jxbs",
-      "action": "USER_LOGIN",
-      "actor": "John Doe",
-      "details": "User authenticated successfully with role: Patient",
-      "timestamp": "2026-10-08T10:53:55.088Z"
-    },
-    {
-      "id": "log_1791456812255_lotx",
-      "action": "ANTI_FORGERY_VERIFICATION",
-      "actor": "Doctor / Verification Scanner",
-      "details": "Verification check on REP-7A91F2C4: MATCH (Authentic)",
-      "timestamp": "2026-10-08T10:53:32.255Z"
-    },
-    {
-      "id": "log_1791456786533_drwx",
-      "action": "REPORT_DECRYPTED",
-      "actor": "Consortium SuperAdmin",
-      "details": "Decrypted and accessed report REP-7A91F2C4",
-      "timestamp": "2026-10-08T10:53:06.533Z"
-    },
-    {
-      "id": "log_1791456776642_a0fm",
-      "action": "USER_LOGIN",
-      "actor": "Consortium SuperAdmin",
-      "details": "User authenticated successfully with role: Admin",
-      "timestamp": "2026-10-08T10:52:56.642Z"
-    },
-    {
-      "id": "log_1791456773394_k4kk",
-      "action": "USER_LOGIN",
-      "actor": "Dr. Sarah Rao",
-      "details": "User authenticated successfully with role: Doctor",
-      "timestamp": "2026-10-08T10:52:53.394Z"
-    },
-    {
-      "id": "log_1791455825389_e7sq",
-      "action": "REPORT_DECRYPTED",
-      "actor": "Dr. Sarah Rao",
-      "details": "Decrypted and accessed report REP-7A91F2C4",
-      "timestamp": "2026-10-08T10:37:05.389Z"
-    },
-    {
-      "id": "log_1791455810659_9uos",
-      "action": "ANTI_FORGERY_VERIFICATION",
-      "actor": "Doctor / Verification Scanner",
-      "details": "Verification check on REP-7A91F2C4: MATCH (Authentic)",
-      "timestamp": "2026-10-08T10:36:50.659Z"
-    },
-    {
-      "id": "log_1791455753459_xp2q",
-      "action": "USER_LOGIN",
-      "actor": "Dr. Sarah Rao",
-      "details": "User authenticated successfully with role: Doctor",
-      "timestamp": "2026-10-08T10:35:53.459Z"
-    },
-    {
-      "id": "log_1791455389201_yifc",
-      "action": "USER_LOGIN",
-      "actor": "Dr. Sarah Rao",
-      "details": "User authenticated successfully with role: Doctor",
-      "timestamp": "2026-10-08T10:29:49.201Z"
-    },
-    {
-      "id": "log_1791455345456_6ach",
-      "action": "USER_LOGIN",
-      "actor": "Consortium SuperAdmin",
-      "details": "User authenticated successfully with role: Admin",
-      "timestamp": "2026-10-08T10:29:05.456Z"
-    },
-    {
-      "id": "log_1791455334611_buzt",
-      "action": "USER_LOGIN",
-      "actor": "John Doe",
-      "details": "User authenticated successfully with role: Patient",
-      "timestamp": "2026-10-08T10:28:54.611Z"
-    },
-    {
-      "id": "log_1791455328530_05zi",
-      "action": "USER_LOGIN",
-      "actor": "Dr. Sarah Rao",
-      "details": "User authenticated successfully with role: Doctor",
-      "timestamp": "2026-10-08T10:28:48.530Z"
-    },
-    {
-      "id": "log_1791455325093_8p8p",
-      "action": "USER_LOGIN",
-      "actor": "Dr. Ananya Sen",
-      "details": "User authenticated successfully with role: Doctor",
-      "timestamp": "2026-10-08T10:28:45.093Z"
-    },
-    {
-      "id": "log_1791455323223_b3ju",
-      "action": "USER_LOGIN",
-      "actor": "Dr. Rajesh Nair",
-      "details": "User authenticated successfully with role: Doctor",
-      "timestamp": "2026-10-08T10:28:43.223Z"
-    },
-    {
-      "id": "log_1791455319353_axg9",
-      "action": "USER_LOGIN",
-      "actor": "Dr. Sarah Rao",
-      "details": "User authenticated successfully with role: Doctor",
-      "timestamp": "2026-10-08T10:28:39.353Z"
-    },
-    {
-      "id": "log_1791455305986_dit2",
-      "action": "AI_GATEWAY_CONFIGURED",
-      "actor": "Consortium SuperAdmin",
-      "details": "Admin verified and activated Google Gemini cloud gateway (Model: gemini-3.8-flash)",
-      "timestamp": "2026-10-08T10:28:25.986Z"
-    },
-    {
-      "id": "log_1791454579643_z32m",
-      "action": "USER_LOGIN",
-      "actor": "Consortium SuperAdmin",
-      "details": "User authenticated successfully with role: Admin",
-      "timestamp": "2026-10-08T10:16:19.643Z"
-    },
-    {
-      "id": "log_1791454578243_fdm0",
-      "action": "USER_LOGIN",
-      "actor": "Dr. Sarah Rao",
-      "details": "User authenticated successfully with role: Doctor",
-      "timestamp": "2026-10-08T10:16:18.243Z"
-    },
-    {
-      "id": "log_1791454044150_v3lm",
-      "action": "USER_LOGIN",
-      "actor": "Dr. Sarah Rao",
-      "details": "User authenticated successfully with role: Doctor",
-      "timestamp": "2026-10-08T10:07:24.150Z"
-    },
-    {
-      "id": "log_1791453370305_kicf",
-      "action": "USER_LOGIN",
-      "actor": "Meera Patel",
-      "details": "User authenticated successfully with role: Patient",
-      "timestamp": "2026-10-08T09:56:10.305Z"
-    },
-    {
-      "id": "log_1791453367013_r3es",
-      "action": "USER_LOGIN",
-      "actor": "John Doe",
-      "details": "User authenticated successfully with role: Patient",
-      "timestamp": "2026-10-08T09:56:07.013Z"
-    },
-    {
-      "id": "log_1791453364681_fq1d",
-      "action": "USER_LOGIN",
-      "actor": "Alex Smith",
-      "details": "User authenticated successfully with role: Lab Staff",
-      "timestamp": "2026-10-08T09:56:04.681Z"
-    },
-    {
-      "id": "log_1791453353398_c9ta",
-      "action": "USER_LOGIN",
-      "actor": "Dr. Sarah Rao",
-      "details": "User authenticated successfully with role: Doctor",
-      "timestamp": "2026-10-08T09:55:53.398Z"
-    },
-    {
-      "id": "log_1791453227061_llft",
-      "action": "BLOCKCHAIN_INTEGRITY_AUDIT",
-      "actor": "System Auditor",
-      "details": "Full chain integrity verification: VALID",
-      "timestamp": "2026-10-08T09:53:47.061Z"
-    },
-    {
-      "id": "log_1791452329922_lnl4",
-      "action": "BLOCKCHAIN_INTEGRITY_AUDIT",
-      "actor": "System Auditor",
-      "details": "Full chain integrity verification: VALID",
-      "timestamp": "2026-10-08T09:38:49.922Z"
-    },
-    {
       "id": "log_01",
       "action": "SYSTEM_INITIALIZATION",
       "details": "Healthcare Consortium Blockchain Ledger and Database Initialized with Authentic Diagnostic Reports",
-      "timestamp": "2026-10-08T09:01:20.315Z",
+      "timestamp": "2026-11-05T08:18:37.150Z",
       "actor": "Consortium SuperAdmin"
     }
   ]

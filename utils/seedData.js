@@ -8,43 +8,43 @@ const SAMPLE_USERS = [
     {
         id: 'usr_doc_01',
         name: 'Dr. Sarah Rao',
-        email: 'dr.sarah@hospital.org',
+        email: 'dr.sarah@sithospital.org',
         role: 'Doctor',
         department: 'Cardiology & General Medicine',
-        hospital: 'Metro Apex Hospital',
+        hospital: 'SIT Students Hospital',
         license: 'MC-2018-9941'
     },
     {
         id: 'usr_doc_02',
         name: 'Dr. Rajesh Nair',
-        email: 'dr.rajesh@hospital.org',
+        email: 'dr.rajesh@sithospital.org',
         role: 'Doctor',
         department: 'Orthopedics & Trauma',
-        hospital: 'Metro Apex Hospital',
+        hospital: 'SIT Students Hospital',
         license: 'MC-2015-4412'
     },
     {
         id: 'usr_doc_03',
         name: 'Dr. Ananya Sen',
-        email: 'dr.ananya@clinic.org',
+        email: 'dr.ananya@sithospital.org',
         role: 'Doctor',
         department: 'Pulmonology & Respiratory Care',
-        hospital: 'City Care Clinic',
+        hospital: 'SIT Students Hospital',
         license: 'MC-2019-3382'
     },
     {
         id: 'usr_doc_04',
         name: 'Dr. Vikram Mehta',
-        email: 'dr.vikram@neuro.org',
+        email: 'dr.vikram@sithospital.org',
         role: 'Doctor',
         department: 'Neurology & Spine Care',
-        hospital: 'Apex Neuro Institute',
+        hospital: 'SIT Students Hospital',
         license: 'MC-2014-8821'
     },
     {
         id: 'usr_pat_01',
         name: 'John Doe',
-        email: 'john.doe@patient.net',
+        email: 'john.doe@sit.ac.in',
         role: 'Patient',
         patientId: 'PT-9901',
         age: 48,
@@ -55,7 +55,7 @@ const SAMPLE_USERS = [
     {
         id: 'usr_pat_02',
         name: 'Meera Patel',
-        email: 'meera.patel@patient.net',
+        email: 'meera.patel@sit.ac.in',
         role: 'Patient',
         patientId: 'PT-9902',
         age: 34,
@@ -66,7 +66,7 @@ const SAMPLE_USERS = [
     {
         id: 'usr_pat_03',
         name: 'Robert Chen',
-        email: 'robert.chen@patient.net',
+        email: 'robert.chen@sit.ac.in',
         role: 'Patient',
         patientId: 'PT-9903',
         age: 54,
@@ -77,7 +77,7 @@ const SAMPLE_USERS = [
     {
         id: 'usr_pat_04',
         name: 'Ayesha Khan',
-        email: 'ayesha.khan@patient.net',
+        email: 'ayesha.khan@sit.ac.in',
         role: 'Patient',
         patientId: 'PT-9904',
         age: 29,
@@ -88,18 +88,20 @@ const SAMPLE_USERS = [
     {
         id: 'usr_lab_01',
         name: 'Alex Smith',
-        email: 'alex.lab@pathology.org',
+        email: 'alex.lab@sithospital.org',
         role: 'Lab Staff',
         designation: 'Senior Lab Technologist',
-        laboratory: 'Pathology Diagnostics Lab',
+        laboratory: 'SIT Hospital Central Diagnostic Lab',
+        hospital: 'SIT Students Hospital',
         license: 'LAB-TECH-772'
     },
     {
         id: 'usr_adm_01',
-        name: 'Consortium SuperAdmin',
-        email: 'admin@healthchain.gov',
+        name: 'Hospital IT Admin',
+        email: 'admin@sithospital.org',
         role: 'Admin',
-        institution: 'Healthcare Consortium Blockchain Authority'
+        institution: 'SIT Students Hospital Administration',
+        hospital: 'SIT Students Hospital'
     }
 ];
 
@@ -128,7 +130,7 @@ const SEED_REPORT_DEFINITIONS = [
             doctorName: 'Dr. Sarah Rao, MD',
             doctorId: 'usr_doc_01',
             department: 'Cardiology & General Medicine',
-            hospital: 'Metro Apex Hospital',
+            hospital: 'SIT Students Hospital',
             updatedAt: '2026-08-14T14:30:00Z',
             status: 'Reviewed & Prescribed'
         },
@@ -157,9 +159,9 @@ const SEED_REPORT_DEFINITIONS = [
             ],
             diagnosticImpression: 'Confirmed Stage-2 Type 2 Diabetes Mellitus with moderate glycemic variability.',
             recommendedAction: 'Initiate metformin oral therapy; follow up in 90 days with repeat HbA1c.',
-            aiEngine: 'Local Clinical NLP Engine (Consortium Verified)'
+            aiEngine: 'Local Clinical Rule Engine (SIT Hospital Verified)'
         },
-        sampleContent: `PATIENT DIAGNOSTIC REPORT - METRO APEX HOSPITAL\nPatient: John Doe | ID: PT-9901 | Age: 48 | Sex: M\nDate of Test: 14-Aug-2026 | Lab Ref: LAB-88910\n\nBIOCHEMISTRY INVESTIGATION:\n1. Fasting Blood Sugar (FBS): 142 mg/dL (Normal: 70 - 99 mg/dL) [HIGH]\n2. Postprandial Blood Glucose: 198 mg/dL (Normal: < 140 mg/dL) [ELEVATED]\n3. Glycated Hemoglobin (HbA1c): 7.4% (Normal: 4.0 - 5.6%) [DIABETIC RANGE]`
+        sampleContent: `PATIENT DIAGNOSTIC REPORT - SIT STUDENTS HOSPITAL\nPatient: John Doe | ID: PT-9901 | Age: 48 | Sex: M\nDate of Test: 14-Aug-2026 | Lab Ref: LAB-88910\n\nBIOCHEMISTRY INVESTIGATION:\n1. Fasting Blood Sugar (FBS): 142 mg/dL (Normal: 70 - 99 mg/dL) [HIGH]\n2. Postprandial Blood Glucose: 198 mg/dL (Normal: < 140 mg/dL) [ELEVATED]\n3. Glycated Hemoglobin (HbA1c): 7.4% (Normal: 4.0 - 5.6%) [DIABETIC RANGE]`
     },
     {
         reportId: 'REP-8D44B190',
@@ -182,7 +184,7 @@ const SEED_REPORT_DEFINITIONS = [
             doctorName: 'Dr. Rajesh Nair, MS',
             doctorId: 'usr_doc_02',
             department: 'Orthopedics & Trauma',
-            hospital: 'Metro Apex Hospital',
+            hospital: 'SIT Students Hospital',
             updatedAt: '2026-09-02T16:15:00Z',
             status: 'Evaluated & Rehabilitation Prescribed'
         },
@@ -211,9 +213,9 @@ const SEED_REPORT_DEFINITIONS = [
             ],
             diagnosticImpression: 'Mild lumbar spondylosis with multilevel degenerative disc arthropathy; no fracture.',
             recommendedAction: 'Engage in core-strengthening physical therapy; ergonomic work posture modification.',
-            aiEngine: 'Local Clinical NLP Engine (Consortium Verified)'
+            aiEngine: 'Local Clinical Rule Engine (SIT Hospital Verified)'
         },
-        sampleContent: `RADIOLOGY & IMAGING REPORT - METRO APEX HOSPITAL\nPatient: John Doe | ID: PT-9901 | Age: 48 | Sex: M\nExam: Digital X-Ray Lumbosacral Spine AP & Lateral Views\nDate: 02-Sep-2026\n\nFINDINGS:\n- Alignment of lumbar vertebral bodies is preserved.\n- No obvious acute cortical fracture or dislocation identified.\n- Mild degenerative disc space narrowing at L4-L5 and L5-S1 interspaces.\n- Early anterior osteophytic spurring noted.\n\nIMPRESSION:\nNo acute fracture. Mild lumbar spondylosis with degenerative disc changes.`
+        sampleContent: `RADIOLOGY & IMAGING REPORT - SIT STUDENTS HOSPITAL\nPatient: John Doe | ID: PT-9901 | Age: 48 | Sex: M\nExam: Digital X-Ray Lumbosacral Spine AP & Lateral Views\nDate: 02-Sep-2026\n\nFINDINGS:\n- Alignment of lumbar vertebral bodies is preserved.\n- No obvious acute cortical fracture or dislocation identified.\n- Mild degenerative disc space narrowing at L4-L5 and L5-S1 interspaces.\n- Early anterior osteophytic spurring noted.\n\nIMPRESSION:\nNo acute fracture. Mild lumbar spondylosis with degenerative disc changes.`
     },
     {
         reportId: 'REP-9E11C83F',
@@ -236,7 +238,7 @@ const SEED_REPORT_DEFINITIONS = [
             doctorName: 'Dr. Sarah Rao, MD',
             doctorId: 'usr_doc_01',
             department: 'Cardiology & General Medicine',
-            hospital: 'Metro Apex Hospital',
+            hospital: 'SIT Students Hospital',
             updatedAt: '2026-09-28T11:45:00Z',
             status: 'Verified Normal'
         },
@@ -266,9 +268,9 @@ const SEED_REPORT_DEFINITIONS = [
             ],
             diagnosticImpression: 'Complete blood count within optimal physiological reference parameters.',
             recommendedAction: 'Routine preventive healthcare monitoring in 6-12 months.',
-            aiEngine: 'Local Clinical NLP Engine (Consortium Verified)'
+            aiEngine: 'Local Clinical Rule Engine (SIT Hospital Verified)'
         },
-        sampleContent: `HEMATOLOGY WORKUP REPORT - METRO APEX HOSPITAL\nPatient: John Doe | ID: PT-9901 | Age: 48 | Sex: M\nDate: 28-Sep-2026 | Automated Cell Counter Analyzer\n\nCOMPLETE BLOOD COUNT:\n- Hemoglobin (Hb): 14.8 g/dL (Ref: 13.5 - 17.5 g/dL) [NORMAL]\n- Total Leucocyte Count (WBC): 6,900 /cumm (Ref: 4,000 - 11,000) [NORMAL]\n- Platelet Count: 265,000 /cumm (Ref: 150,000 - 450,000) [NORMAL]\n- RBC Count: 4.9 million/cumm (Ref: 4.5 - 5.9) [NORMAL]`
+        sampleContent: `HEMATOLOGY WORKUP REPORT - SIT STUDENTS HOSPITAL\nPatient: John Doe | ID: PT-9901 | Age: 48 | Sex: M\nDate: 28-Sep-2026 | Automated Cell Counter Analyzer\n\nCOMPLETE BLOOD COUNT:\n- Hemoglobin (Hb): 14.8 g/dL (Ref: 13.5 - 17.5 g/dL) [NORMAL]\n- Total Leucocyte Count (WBC): 6,900 /cumm (Ref: 4,000 - 11,000) [NORMAL]\n- Platelet Count: 265,000 /cumm (Ref: 150,000 - 450,000) [NORMAL]\n- RBC Count: 4.9 million/cumm (Ref: 4.5 - 5.9) [NORMAL]`
     },
 
     // -------------------------------------------------------------
@@ -295,7 +297,7 @@ const SEED_REPORT_DEFINITIONS = [
             doctorName: 'Dr. Sarah Rao, MD',
             doctorId: 'usr_doc_01',
             department: 'Cardiology & General Medicine',
-            hospital: 'Metro Apex Hospital',
+            hospital: 'SIT Students Hospital',
             updatedAt: '2026-09-15T15:00:00Z',
             status: 'Reviewed & Advised'
         },
@@ -324,9 +326,9 @@ const SEED_REPORT_DEFINITIONS = [
             ],
             diagnosticImpression: 'Favorable global lipid panel with isolated mild borderline LDL cholesterol elevation.',
             recommendedAction: 'Adopt dietary saturated fat reduction; recheck fasting profile in 12 months.',
-            aiEngine: 'Local Clinical NLP Engine (Consortium Verified)'
+            aiEngine: 'Local Clinical Rule Engine (SIT Hospital Verified)'
         },
-        sampleContent: `LIPID PROFILE INVESTIGATION - PATHOLOGY DIAGNOSTICS LAB\nPatient: Meera Patel | ID: PT-9902 | Age: 34 | Sex: F\nDate: 15-Sep-2026\n\nLIPID PANEL:\n- Total Serum Cholesterol: 185 mg/dL (Desirable: < 200 mg/dL) [NORMAL]\n- Serum Triglycerides: 132 mg/dL (Normal: < 150 mg/dL) [NORMAL]\n- HDL Cholesterol: 54 mg/dL (Protective: > 50 mg/dL) [GOOD]\n- LDL Cholesterol: 105 mg/dL (Optimal: < 100 mg/dL) [BORDERLINE]`
+        sampleContent: `LIPID PROFILE INVESTIGATION - SIT HOSPITAL CENTRAL PATHOLOGY LAB\nPatient: Meera Patel | ID: PT-9902 | Age: 34 | Sex: F\nDate: 15-Sep-2026\n\nLIPID PANEL:\n- Total Serum Cholesterol: 185 mg/dL (Desirable: < 200 mg/dL) [NORMAL]\n- Serum Triglycerides: 132 mg/dL (Normal: < 150 mg/dL) [NORMAL]\n- HDL Cholesterol: 54 mg/dL (Protective: > 50 mg/dL) [GOOD]\n- LDL Cholesterol: 105 mg/dL (Optimal: < 100 mg/dL) [BORDERLINE]`
     },
     {
         reportId: 'REP-5C32F810',
@@ -349,7 +351,7 @@ const SEED_REPORT_DEFINITIONS = [
             doctorName: 'Dr. Sarah Rao, MD',
             doctorId: 'usr_doc_01',
             department: 'Cardiology & General Medicine',
-            hospital: 'Metro Apex Hospital',
+            hospital: 'SIT Students Hospital',
             updatedAt: '2026-10-02T12:00:00Z',
             status: 'Prescribed & Monitoring'
         },
@@ -376,9 +378,9 @@ const SEED_REPORT_DEFINITIONS = [
             ],
             diagnosticImpression: 'Subclinical hypothyroidism with preserved peripheral thyroid hormone levels.',
             recommendedAction: 'Trial low-dose levothyroxine 25 mcg; repeat serum TSH in 8 weeks.',
-            aiEngine: 'Local Clinical NLP Engine (Consortium Verified)'
+            aiEngine: 'Local Clinical Rule Engine (SIT Hospital Verified)'
         },
-        sampleContent: `ENDOCRINE INVESTIGATION - PATHOLOGY DIAGNOSTICS LAB\nPatient: Meera Patel | ID: PT-9902 | Age: 34 | Sex: F\nDate: 02-Oct-2026\n\nTHYROID PANEL:\n- TSH: 5.42 uIU/mL (Ref: 0.45 - 4.50 uIU/mL) [ELEVATED]\n- Free T4: 1.18 ng/dL (Ref: 0.82 - 1.77 ng/dL) [NORMAL]\n- Free T3: 3.12 pg/mL (Ref: 2.00 - 4.40 pg/mL) [NORMAL]\n\nImpression: Subclinical hypothyroidism with normal free hormone levels.`
+        sampleContent: `ENDOCRINE INVESTIGATION - SIT HOSPITAL CENTRAL PATHOLOGY LAB\nPatient: Meera Patel | ID: PT-9902 | Age: 34 | Sex: F\nDate: 02-Oct-2026\n\nTHYROID PANEL:\n- TSH: 5.42 uIU/mL (Ref: 0.45 - 4.50 uIU/mL) [ELEVATED]\n- Free T4: 1.18 ng/dL (Ref: 0.82 - 1.77 ng/dL) [NORMAL]\n- Free T3: 3.12 pg/mL (Ref: 2.00 - 4.40 pg/mL) [NORMAL]\n\nImpression: Subclinical hypothyroidism with normal free hormone levels.`
     },
 
     // -------------------------------------------------------------
@@ -405,7 +407,7 @@ const SEED_REPORT_DEFINITIONS = [
             doctorName: 'Dr. Sarah Rao, MD',
             doctorId: 'usr_doc_01',
             department: 'Cardiology & General Medicine',
-            hospital: 'Metro Apex Hospital',
+            hospital: 'SIT Students Hospital',
             updatedAt: '2026-09-10T18:00:00Z',
             status: 'Stabilized & Investigated'
         },
@@ -432,9 +434,9 @@ const SEED_REPORT_DEFINITIONS = [
             ],
             diagnosticImpression: 'Atypical chest discomfort with negative cardiac biomarkers; acute ischemia ruled out.',
             recommendedAction: 'Schedule outpatient stress echocardiography to assess inducible ischemia.',
-            aiEngine: 'Local Clinical NLP Engine (Consortium Verified)'
+            aiEngine: 'Local Clinical Rule Engine (SIT Hospital Verified)'
         },
-        sampleContent: `CARDIOLOGY EMERGENCY ASSESSMENT - METRO APEX HOSPITAL\nPatient: Robert Chen | ID: PT-9903 | Age: 54 | Sex: M\nDate: 10-Sep-2026\n\nCARDIAC EVALUATION:\n- Heart Rate: 96 bpm (Sinus rhythm)\n- hs-Troponin-I: 0.008 ng/mL (Ref: < 0.014 ng/mL) [NORMAL]\n- CK-MB: 18.4 U/L (Ref: < 25.0 U/L) [NORMAL]\n\nImpression: Negative serial cardiac biomarkers. Acute coronary necrosis excluded.`
+        sampleContent: `CARDIOLOGY EMERGENCY ASSESSMENT - SIT STUDENTS HOSPITAL\nPatient: Robert Chen | ID: PT-9903 | Age: 54 | Sex: M\nDate: 10-Sep-2026\n\nCARDIAC EVALUATION:\n- Heart Rate: 96 bpm (Sinus rhythm)\n- hs-Troponin-I: 0.008 ng/mL (Ref: < 0.014 ng/mL) [NORMAL]\n- CK-MB: 18.4 U/L (Ref: < 25.0 U/L) [NORMAL]\n\nImpression: Negative serial cardiac biomarkers. Acute coronary necrosis excluded.`
     },
     {
         reportId: 'REP-9F71E304',
@@ -457,7 +459,7 @@ const SEED_REPORT_DEFINITIONS = [
             doctorName: 'Dr. Sarah Rao, MD',
             doctorId: 'usr_doc_01',
             department: 'Cardiology & General Medicine',
-            hospital: 'Metro Apex Hospital',
+            hospital: 'SIT Students Hospital',
             updatedAt: '2026-09-18T14:30:00Z',
             status: 'Cleared & Outpatient Follow-up'
         },
@@ -484,9 +486,9 @@ const SEED_REPORT_DEFINITIONS = [
             ],
             diagnosticImpression: 'Normal functional stress echocardiogram with preserved cardiac reserve.',
             recommendedAction: 'Discharge from acute cardiology monitoring; routine lifestyle maintenance.',
-            aiEngine: 'Local Clinical NLP Engine (Consortium Verified)'
+            aiEngine: 'Local Clinical Rule Engine (SIT Hospital Verified)'
         },
-        sampleContent: `STRESS ECHOCARDIOGRAPHY - METRO APEX HOSPITAL\nPatient: Robert Chen | ID: PT-9903 | Age: 54 | Sex: M\nDate: 18-Sep-2026\n\nFUNCTIONAL STUDY:\n- Left Ventricular Ejection Fraction: 62% [NORMAL]\n- Peak Workload: 9.2 METs [EXCELLENT]\n- Regional Wall Motion Abnormality: None [NEGATIVE]\n\nImpression: Normal stress echocardiogram. No inducible ischemia.`
+        sampleContent: `STRESS ECHOCARDIOGRAPHY - SIT STUDENTS HOSPITAL\nPatient: Robert Chen | ID: PT-9903 | Age: 54 | Sex: M\nDate: 18-Sep-2026\n\nFUNCTIONAL STUDY:\n- Left Ventricular Ejection Fraction: 62% [NORMAL]\n- Peak Workload: 9.2 METs [EXCELLENT]\n- Regional Wall Motion Abnormality: None [NEGATIVE]\n\nImpression: Normal stress echocardiogram. No inducible ischemia.`
     },
 
     // -------------------------------------------------------------
@@ -513,7 +515,7 @@ const SEED_REPORT_DEFINITIONS = [
             doctorName: 'Dr. Ananya Sen, MD',
             doctorId: 'usr_doc_03',
             department: 'Pulmonology & Respiratory Care',
-            hospital: 'City Care Clinic',
+            hospital: 'SIT Students Hospital',
             updatedAt: '2026-09-05T16:00:00Z',
             status: 'Diagnosed & Managed'
         },
@@ -540,9 +542,9 @@ const SEED_REPORT_DEFINITIONS = [
             ],
             diagnosticImpression: 'Mild persistent bronchial asthma responsive to inhaled bronchodilators.',
             recommendedAction: 'Commence maintenance ICS-LABA combination therapy; repeat spirometry in 60 days.',
-            aiEngine: 'Local Clinical NLP Engine (Consortium Verified)'
+            aiEngine: 'Local Clinical Rule Engine (SIT Hospital Verified)'
         },
-        sampleContent: `PULMONARY FUNCTION TEST - CITY CARE CLINIC NODE\nPatient: Ayesha Khan | ID: PT-9904 | Age: 29 | Sex: F\nDate: 05-Sep-2026\n\nSPIROMETRY:\n- FEV1 (Pre-BD): 2.42 L (78% Predicted) [MILD DECREASE]\n- FEV1 (Post-BD): 2.78 L (+15% Reversibility) [SIGNIFICANT REVERSIBILITY]\n- FEV1/FVC: 68.4% [OBSTRUCTIVE PATTERN]\n\nImpression: Reversible airflow limitation diagnostic of bronchial asthma.`
+        sampleContent: `PULMONARY FUNCTION TEST - SIT STUDENTS HOSPITAL (PULMONOLOGY WING)\nPatient: Ayesha Khan | ID: PT-9904 | Age: 29 | Sex: F\nDate: 05-Sep-2026\n\nSPIROMETRY:\n- FEV1 (Pre-BD): 2.42 L (78% Predicted) [MILD DECREASE]\n- FEV1 (Post-BD): 2.78 L (+15% Reversibility) [SIGNIFICANT REVERSIBILITY]\n- FEV1/FVC: 68.4% [OBSTRUCTIVE PATTERN]\n\nImpression: Reversible airflow limitation diagnostic of bronchial asthma.`
     },
     {
         reportId: 'REP-8B99A045',
@@ -565,7 +567,7 @@ const SEED_REPORT_DEFINITIONS = [
             doctorName: 'Dr. Ananya Sen, MD',
             doctorId: 'usr_doc_03',
             department: 'Pulmonology & Respiratory Care',
-            hospital: 'City Care Clinic',
+            hospital: 'SIT Students Hospital',
             updatedAt: '2026-09-22T17:15:00Z',
             status: 'Reviewed & Addressed'
         },
@@ -592,9 +594,9 @@ const SEED_REPORT_DEFINITIONS = [
             ],
             diagnosticImpression: 'Extrinsic allergic asthma driven primarily by domestic dust mite aeroallergens.',
             recommendedAction: 'Implement strict house dust mite mitigation; consider sublingual allergen immunotherapy.',
-            aiEngine: 'Local Clinical NLP Engine (Consortium Verified)'
+            aiEngine: 'Local Clinical Rule Engine (SIT Hospital Verified)'
         },
-        sampleContent: `IMMUNOLOGY & ALLERGEN SCREEN - PATHOLOGY DIAGNOSTICS LAB\nPatient: Ayesha Khan | ID: PT-9904 | Age: 29 | Sex: F\nDate: 22-Sep-2026\n\nALLERGEN PANEL:\n- Total Serum IgE: 480 IU/mL (Ref: < 100 IU/mL) [HIGH]\n- D. pteronyssinus: 18.6 kUA/L [CLASS 4 VERY HIGH]\n- D. farinae: 14.2 kUA/L [CLASS 3 HIGH]\n\nImpression: Severe atopic sensitization to house dust mites.`
+        sampleContent: `IMMUNOLOGY & ALLERGEN SCREEN - SIT HOSPITAL CENTRAL PATHOLOGY LAB\nPatient: Ayesha Khan | ID: PT-9904 | Age: 29 | Sex: F\nDate: 22-Sep-2026\n\nALLERGEN PANEL:\n- Total Serum IgE: 480 IU/mL (Ref: < 100 IU/mL) [HIGH]\n- D. pteronyssinus: 18.6 kUA/L [CLASS 4 VERY HIGH]\n- D. farinae: 14.2 kUA/L [CLASS 3 HIGH]\n\nImpression: Severe atopic sensitization to house dust mites.`
     }
 ];
 

@@ -12,24 +12,24 @@ class Blockchain {
         this.chain = [];
         this.difficulty = 2; // Fast mining for permissioned network
         this.nodeNodes = [
-            { id: 'NODE-HOSP-01', name: 'Metro Apex Hospital Node', type: 'Hospital' },
-            { id: 'NODE-LAB-01', name: 'Pathology Diagnostics Lab Node', type: 'Lab' },
-            { id: 'NODE-CLINIC-01', name: 'City Care Clinic Node', type: 'Clinic' },
-            { id: 'NODE-PHARM-01', name: 'CareFirst Pharmacy Node', type: 'Pharmacy' }
+            { id: 'NODE-HOSP-01', name: 'SIT Hospital - Medicine & Cardio Wing', type: 'Hospital Wing' },
+            { id: 'NODE-LAB-01', name: 'SIT Hospital - Central Pathology Lab', type: 'Diagnostic Lab' },
+            { id: 'NODE-CLINIC-01', name: 'SIT Hospital - Ortho & Pulmonology Wing', type: 'Specialty Wing' },
+            { id: 'NODE-PHARM-01', name: 'SIT Hospital - Reception & Pharmacy Desk', type: 'Front Desk' }
         ];
         this.loadChain();
     }
 
     /**
-     * Creates genesis block for the health consortium
+     * Creates genesis block for the hospital ledger
      */
     createGenesisBlock() {
         return new Block(
             0,
             '2026-10-01T00:00:00.000Z',
             {
-                message: 'Genesis Block - Healthcare Consortium Permissioned Ledger Initialized',
-                network: 'HealthChain Consortium v1.0',
+                message: 'Genesis Block - SIT Students Hospital Internal Document & Lab Ledger Initialized',
+                network: 'SIT Students Hospital Record Network v1.0',
                 nodes: this.nodeNodes.map(n => n.name)
             },
             '0000000000000000000000000000000000000000000000000000000000000000'
