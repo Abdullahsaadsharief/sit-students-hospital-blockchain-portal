@@ -83,7 +83,7 @@ function registerUser(req, res) {
             return res.status(400).json({ success: false, message: 'Name, email, and role are required fields.' });
         }
 
-        const validRoles = ['Doctor', 'Patient', 'Lab Staff', 'Admin'];
+        const validRoles = ['Doctor', 'Patient', 'Lab Staff', 'Receptionist', 'Admin'];
         if (!validRoles.includes(role)) {
             return res.status(400).json({ success: false, message: `Invalid role specified. Must be one of: ${validRoles.join(', ')}` });
         }
@@ -110,12 +110,25 @@ function registerUser(req, res) {
             newUser.hospital = hospital || 'Metro Apex Hospital';
             newUser.license = doctorLicense || `MC-2026-${Math.floor(1000 + Math.random() * 9000)}`;
         } else if (role === 'Patient') {
+            const existingPatients = db.getAllUsers().filter(u => u.role === 'Patient');
+            const nextNum = 1001 + existingPatients.length;
             newUser.id = `usr_pat_${timestamp}`;
-            newUser.patientId = (patientId && patientId.trim()) ? patientId.trim().toUpperCase() : `PT-${Math.floor(1000 + Math.random() * 9000)}`;
+            newUser.patientId = (patientId && patientId.trim()) ? patientId.trim().toUpperCase() : `PT-${9901 + existingPatients.length}`;
+            newUser.billNumber = (req.body.billNumber && req.body.billNumber.trim()) ? req.body.billNumber.trim().toUpperCase() : `BILL-2026-${nextNum}`;
+            newUser.receptionId = newUser.billNumber;
+            newUser.assignedDoctor = req.body.assignedDoctor || 'Dr. Sarah Rao (Cardiology & General Medicine)';
+            newUser.visitReason = req.body.visitReason || 'OPD Consultation & Diagnostic Tests';
+            newUser.billAmount = req.body.billAmount || '₹ 350';
             newUser.age = parseInt(age, 10) || 30;
             newUser.gender = gender || 'Unspecified';
             newUser.bloodGroup = bloodGroup || 'O+';
             newUser.contact = contact || '+91 90000 00000';
+        } else if (role === 'Receptionist') {
+            newUser.id = `usr_rec_${timestamp}`;
+            newUser.designation = designation || 'OPD Receptionist & Billing Executive';
+            newUser.department = department || 'Front Desk & Patient Registration';
+            newUser.hospital = 'SIT Students Hospital';
+            newUser.nodeId = 'NODE-PHARM-01';
         } else if (role === 'Lab Staff') {
             newUser.id = `usr_lab_${timestamp}`;
             newUser.designation = designation || 'Clinical Lab Technologist';
@@ -258,12 +271,124 @@ function resetAiConfig(req, res) {
     }
 }
 
+/**
+ * Receptionist Desk: List all registered patients and their generated Bill Numbers / Reception IDs
+ */
+function getReceptionPatients(req, res) {
+    try {
+        const users = db.getAllUsers();
+        const patients = users.filter(u => u.role === 'Patient');
+        const doctors = users.filter(u => u.role === 'Doctor');
+        const nextIndex = 1001 + patients.length;
+        const suggestedBillNumber = `BILL-2026-${nextIndex}`;
+        const suggestedPatientId = `PT-${9901 + patients.length}`;
+
+        return res.json({
+            success: true,
+            patients,
+            doctors,
+            suggestedBillNumber,
+            suggestedPatientId
+        });
+    } catch (err) {
+        return res.status(500).json({ success: false, message: 'Failed to load reception patient directory.', error: err.message });
+    }
+}
+
+/**
+ * Receptionist Desk: Register a new patient and generate a unique Bill Number / Reception ID for passwordless patient login
+ */
+function registerPatientAtReception(req, res) {
+    try {
+        const {
+            name,
+            age,
+            gender,
+            bloodGroup,
+            contact,
+            assignedDoctor,
+            visitReason,
+            billAmount,
+            customBillNumber,
+            customPatientId
+        } = req.body;
+
+        if (!name || !name.trim()) {
+            return res.status(400).json({ success: false, message: 'Patient full name is required.' });
+        }
+
+        const existingPatients = db.getAllUsers().filter(u => u.role === 'Patient');
+        const nextIndex = 1001 + existingPatients.length;
+
+        const billNumber = (customBillNumber && customBillNumber.trim())
+            ? customBillNumber.trim().toUpperCase()
+            : `BILL-2026-${nextIndex}`;
+
+        const patientId = (customPatientId && customPatientId.trim())
+            ? customPatientId.trim().toUpperCase()
+            : `PT-${9901 + existingPatients.length}`;
+
+        // Ensure billNumber is unique
+        const duplicateBill = existingPatients.find(p =>
+            (p.billNumber && p.billNumber.toUpperCase() === billNumber) ||
+            (p.patientId && p.patientId.toUpperCase() === billNumber)
+        );
+        if (duplicateBill) {
+            return res.status(409).json({
+                success: false,
+                message: `Bill / Reception ID '${billNumber}' is already assigned to patient ${duplicateBill.name}.`
+            });
+        }
+
+        const timestamp = Date.now().toString(36);
+        const cleanSlug = name.trim().toLowerCase().replace(/[^a-z0-9]/g, '.');
+        const newPatient = {
+            id: `usr_pat_${timestamp}`,
+            name: name.trim(),
+            email: `${cleanSlug}.${nextIndex}@sit.ac.in`,
+            password: 'password123',
+            role: 'Patient',
+            patientId,
+            billNumber,
+            receptionId: billNumber,
+            age: parseInt(age, 10) || 22,
+            gender: gender || 'Male',
+            bloodGroup: bloodGroup || 'O+',
+            contact: contact ? contact.trim() : '+91 98000 00000',
+            assignedDoctor: assignedDoctor || 'Dr. Sarah Rao (Cardiology & General Medicine)',
+            visitReason: visitReason || 'General OPD Consultation & Lab Investigation',
+            billAmount: billAmount || '₹ 350',
+            registeredBy: req.user ? `${req.user.name} (${req.user.role})` : 'OPD Receptionist',
+            hospital: 'SIT Students Hospital',
+            createdAt: new Date().toISOString()
+        };
+
+        const created = db.addUser(newPatient);
+
+        db.logAudit(
+            'PATIENT_REGISTERED_AT_RECEPTION',
+            req.user ? req.user.name : 'Priya Nair (Receptionist)',
+            `Receptionist registered patient ${created.name} (UHID: ${created.patientId}) with Bill/Reception ID: ${created.billNumber} assigned to ${created.assignedDoctor}`
+        );
+
+        return res.status(201).json({
+            success: true,
+            message: `Patient ${created.name} registered! Generated Bill / Login ID: ${created.billNumber}`,
+            patient: created
+        });
+    } catch (err) {
+        return res.status(500).json({ success: false, message: 'Failed to register patient at reception.', error: err.message });
+    }
+}
+
 module.exports = {
     getConsortiumUsers,
     registerUser,
     deleteUser,
     getAiConfig,
     updateAiConfig,
-    resetAiConfig
+    resetAiConfig,
+    getReceptionPatients,
+    registerPatientAtReception
 };
 

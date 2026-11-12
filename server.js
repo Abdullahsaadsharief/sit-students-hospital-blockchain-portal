@@ -38,6 +38,10 @@ app.get('/portal', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
+app.get('/reception', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'reception.html'));
+});
+
 // Serve frontend static assets (without auto-serving index.html at root)
 app.use(express.static(path.join(__dirname, 'public'), { index: false }));
 
@@ -63,8 +67,10 @@ app.delete('/api/admin/ai-config', authenticate, authorizeRoles('Admin'), adminC
 
 
 // ==========================================
-// 2. MEDICAL REPORT MANAGEMENT ROUTES
+// 1.2 RECEPTIONIST DESK & PATIENT BILL REGISTRATION ROUTES
 // ==========================================
+app.get('/api/reception/patients', adminController.getReceptionPatients);
+app.post('/api/reception/patients', authenticate, authorizeRoles('Receptionist', 'Admin'), adminController.registerPatientAtReception);
 // Upload medical report (Restricted: Lab Staff & Admin)
 app.post('/api/reports/upload', authenticate, authorizeRoles('Lab Staff', 'Admin'), upload.single('reportFile'), reportController.uploadReport);
 

@@ -1,6 +1,7 @@
 {
   "users": [
     {
+      "password": "password123",
       "id": "usr_doc_01",
       "name": "Dr. Sarah Rao",
       "email": "dr.sarah@sithospital.org",
@@ -10,6 +11,7 @@
       "license": "MC-2018-9941"
     },
     {
+      "password": "password123",
       "id": "usr_doc_02",
       "name": "Dr. Rajesh Nair",
       "email": "dr.rajesh@sithospital.org",
@@ -19,6 +21,7 @@
       "license": "MC-2015-4412"
     },
     {
+      "password": "password123",
       "id": "usr_doc_03",
       "name": "Dr. Ananya Sen",
       "email": "dr.ananya@sithospital.org",
@@ -28,6 +31,7 @@
       "license": "MC-2019-3382"
     },
     {
+      "password": "password123",
       "id": "usr_doc_04",
       "name": "Dr. Vikram Mehta",
       "email": "dr.vikram@sithospital.org",
@@ -37,6 +41,7 @@
       "license": "MC-2014-8821"
     },
     {
+      "password": "password123",
       "id": "usr_pat_01",
       "name": "John Doe",
       "email": "john.doe@sit.ac.in",
@@ -45,9 +50,15 @@
       "age": 48,
       "gender": "Male",
       "bloodGroup": "O+",
-      "contact": "+91 98765 43210"
+      "contact": "+91 98765 43210",
+      "billNumber": "BILL-2026-1001",
+      "receptionId": "BILL-2026-1001",
+      "assignedDoctor": "Dr. Sarah Rao (Cardiology & General Medicine)",
+      "visitReason": "Glycemic Profile, Spine X-Ray & CBC Follow-up",
+      "billAmount": "₹ 450"
     },
     {
+      "password": "password123",
       "id": "usr_pat_02",
       "name": "Meera Patel",
       "email": "meera.patel@sit.ac.in",
@@ -56,9 +67,15 @@
       "age": 34,
       "gender": "Female",
       "bloodGroup": "B+",
-      "contact": "+91 98450 11223"
+      "contact": "+91 98450 11223",
+      "billNumber": "BILL-2026-1002",
+      "receptionId": "BILL-2026-1002",
+      "assignedDoctor": "Dr. Sarah Rao (Cardiology & General Medicine)",
+      "visitReason": "Lipid Profile & Thyroid TSH Screening",
+      "billAmount": "₹ 600"
     },
     {
+      "password": "password123",
       "id": "usr_pat_03",
       "name": "Robert Chen",
       "email": "robert.chen@sit.ac.in",
@@ -67,9 +84,15 @@
       "age": 54,
       "gender": "Male",
       "bloodGroup": "A+",
-      "contact": "+91 97112 33445"
+      "contact": "+91 97112 33445",
+      "billNumber": "BILL-2026-1003",
+      "receptionId": "BILL-2026-1003",
+      "assignedDoctor": "Dr. Sarah Rao (Cardiology & General Medicine)",
+      "visitReason": "12-Lead ECG, Troponin-I & Stress Echo",
+      "billAmount": "₹ 850"
     },
     {
+      "password": "password123",
       "id": "usr_pat_04",
       "name": "Ayesha Khan",
       "email": "ayesha.khan@sit.ac.in",
@@ -78,9 +101,15 @@
       "age": 29,
       "gender": "Female",
       "bloodGroup": "AB+",
-      "contact": "+91 98221 55667"
+      "contact": "+91 98221 55667",
+      "billNumber": "BILL-2026-1004",
+      "receptionId": "BILL-2026-1004",
+      "assignedDoctor": "Dr. Ananya Sen (Pulmonology & Respiratory Care)",
+      "visitReason": "Pulmonary Spirometry & IgE Allergen Screen",
+      "billAmount": "₹ 500"
     },
     {
+      "password": "password123",
       "id": "usr_lab_01",
       "name": "Alex Smith",
       "email": "alex.lab@sithospital.org",
@@ -91,12 +120,24 @@
       "license": "LAB-TECH-772"
     },
     {
+      "password": "password123",
       "id": "usr_adm_01",
       "name": "Hospital IT Admin",
       "email": "admin@sithospital.org",
       "role": "Admin",
       "institution": "SIT Students Hospital Administration",
       "hospital": "SIT Students Hospital"
+    },
+    {
+      "password": "password123",
+      "id": "usr_rec_01",
+      "name": "Priya Nair",
+      "email": "reception@sithospital.org",
+      "role": "Receptionist",
+      "designation": "Senior OPD Receptionist & Billing Executive",
+      "department": "Front Desk & Patient Registration (Counter 1)",
+      "hospital": "SIT Students Hospital",
+      "nodeId": "NODE-PHARM-01"
     }
   ],
   "reports": [
@@ -1054,6 +1095,20 @@
     }
   ],
   "auditLogs": [
+    {
+      "id": "log_1793867350931_1zvu",
+      "action": "ANTI_FORGERY_VERIFICATION",
+      "actor": "Doctor / Verification Scanner",
+      "details": "Verification check on REP-7A91F2C4: MATCH (Authentic)",
+      "timestamp": "2026-11-05T08:29:10.931Z"
+    },
+    {
+      "id": "log_1793867000339_z5kt",
+      "action": "USER_LOGIN",
+      "actor": "Dr. Sarah Rao",
+      "details": "User authenticated successfully with role: Doctor",
+      "timestamp": "2026-11-05T08:23:20.339Z"
+    },
     {
       "id": "log_01",
       "action": "SYSTEM_INITIALIZATION",

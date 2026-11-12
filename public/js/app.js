@@ -132,20 +132,41 @@ function getAuthHeaders() {
 // ==========================================================================
 function switchLoginMode(mode) {
     const quickTab = document.getElementById('tabQuickLogin');
+    const billTab = document.getElementById('tabBillLogin');
     const credsTab = document.getElementById('tabCredsLogin');
     const quickView = document.getElementById('quickLoginView');
+    const billView = document.getElementById('billLoginView');
     const credsView = document.getElementById('credsLoginView');
 
-    if (mode === 'quick') {
-        quickTab.classList.add('active');
-        credsTab.classList.remove('active');
-        quickView.style.display = 'block';
-        credsView.style.display = 'none';
-    } else {
-        credsTab.classList.add('active');
-        quickTab.classList.remove('active');
-        credsView.style.display = 'block';
-        quickView.style.display = 'none';
+    if (quickTab) quickTab.classList.toggle('active', mode === 'quick');
+    if (billTab) billTab.classList.toggle('active', mode === 'bill');
+    if (credsTab) credsTab.classList.toggle('active', mode === 'creds');
+
+    if (quickView) quickView.style.display = mode === 'quick' ? 'block' : 'none';
+    if (billView) billView.style.display = mode === 'bill' ? 'block' : 'none';
+    if (credsView) credsView.style.display = mode === 'creds' ? 'block' : 'none';
+}
+
+async function loginWithBillNumber(billNumber) {
+    const cleanBill = (billNumber || '').trim();
+    if (!cleanBill) {
+        alert('Please enter your Reception Bill Number / Customer ID (e.g. BILL-2026-1001)');
+        return;
+    }
+    try {
+        const res = await fetch('/api/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ billNumber: cleanBill })
+        });
+        const data = await res.json();
+        if (!res.ok || !data.success) {
+            alert(data.message || 'No patient found with that Bill Number.');
+            return;
+        }
+        applySession(data.token, data.user);
+    } catch (err) {
+        alert('Patient Bill login error: ' + err.message);
     }
 }
 
@@ -253,7 +274,9 @@ function updateUserDisplay(user) {
     if (user.department) desc += ` • ${user.department}`;
     if (user.hospital) desc += ` • ${user.hospital}`;
     if (user.laboratory) desc += ` • ${user.laboratory}`;
-    if (user.patientId) desc += ` • Patient ID: ${user.patientId}`;
+    if (user.patientId) desc += ` • UHID: ${user.patientId}`;
+    if (user.billNumber) desc += ` • Bill No: ${user.billNumber}`;
+    if (user.assignedDoctor) desc += ` • Assigned Doctor: ${user.assignedDoctor}`;
     if (bannerRole) bannerRole.textContent = desc;
 
     // Highlight Role Switcher button
@@ -1062,17 +1085,25 @@ function populatePatientDropdowns(users) {
     const patients = users.filter(u => u.role === 'Patient');
     const uploadSelect = document.getElementById('uploadPatient');
     const timelineSelect = document.getElementById('timelinePatientSelect');
+    const billChipsBox = document.getElementById('portalBillChipsBox');
 
     if (uploadSelect) {
         uploadSelect.innerHTML = patients.map(p => 
-            `<option value="${p.id}">${escapeHtml(p.name)} (${p.patientId || p.id}, Age: ${p.age || 'N/A'}, ${p.gender || 'N/A'})</option>`
+            `<option value="${p.id}">${escapeHtml(p.name)} (${p.patientId || p.id}${p.billNumber ? ' | ' + p.billNumber : ''}, Age: ${p.age || 'N/A'}, ${p.gender || 'N/A'})</option>`
         ).join('');
     }
 
     if (timelineSelect) {
         timelineSelect.innerHTML = patients.map(p => 
-            `<option value="${p.id}">${escapeHtml(p.name)} (${p.patientId || p.id})</option>`
+            `<option value="${p.id}">${escapeHtml(p.name)} (${p.patientId || p.id}${p.billNumber ? ' | ' + p.billNumber : ''})</option>`
         ).join('');
+    }
+
+    if (billChipsBox) {
+        billChipsBox.innerHTML = patients.map(p => {
+            const bNo = p.billNumber || p.patientId;
+            return `<button type="button" class="btn btn-secondary" style="font-size: 0.74rem; padding: 4px 10px;" onclick="loginWithBillNumber('${escapeHtml(bNo)}')">${escapeHtml(bNo)} (${escapeHtml(p.name)})</button>`;
+        }).join('');
     }
 }
 
@@ -1110,6 +1141,17 @@ function initFormListeners() {
             loginWithCredentials(email, password);
         });
     }
+
+    // 1b. Patient Bill Number Login Form (Passwordless)
+    const billForm = document.getElementById('patientBillPortalForm');
+    if (billForm) {
+        billForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const billNo = document.getElementById('portalBillNumberInput').value;
+            loginWithBillNumber(billNo);
+        });
+    }
+    refreshConsortiumUsers();
 
     // 2. Doctor Edit Report Form
     const editForm = document.getElementById('editReportForm');
@@ -1834,6 +1876,7 @@ function resetHospitalReceptionSettings() {
 // Expose handlers globally on window object for inline onclick handlers
 window.saveHospitalReceptionSettings = saveHospitalReceptionSettings;
 window.resetHospitalReceptionSettings = resetHospitalReceptionSettings;
+window.loginWithBillNumber = loginWithBillNumber;
 window.openReportModal = openReportModal;
 window.downloadReportFile = downloadReportFile;
 window.switchModalView = switchModalView;

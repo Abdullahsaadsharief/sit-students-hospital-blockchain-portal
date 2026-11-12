@@ -31,6 +31,49 @@ class Database {
                 this.reports = data.reports || [];
                 this.sharedLinks = data.sharedLinks || [];
                 this.auditLogs = data.auditLogs || [];
+
+                // Ensure Receptionist account and patient billNumbers exist in loaded DB
+                let dbUpdated = false;
+                const defaultBills = {
+                    'PT-9901': { billNumber: 'BILL-2026-1001', assignedDoctor: 'Dr. Sarah Rao (Cardiology & General Medicine)', visitReason: 'Glycemic Profile, Spine X-Ray & CBC Follow-up', billAmount: '₹ 450' },
+                    'PT-9902': { billNumber: 'BILL-2026-1002', assignedDoctor: 'Dr. Sarah Rao (Cardiology & General Medicine)', visitReason: 'Lipid Profile & Thyroid TSH Screening', billAmount: '₹ 600' },
+                    'PT-9903': { billNumber: 'BILL-2026-1003', assignedDoctor: 'Dr. Sarah Rao (Cardiology & General Medicine)', visitReason: '12-Lead ECG, Troponin-I & Stress Echo', billAmount: '₹ 850' },
+                    'PT-9904': { billNumber: 'BILL-2026-1004', assignedDoctor: 'Dr. Ananya Sen (Pulmonology & Respiratory Care)', visitReason: 'Pulmonary Spirometry & IgE Allergen Screen', billAmount: '₹ 500' }
+                };
+                this.users.forEach((u, idx) => {
+                    if (u.role === 'Patient' && !u.billNumber) {
+                        const def = defaultBills[u.patientId] || {
+                            billNumber: `BILL-2026-${1001 + idx}`,
+                            assignedDoctor: 'Dr. Sarah Rao (Cardiology & General Medicine)',
+                            visitReason: 'General OPD Consultation & Diagnostics',
+                            billAmount: '₹ 350'
+                        };
+                        u.billNumber = def.billNumber;
+                        u.receptionId = def.billNumber;
+                        u.assignedDoctor = u.assignedDoctor || def.assignedDoctor;
+                        u.visitReason = u.visitReason || def.visitReason;
+                        u.billAmount = u.billAmount || def.billAmount;
+                        dbUpdated = true;
+                    }
+                });
+                if (!this.users.some(u => u.role === 'Receptionist')) {
+                    const recSeed = SAMPLE_USERS.find(u => u.role === 'Receptionist') || {
+                        id: 'usr_rec_01',
+                        name: 'Priya Nair',
+                        email: 'reception@sithospital.org',
+                        password: 'password123',
+                        role: 'Receptionist',
+                        designation: 'Senior OPD Receptionist & Billing Executive',
+                        department: 'Front Desk & Patient Registration (Counter 1)',
+                        hospital: 'SIT Students Hospital',
+                        nodeId: 'NODE-PHARM-01'
+                    };
+                    this.users.push({ password: 'password123', ...recSeed });
+                    dbUpdated = true;
+                }
+                if (dbUpdated) {
+                    this.persist();
+                }
             } catch (err) {
                 console.warn('[Database] Read error, resetting db:', err.message);
                 this.seedInitialData();
