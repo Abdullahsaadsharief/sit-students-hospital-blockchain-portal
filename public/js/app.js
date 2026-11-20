@@ -1699,29 +1699,28 @@ async function openReportModal(reportId) {
             let bodyHtml = '';
             if (r.testParameters && Array.isArray(r.testParameters) && r.testParameters.length > 0) {
                 bodyHtml += `
-                    <div style="overflow-x: auto; margin-bottom: 1rem; border-radius: 6px; border: 1px solid var(--border-subtle);">
-                        <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem;">
+                    <div class="lit-table-wrapper" style="margin-bottom: 1rem;">
+                        <table class="lit-table" style="width: 100%; border-collapse: collapse; font-size: 0.85rem;">
                             <thead>
-                                <tr style="background: rgba(255,255,255,0.06); text-align: left;">
-                                    <th style="padding: 10px 14px; border-bottom: 1px solid var(--border-subtle); color: var(--accent-cyan);">Investigation / Parameter</th>
-                                    <th style="padding: 10px 14px; border-bottom: 1px solid var(--border-subtle); color: var(--accent-cyan);">Observed Value</th>
-                                    <th style="padding: 10px 14px; border-bottom: 1px solid var(--border-subtle); color: var(--accent-cyan);">Reference Range</th>
-                                    <th style="padding: 10px 14px; border-bottom: 1px solid var(--border-subtle); color: var(--accent-cyan);">Status</th>
+                                <tr>
+                                    <th>Investigation / Parameter</th>
+                                    <th>Observed Value</th>
+                                    <th>Reference Range</th>
+                                    <th>Status</th>
                                 </tr>
                             </thead>
                             <tbody>
                 `;
-                r.testParameters.forEach((param, idx) => {
-                    const rowBg = idx % 2 === 0 ? 'rgba(255,255,255,0.02)' : 'transparent';
-                    const statusColor = param.isAbnormal ? '#f87171' : '#34d399';
-                    const statusBadgeBg = param.isAbnormal ? 'rgba(239, 68, 68, 0.15)' : 'rgba(16, 185, 129, 0.15)';
+                r.testParameters.forEach((param) => {
+                    const statusColor = param.isAbnormal ? 'var(--accent-danger)' : 'var(--accent-success)';
+                    const statusBadgeBg = param.isAbnormal ? 'rgba(239, 68, 68, 0.14)' : 'rgba(16, 185, 129, 0.14)';
                     bodyHtml += `
-                        <tr style="background: ${rowBg}; border-bottom: 1px solid rgba(255,255,255,0.04);">
+                        <tr>
                             <td style="padding: 10px 14px; font-weight: 600;">${escapeHtml(param.parameter)}</td>
                             <td style="padding: 10px 14px; font-weight: 700; color: ${statusColor};">${escapeHtml(param.value)}</td>
                             <td style="padding: 10px 14px; color: var(--text-muted); font-size: 0.82rem;">${escapeHtml(param.ref || 'Normal')}</td>
                             <td style="padding: 10px 14px;">
-                                <span style="background: ${statusBadgeBg}; color: ${statusColor}; padding: 2px 8px; border-radius: 99px; font-size: 0.75rem; font-weight: 700;">
+                                <span style="background: ${statusBadgeBg}; color: ${statusColor}; padding: 3px 10px; border-radius: 99px; font-size: 0.74rem; font-weight: 800;">
                                     ${escapeHtml(param.status)}
                                 </span>
                             </td>
@@ -1732,28 +1731,28 @@ async function openReportModal(reportId) {
             }
 
             if (r.aiHighlights && (r.aiHighlights.keyFindings || r.aiHighlights.diagnosticImpression)) {
-                const findingsList = (r.aiHighlights.keyFindings || []).map(f => `<li>${escapeHtml(f)}</li>`).join('');
+                const findingsList = (r.aiHighlights.keyFindings || []).map(f => `<li class="report-ai-bullet">${escapeHtml(f)}</li>`).join('');
                 const abnormalList = (r.aiHighlights.abnormalFlags || []).filter(a => !a.toLowerCase().includes('no critical')).map(a => `<li>${escapeHtml(a)}</li>`).join('');
                 bodyHtml += `
-                    <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid #10b981; border-radius: 8px; padding: 12px 16px; margin-bottom: 14px;">
+                    <div class="report-ai-box" style="padding: 12px 16px; margin-bottom: 14px;">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                            <strong style="color: #34d399; font-size: 0.88rem; display: flex; align-items: center; gap: 6px;">
-                                🤖 AI Clinical Key Findings & Highlights
+                            <strong class="report-ai-title" style="font-size: 0.88rem; display: flex; align-items: center; gap: 6px;">
+                                🤖 AI Clinical Key Findings &amp; Highlights
                             </strong>
-                            <span style="font-size: 0.72rem; background: rgba(16, 185, 129, 0.2); color: #6ee7b7; padding: 2px 8px; border-radius: 12px; font-weight: 600;">
-                                ${escapeHtml(r.aiHighlights.aiEngine || 'Hybrid AI Engine')}
+                            <span style="font-size: 0.72rem; background: rgba(13, 148, 136, 0.15); color: var(--accent-teal); padding: 2px 8px; border-radius: 12px; font-weight: 700;">
+                                ${escapeHtml(r.aiHighlights.aiEngine || 'Clinical Rule Engine')}
                             </span>
                         </div>
-                        ${findingsList ? `<ul style="margin: 0 0 8px 16px; padding: 0; color: #e2e8f0; font-size: 0.82rem; line-height: 1.4;">${findingsList}</ul>` : ''}
+                        ${findingsList ? `<ul style="margin: 0 0 8px 16px; padding: 0; font-size: 0.82rem; line-height: 1.4;">${findingsList}</ul>` : ''}
                         ${abnormalList ? `
-                            <div style="margin-top: 6px; padding: 6px 10px; background: rgba(239, 68, 68, 0.12); border-left: 3px solid #ef4444; border-radius: 4px;">
-                                <strong style="color: #fca5a5; font-size: 0.75rem;">Flagged Abnormalities:</strong>
-                                <ul style="margin: 2px 0 0 14px; padding: 0; color: #fecaca; font-size: 0.78rem;">${abnormalList}</ul>
+                            <div style="margin-top: 6px; padding: 6px 10px; background: rgba(239, 68, 68, 0.1); border-left: 3px solid var(--accent-danger); border-radius: 4px; color: var(--accent-danger);">
+                                <strong style="font-size: 0.75rem;">Flagged Abnormalities:</strong>
+                                <ul style="margin: 2px 0 0 14px; padding: 0; font-size: 0.78rem;">${abnormalList}</ul>
                             </div>
                         ` : ''}
                         ${r.aiHighlights.diagnosticImpression ? `
-                            <div style="margin-top: 6px; font-size: 0.8rem; color: #94a3b8;">
-                                <strong style="color: #e2e8f0;">Summary:</strong> ${escapeHtml(r.aiHighlights.diagnosticImpression)}
+                            <div style="margin-top: 6px; font-size: 0.8rem; color: var(--text-secondary);">
+                                <strong style="color: var(--text-primary);">Summary:</strong> ${escapeHtml(r.aiHighlights.diagnosticImpression)}
                             </div>
                         ` : ''}
                     </div>
@@ -1762,9 +1761,9 @@ async function openReportModal(reportId) {
 
             if (r.clinicalImpression || r.notes) {
                 bodyHtml += `
-                    <div style="background: rgba(2, 132, 199, 0.08); border-left: 3px solid var(--accent-cyan); padding: 10px 14px; border-radius: 4px; margin-bottom: 12px;">
+                    <div class="theme-subbox" style="border-left: 3px solid var(--accent-cyan); padding: 10px 14px; border-radius: 4px; margin-bottom: 12px;">
                         <strong style="color: var(--accent-cyan); font-size: 0.82rem; text-transform: uppercase;">Clinical Impression:</strong>
-                        <p style="margin: 4px 0 0 0; color: #e2e8f0; font-size: 0.86rem; line-height: 1.5;">${escapeHtml(r.clinicalImpression || r.notes)}</p>
+                        <p style="margin: 4px 0 0 0; color: var(--text-primary); font-size: 0.86rem; line-height: 1.5;">${escapeHtml(r.clinicalImpression || r.notes)}</p>
                     </div>
                 `;
             }
@@ -1817,17 +1816,17 @@ async function openReportModal(reportId) {
                     </div>
                     <div style="display: flex; flex-direction: column; gap: 0.65rem;">
                         ${notesList.map((dn, idx) => `
-                            <div style="padding: 0.75rem 0.9rem; border-radius: 6px; background: #ffffff; border: 1px solid #cbd5e1; border-left: 4px solid #0d9488;">
+                            <div class="card" style="padding: 0.75rem 0.9rem; border-radius: 6px; border-left: 4px solid var(--accent-teal);">
                                 <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.35rem;">
-                                    <strong style="color: #162d4c; font-size: 0.88rem;">👨‍⚕️ #${idx + 1} ${escapeHtml(dn.doctorName || 'Hospital Doctor')} (${escapeHtml(dn.department || 'SIT Hospital')})</strong>
-                                    <span style="font-size: 0.74rem; background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; padding: 2px 8px; border-radius: 4px; font-weight: 700;">
+                                    <strong style="color: var(--text-primary); font-size: 0.88rem;">👨‍⚕️ #${idx + 1} ${escapeHtml(dn.doctorName || 'Hospital Doctor')} (${escapeHtml(dn.department || 'SIT Hospital')})</strong>
+                                    <span style="font-size: 0.74rem; background: rgba(16, 185, 129, 0.14); color: var(--accent-success); padding: 2px 8px; border-radius: 4px; font-weight: 700;">
                                         ${escapeHtml(dn.status || 'Reviewed')} • ${escapeHtml((dn.updatedAt || '').slice(0, 10))}
                                     </span>
                                 </div>
-                                <div style="font-size: 0.84rem; color: #334155; margin-bottom: 0.25rem;">
-                                    <strong>Clinical Note:</strong> ${escapeHtml(dn.notes || 'Reviewed')}
+                                <div style="font-size: 0.84rem; color: var(--text-secondary); margin-bottom: 0.25rem;">
+                                    <strong style="color: var(--text-primary);">Clinical Note:</strong> ${escapeHtml(dn.notes || 'Reviewed')}
                                 </div>
-                                ${dn.prescription ? `<div style="font-size: 0.84rem; color: #0f766e;"><strong>Rx / Medicines Prescribed:</strong> ${escapeHtml(dn.prescription)}</div>` : ''}
+                                ${dn.prescription ? `<div style="font-size: 0.84rem; color: var(--accent-teal);"><strong>Rx / Medicines Prescribed:</strong> ${escapeHtml(dn.prescription)}</div>` : ''}
                             </div>
                         `).join('')}
                     </div>
@@ -2108,21 +2107,21 @@ async function loadPrescriptions() {
         container.innerHTML = data.prescriptions.map(rx => {
             const medsHtml = (rx.medicines || []).map(m => `
                 <li style="margin-bottom: 3px;">
-                    <strong>${escapeHtml(m.name)}</strong> — <span style="color: #0f766e; font-weight: 700;">${escapeHtml(m.dosage || '1-0-1')}</span> (${escapeHtml(m.duration || '5 Days')}, ${escapeHtml(m.instructions || 'After Food')})
+                    <strong>${escapeHtml(m.name)}</strong> — <span style="color: var(--accent-teal); font-weight: 700;">${escapeHtml(m.dosage || '1-0-1')}</span> (${escapeHtml(m.duration || '5 Days')}, ${escapeHtml(m.instructions || 'After Food')})
                 </li>
             `).join('');
 
             return `
-                <div style="border: 1px solid var(--border-color); border-left: 4px solid #1e3a5f; border-radius: 8px; padding: 1.15rem; background: #ffffff;">
+                <div class="theme-subbox" style="border-left: 4px solid var(--accent-blue); border-radius: 8px; padding: 1.15rem;">
                     <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.65rem;">
                         <div>
-                            <span style="font-family: var(--font-mono); font-size: 0.76rem; font-weight: 700; background: #e0f2fe; color: #0369a1; padding: 2px 8px; border-radius: 4px;">
+                            <span class="report-id-badge">
                                 ${escapeHtml(rx.prescriptionId)} • ${escapeHtml((rx.createdAt || '').slice(0, 10))}
                             </span>
-                            <h4 style="font-size: 1.02rem; color: #162d4c; margin-top: 0.35rem;">
+                            <h4 style="font-size: 1.02rem; color: var(--text-primary); margin-top: 0.35rem;">
                                 Patient: ${escapeHtml(rx.patientName)} (${escapeHtml(rx.patientUhid || '')} | ${escapeHtml(rx.billNumber || '')})
                             </h4>
-                            <div style="font-size: 0.8rem; color: #475569;">
+                            <div style="font-size: 0.8rem; color: var(--text-secondary);">
                                 Attending Doctor: <strong>${escapeHtml(rx.doctorName)}</strong> (${escapeHtml(rx.department || 'General Medicine')})
                             </div>
                         </div>
@@ -2131,20 +2130,20 @@ async function loadPrescriptions() {
                         </a>
                     </div>
 
-                    <div style="font-size: 0.82rem; color: #334155; background: #f8fafc; padding: 0.6rem 0.8rem; border-radius: 6px; border: 1px solid #e2e8f0; margin-bottom: 0.65rem;">
+                    <div class="card" style="font-size: 0.82rem; padding: 0.6rem 0.8rem; border-radius: 6px; margin-bottom: 0.65rem;">
                         <div><strong>Vitals:</strong> ${escapeHtml(rx.vitals || 'Normal')}</div>
                         <div><strong>Complaints:</strong> ${escapeHtml(rx.symptoms || '-')}</div>
-                        <div style="color: #0f766e;"><strong>Clinical Diagnosis:</strong> ${escapeHtml(rx.diagnosis || '-')}</div>
+                        <div style="color: var(--accent-teal);"><strong>Clinical Diagnosis:</strong> ${escapeHtml(rx.diagnosis || '-')}</div>
                     </div>
 
-                    <div style="font-size: 0.83rem; color: #1e293b; margin-bottom: 0.5rem;">
-                        <strong style="color: #162d4c;">Rx — Prescribed Medicines:</strong>
+                    <div style="font-size: 0.83rem; color: var(--text-primary); margin-bottom: 0.5rem;">
+                        <strong>Rx — Prescribed Medicines:</strong>
                         <ul style="margin: 4px 0 0 18px; padding: 0;">${medsHtml}</ul>
                     </div>
 
-                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; font-size: 0.78rem; color: #64748b; border-top: 1px solid #e2e8f0; padding-top: 0.5rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; font-size: 0.78rem; color: var(--text-muted); border-top: 1px solid var(--border-subtle); padding-top: 0.5rem;">
                         <span><strong>Advice:</strong> ${escapeHtml(rx.advice || 'Follow dosage schedule')}</span>
-                        ${rx.labTestOrdered && rx.labTestOrdered !== 'None' ? `<span style="background: #fef3c7; color: #92400e; border: 1px solid #fde68a; padding: 2px 8px; border-radius: 4px; font-weight: 700;">🧪 Lab Ordered: ${escapeHtml(rx.labTestOrdered)}</span>` : ''}
+                        ${rx.labTestOrdered && rx.labTestOrdered !== 'None' ? `<span class="report-eval-box" style="margin: 0; padding: 2px 8px;">🧪 Lab Ordered: ${escapeHtml(rx.labTestOrdered)}</span>` : ''}
                     </div>
                 </div>
             `;

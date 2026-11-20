@@ -1234,6 +1234,27 @@
   ],
   "auditLogs": [
     {
+      "id": "log_1795198981665_x9mg",
+      "action": "USER_LOGIN",
+      "actor": "John Doe",
+      "details": "Patient accessed portal via Reception Bill ID (BILL-2026-1001)",
+      "timestamp": "2026-11-20T18:23:01.665Z"
+    },
+    {
+      "id": "log_1795198976140_3mn8",
+      "action": "USER_LOGIN",
+      "actor": "Hospital IT Admin",
+      "details": "User authenticated successfully with role: Admin",
+      "timestamp": "2026-11-20T18:22:56.140Z"
+    },
+    {
+      "id": "log_1795198961091_yxq3",
+      "action": "USER_LOGIN",
+      "actor": "John Doe",
+      "details": "Patient accessed portal via Reception Bill ID (BILL-2026-1001)",
+      "timestamp": "2026-11-20T18:22:41.091Z"
+    },
+    {
       "id": "log_1795198881809_qh3h",
       "action": "USER_LOGIN",
       "actor": "Alex Smith",

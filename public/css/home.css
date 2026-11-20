@@ -728,6 +728,13 @@ body.dark-mode {
     color: #f1f5f9;
 }
 
+/* Keep top utility bar & footer deep navy in dark mode (prevent white-on-white!) */
+body.dark-mode .top-utility-bar,
+body.dark-mode .site-footer {
+    background-color: #070d19 !important;
+    color: #cbd5e1 !important;
+}
+
 body.dark-mode .hospital-navbar,
 body.dark-mode .section-alt-wrapper,
 body.dark-mode .step-card,
@@ -741,9 +748,25 @@ body.dark-mode .rec-card {
     color: #f1f5f9 !important;
 }
 
+body.dark-mode .brand-title,
+body.dark-mode .hero-heading,
+body.dark-mode .section-title,
+body.dark-mode .step-card h3,
+body.dark-mode .wing-info-col h3,
+body.dark-mode .fact-num,
+body.dark-mode .rec-card-title,
+body.dark-mode .rec-label {
+    color: #f8fafc !important;
+}
+
 body.dark-mode .hero-banner {
     background: linear-gradient(180deg, #111827 0%, #0b1120 100%) !important;
     border-bottom-color: #26354d !important;
+}
+
+body.dark-mode .photo-caption-bar {
+    background: #1e293b !important;
+    color: #e2e8f0 !important;
 }
 
 body.dark-mode .wing-card,
@@ -755,6 +778,32 @@ body.dark-mode .verify-result-box {
     background: #1e293b !important;
     border-color: #334155 !important;
     color: #f1f5f9 !important;
+}
+
+body.dark-mode .wing-floor-tag,
+body.dark-mode .chip-btn {
+    background: #0f172a !important;
+    color: #38bdf8 !important;
+    border: 1px solid #334155 !important;
+}
+
+body.dark-mode .dept-pill,
+body.dark-mode .bill-tag {
+    background: rgba(13, 148, 136, 0.2) !important;
+    color: #5eead4 !important;
+    border-color: rgba(20, 184, 166, 0.4) !important;
+}
+
+body.dark-mode .bill-slip-box {
+    background: rgba(21, 128, 61, 0.16) !important;
+    border-color: #22c55e !important;
+    color: #f1f5f9 !important;
+}
+
+body.dark-mode .bill-code-badge {
+    background: #0f172a !important;
+    color: #4ade80 !important;
+    border-color: #22c55e !important;
 }
 
 body.dark-mode .btn-outline {

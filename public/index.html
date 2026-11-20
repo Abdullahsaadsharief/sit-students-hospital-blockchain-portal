@@ -485,12 +485,13 @@
                     </div>
 
                     <!-- Notice if Patient -->
-                    <div id="patientScopedNotice" class="alert-box alert-info" style="display: none;">
-                        <span>👤</span>
+                    <div id="patientScopedNotice" class="patient-scoped-banner" style="display: none;">
+                        <div class="patient-scoped-icon">🛡️</div>
                         <div>
-                            <strong>Patient Scoped Access:</strong> You are viewing only diagnostic records issued to
-                            your patient identity. You can view, verify anti-forgery QR codes, and download decrypted
-                            reports. Editing is restricted to licensed physicians.
+                            <div class="patient-scoped-title">Verified Patient Portal — Personal Medical File</div>
+                            <div class="patient-scoped-desc">
+                                You are viewing your official diagnostic reports and doctor prescriptions issued at <strong>SIT Students Hospital</strong>. All files are encrypted with AES-256 and verified against our hospital ledger.
+                            </div>
                         </div>
                     </div>
 
@@ -817,53 +818,54 @@ Tab. Pantoprazole 40mg | 1-0-0 | 5 Days | Before Breakfast</textarea>
                             </div>
                         </div>
 
-                        <div
-                            style="background: rgba(0,0,0,0.3); padding: 1.25rem; border-radius: var(--radius-md); border: 1px solid var(--border-subtle); margin-top: 1rem;">
-                            <h4 style="font-size: 0.9rem; color: var(--accent-cyan); margin-bottom: 0.5rem;">Panel
-                                Demonstration Trigger:</h4>
-                            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.75rem;">
-                                Simulate uploading an exact duplicate of John Doe's Fasting Glucose Report.
+                        <div class="theme-subbox"
+                            style="padding: 1.25rem; border-radius: var(--radius-md); margin-top: 1rem; border-left: 4px solid var(--accent-warning);">
+                            <h4 style="font-size: 0.95rem; color: var(--text-primary); margin-bottom: 0.4rem;">
+                                🧪 Panel Demonstration Trigger (Duplicate Upload Check)
+                            </h4>
+                            <p style="font-size: 0.84rem; color: var(--text-secondary); margin-bottom: 0.85rem;">
+                                Simulate uploading an exact duplicate of John Doe's Fasting Glucose Report to see the SHA-256 gatekeeper reject it in real time:
                             </p>
-                            <button class="btn btn-secondary"
-                                style="width: 100%; border-color: var(--accent-warning); color: var(--accent-warning);"
+                            <button class="btn btn-edit"
+                                style="width: 100%; font-weight: 700; padding: 10px 14px;"
                                 onclick="simulateDuplicateUpload()">
-                                ⚠️ Test Duplicate Upload Rejection (Obj 2 Demo)
+                                ⚠️ Test Duplicate Upload Rejection (HTTP 409 Demo)
                             </button>
                         </div>
 
                         <!-- Demo Test Reports Kit for Panel Evaluation -->
-                        <div
-                            style="background: rgba(14, 23, 42, 0.85); padding: 1.25rem; border-radius: var(--radius-md); border: 1px solid rgba(0, 229, 255, 0.3); margin-top: 1rem;">
+                        <div class="theme-subbox"
+                            style="padding: 1.25rem; border-radius: var(--radius-md); margin-top: 1rem; border-left: 4px solid var(--accent-teal);">
                             <h4
-                                style="font-size: 0.92rem; color: #fff; margin-bottom: 0.4rem; display: flex; align-items: center; gap: 6px;">
-                                <span>📁</span> <span>Demo Reports Kit (Download & Test Live)</span>
+                                style="font-size: 0.95rem; color: var(--text-primary); margin-bottom: 0.4rem; display: flex; align-items: center; gap: 6px;">
+                                <span>📁</span> <span>Sample PDF Reports Kit (Download &amp; Test Upload)</span>
                             </h4>
-                            <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 0.75rem;">
+                            <p style="font-size: 0.82rem; color: var(--text-secondary); margin-bottom: 0.85rem;">
                                 Download these prepared PDF test files to demonstrate live upload and duplicate
                                 prevention to the panel:
                             </p>
                             <div style="display: flex; flex-direction: column; gap: 0.5rem;">
                                 <a href="/demo-reports/00_TEST_LIVE_UPLOAD_Complete_Blood_Count.pdf" download
                                     class="btn btn-primary"
-                                    style="font-size: 0.8rem; padding: 7px 12px; text-decoration: none; display: flex; justify-content: space-between; align-items: center;">
+                                    style="font-size: 0.8rem; padding: 8px 12px; text-decoration: none; display: flex; justify-content: space-between; align-items: center;">
                                     <span>📄 1. Test Report for Live Upload (CBC Profile)</span>
                                     <span>⬇️</span>
                                 </a>
                                 <a href="/demo-reports/00_TEST_DUPLICATE_REJECTION_Fasting_Blood_Sugar.pdf" download
-                                    class="btn btn-secondary"
-                                    style="font-size: 0.8rem; padding: 7px 12px; text-decoration: none; display: flex; justify-content: space-between; align-items: center; border-color: rgba(245, 158, 11, 0.4); color: #fde68a;">
+                                    class="btn btn-edit"
+                                    style="font-size: 0.8rem; padding: 8px 12px; text-decoration: none; display: flex; justify-content: space-between; align-items: center;">
                                     <span>⚠️ 2. Duplicate Report File (Triggers 409 Conflict)</span>
                                     <span>⬇️</span>
                                 </a>
                                 <a href="/demo-reports/03_Robert_Chen_Brain_MRI_Neuro_Imaging___Diffusi.pdf" download
                                     class="btn btn-secondary"
-                                    style="font-size: 0.8rem; padding: 7px 12px; text-decoration: none; display: flex; justify-content: space-between; align-items: center;">
+                                    style="font-size: 0.8rem; padding: 8px 12px; text-decoration: none; display: flex; justify-content: space-between; align-items: center;">
                                     <span>🧠 3. Neuro Brain MRI Scan (Robert Chen)</span>
                                     <span>⬇️</span>
                                 </a>
                                 <a href="/demo-reports/04_Ayesha_Khan_Chest_Digital_Radiography_X_Ray_.pdf" download
                                     class="btn btn-secondary"
-                                    style="font-size: 0.8rem; padding: 7px 12px; text-decoration: none; display: flex; justify-content: space-between; align-items: center;">
+                                    style="font-size: 0.8rem; padding: 8px 12px; text-decoration: none; display: flex; justify-content: space-between; align-items: center;">
                                     <span>🫁 4. Pulmonary Chest X-Ray (Ayesha Khan)</span>
                                     <span>⬇️</span>
                                 </a>
@@ -888,7 +890,7 @@ Tab. Pantoprazole 40mg | 1-0-0 | 5 Days | Before Breakfast</textarea>
 
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem; margin-bottom: 1.5rem;">
                         <!-- Hospital Profile & Single-Hospital Scope -->
-                        <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1.35rem;">
+                        <div class="theme-subbox" style="border-radius: var(--radius-md); padding: 1.35rem;">
                             <h4 style="font-size: 1rem; color: var(--accent-cyan); margin-bottom: 0.85rem;">
                                 🏥 1. Hospital Institution Profile
                             </h4>
@@ -913,15 +915,15 @@ Tab. Pantoprazole 40mg | 1-0-0 | 5 Days | Before Breakfast</textarea>
                         </div>
 
                         <!-- Receptionist & Front-Desk Module Settings (Next Phase Prep) -->
-                        <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1.35rem;">
-                            <h4 style="font-size: 1rem; color: #fbbf24; margin-bottom: 0.85rem;">
-                                🗂️ 2. Receptionist &amp; Front-Desk Module Settings (Next Phase)
+                        <div class="theme-subbox" style="border-radius: var(--radius-md); padding: 1.35rem;">
+                            <h4 style="font-size: 1rem; color: var(--accent-teal); margin-bottom: 0.85rem;">
+                                🗂️ 2. Receptionist &amp; Front-Desk Module Settings
                             </h4>
                             <div class="form-group">
                                 <label class="form-label">Receptionist Role &amp; Desk Mode</label>
                                 <select id="setReceptionMode" class="form-control">
-                                    <option value="prepared" selected>Prepared &amp; Pre-Configured (Ready for Phase 2 Rollout)</option>
-                                    <option value="opd_checkin">Active OPD Patient Registration &amp; Token Desk</option>
+                                    <option value="prepared" selected>Active OPD Patient Registration &amp; Bill Desk (/reception)</option>
+                                    <option value="opd_checkin">OPD Token &amp; Doctor Queue Desk</option>
                                     <option value="audit_only">Read-Only Front Desk Lookup</option>
                                 </select>
                             </div>
@@ -943,7 +945,7 @@ Tab. Pantoprazole 40mg | 1-0-0 | 5 Days | Before Breakfast</textarea>
                     </div>
 
                     <!-- Checkboxes for Prepared Next-Phase Features -->
-                    <div style="background: rgba(0, 0, 0, 0.25); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1.25rem; margin-bottom: 1.5rem;">
+                    <div class="theme-subbox" style="border-radius: var(--radius-md); padding: 1.25rem; margin-bottom: 1.5rem;">
                         <h4 style="font-size: 0.95rem; color: var(--text-primary); margin-bottom: 0.75rem;">
                             ⚙️ Prepared Front-Desk &amp; Hospital Workflow Toggles
                         </h4>
@@ -1046,28 +1048,28 @@ Tab. Pantoprazole 40mg | 1-0-0 | 5 Days | Before Breakfast</textarea>
                             <div class="admin-stat-lbl">Enrolled Identities</div>
                         </div>
                         <div class="admin-stat-card">
-                            <div id="statTotalDoctors" class="admin-stat-val" style="color: #60a5fa;">0</div>
+                            <div id="statTotalDoctors" class="admin-stat-val" style="color: var(--accent-cyan);">0</div>
                             <div class="admin-stat-lbl">Registered Doctors</div>
                         </div>
                         <div class="admin-stat-card">
-                            <div id="statTotalPatients" class="admin-stat-val" style="color: #fbbf24;">0</div>
+                            <div id="statTotalPatients" class="admin-stat-val" style="color: var(--accent-warning);">0</div>
                             <div class="admin-stat-lbl">Enrolled Patients</div>
                         </div>
                         <div class="admin-stat-card">
-                            <div id="statTotalLabStaff" class="admin-stat-val" style="color: #2dd4bf;">0</div>
+                            <div id="statTotalLabStaff" class="admin-stat-val" style="color: var(--accent-teal);">0</div>
                             <div class="admin-stat-lbl">Lab Technologists</div>
                         </div>
                     </div>
 
-                    <!-- Consortium AI Gateway & Gemini API Configuration Card -->
-                    <div class="card"
-                        style="margin-bottom: 2rem; background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(6, 182, 212, 0.08) 100%); border: 1px solid rgba(16, 185, 129, 0.35); border-radius: var(--radius-md); padding: 1.5rem;">
+                    <!-- Hospital AI Gateway & Gemini API Configuration Card -->
+                    <div class="theme-subbox"
+                        style="margin-bottom: 2rem; border-left: 4px solid var(--accent-teal); border-radius: var(--radius-md); padding: 1.5rem;">
                         <div
                             style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem;">
                             <div>
                                 <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
                                     <span style="font-size: 1.35rem;">🤖</span>
-                                    <h4 style="font-size: 1.1rem; color: #34d399; margin: 0;">Consortium AI Gateway &
+                                    <h4 style="font-size: 1.1rem; color: var(--accent-teal); margin: 0;">Hospital AI Clinical Gateway &amp;
                                         Cloud Intelligence Configuration</h4>
                                     <span id="adminAiStatusBadge" class="status-pill status-completed"
                                         style="font-size: 0.72rem; padding: 2px 8px;">🟢 Offline Local NLP Active</span>
@@ -1086,19 +1088,19 @@ Tab. Pantoprazole 40mg | 1-0-0 | 5 Days | Before Breakfast</textarea>
                         </div>
 
                         <!-- Active Engine details bar -->
-                        <div
-                            style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.75rem; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.08); padding: 10px 14px; border-radius: var(--radius-sm); margin-bottom: 1.25rem;">
+                        <div class="card"
+                            style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.75rem; padding: 10px 14px; border-radius: var(--radius-sm); margin-bottom: 1.25rem;">
                             <div>
                                 <div
                                     style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">
                                     Active Clinical Intelligence Engine</div>
                                 <div id="adminAiEngineName"
-                                    style="font-size: 0.92rem; font-weight: 700; color: #f8fafc; margin-top: 2px;">
+                                    style="font-size: 0.92rem; font-weight: 700; color: var(--text-primary); margin-top: 2px;">
                                     Local Clinical NLP Engine (Offline Fallback)
                                 </div>
                             </div>
                             <div id="adminAiKeyStatus"
-                                style="font-size: 0.8rem; color: var(--accent-cyan); font-family: var(--font-mono);">
+                                style="font-size: 0.8rem; color: var(--accent-cyan); font-family: var(--font-mono); font-weight: 700;">
                                 Key: Not Configured (Offline Mode Active)
                             </div>
                         </div>
@@ -1118,11 +1120,11 @@ Tab. Pantoprazole 40mg | 1-0-0 | 5 Days | Before Breakfast</textarea>
                             <button type="button" id="btnSaveAiKey" class="btn btn-primary"
                                 onclick="saveAdminAiConfig()"
                                 style="display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;">
-                                ⚡ Test & Activate Gemini AI
+                                ⚡ Test &amp; Activate Gemini AI
                             </button>
                             <button type="button" id="btnResetAiKey" class="btn btn-secondary"
                                 onclick="resetAdminAiConfig()"
-                                style="display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; border-color: rgba(239, 68, 68, 0.4); color: #f87171;">
+                                style="display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;">
                                 🔄 Revert to Offline Mode
                             </button>
                         </div>
@@ -1134,8 +1136,8 @@ Tab. Pantoprazole 40mg | 1-0-0 | 5 Days | Before Breakfast</textarea>
                     </div>
 
                     <!-- Register New User Section -->
-                    <div
-                        style="background: rgba(0,0,0,0.3); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1.5rem; margin-bottom: 2rem;">
+                    <div class="theme-subbox"
+                        style="border-radius: var(--radius-md); padding: 1.5rem; margin-bottom: 2rem;">
                         <h4 style="font-size: 1.05rem; color: var(--accent-cyan); margin-bottom: 0.35rem;">
                             ➕ Enroll New Healthcare Identity (Doctor / Patient / Lab)
                         </h4>
@@ -1299,36 +1301,36 @@ Tab. Pantoprazole 40mg | 1-0-0 | 5 Days | Before Breakfast</textarea>
                     <!-- SIT Students Hospital Internal Wing Nodes Strip -->
                     <div
                         style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
-                        <div
-                            style="background: rgba(0,0,0,0.3); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1rem; display: flex; align-items: center; gap: 0.75rem;">
+                        <div class="theme-subbox"
+                            style="border-radius: var(--radius-md); padding: 1rem; display: flex; align-items: center; gap: 0.75rem;">
                             <span style="font-size: 1.5rem;">🏥</span>
                             <div>
                                 <div style="font-size: 0.85rem; font-weight: 700;">Medicine &amp; Cardio Wing (Block A)</div>
-                                <div style="font-size: 0.72rem; color: #34d399;">● Online (SIT Hospital Primary Node)</div>
+                                <div style="font-size: 0.72rem; color: var(--accent-success); font-weight: 700;">● Online (SIT Hospital Primary Node)</div>
                             </div>
                         </div>
-                        <div
-                            style="background: rgba(0,0,0,0.3); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1rem; display: flex; align-items: center; gap: 0.75rem;">
+                        <div class="theme-subbox"
+                            style="border-radius: var(--radius-md); padding: 1rem; display: flex; align-items: center; gap: 0.75rem;">
                             <span style="font-size: 1.5rem;">🔬</span>
                             <div>
                                 <div style="font-size: 0.85rem; font-weight: 700;">SIT Central Pathology Lab</div>
-                                <div style="font-size: 0.72rem; color: #34d399;">● Online (Lab Upload Node)</div>
+                                <div style="font-size: 0.72rem; color: var(--accent-success); font-weight: 700;">● Online (Lab Upload Node)</div>
                             </div>
                         </div>
-                        <div
-                            style="background: rgba(0,0,0,0.3); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1rem; display: flex; align-items: center; gap: 0.75rem;">
+                        <div class="theme-subbox"
+                            style="border-radius: var(--radius-md); padding: 1rem; display: flex; align-items: center; gap: 0.75rem;">
                             <span style="font-size: 1.5rem;">🩺</span>
                             <div>
                                 <div style="font-size: 0.85rem; font-weight: 700;">Ortho &amp; Pulmonology Wing (Block B)</div>
-                                <div style="font-size: 0.72rem; color: #34d399;">● Online (Specialty Wing Node)</div>
+                                <div style="font-size: 0.72rem; color: var(--accent-success); font-weight: 700;">● Online (Specialty Wing Node)</div>
                             </div>
                         </div>
-                        <div
-                            style="background: rgba(0,0,0,0.3); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1rem; display: flex; align-items: center; gap: 0.75rem;">
+                        <div class="theme-subbox"
+                            style="border-radius: var(--radius-md); padding: 1rem; display: flex; align-items: center; gap: 0.75rem;">
                             <span style="font-size: 1.5rem;">🗂️</span>
                             <div>
                                 <div style="font-size: 0.85rem; font-weight: 700;">Reception &amp; Pharmacy Desk</div>
-                                <div style="font-size: 0.72rem; color: #34d399;">● Online (Front-Desk Node)</div>
+                                <div style="font-size: 0.72rem; color: var(--accent-success); font-weight: 700;">● Online (Front-Desk Node)</div>
                             </div>
                         </div>
                     </div>
@@ -1391,8 +1393,8 @@ Tab. Pantoprazole 40mg | 1-0-0 | 5 Days | Before Breakfast</textarea>
             <p id="modalReportSubtitle"
                 style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1.25rem;"></p>
 
-            <div
-                style="background: rgba(0,0,0,0.5); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1.25rem; margin-bottom: 1.25rem;">
+            <div class="theme-subbox"
+                style="border-radius: var(--radius-md); padding: 1.25rem; margin-bottom: 1.25rem;">
                 <div
                     style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 0.5rem;">
                     <h4 style="font-size: 0.8rem; color: var(--accent-cyan); text-transform: uppercase; margin: 0;">
@@ -1429,7 +1431,7 @@ Tab. Pantoprazole 40mg | 1-0-0 | 5 Days | Before Breakfast</textarea>
                     style="font-size: 0.82rem; color: var(--accent-warning); text-transform: uppercase; margin-bottom: 0.35rem;">
                     👨‍⚕️ Attending Physician Clinical Evaluation:
                 </h4>
-                <div id="modalDoctorRemarksContent" style="font-size: 0.88rem; color: #fef08a; line-height: 1.5;"></div>
+                <div id="modalDoctorRemarksContent" style="font-size: 0.88rem; color: var(--text-primary); line-height: 1.5;"></div>
             </div>
 
             <div
@@ -1539,15 +1541,15 @@ Tab. Pantoprazole 40mg | 1-0-0 | 5 Days | Before Breakfast</textarea>
             </div>
 
             <!-- SHA-256 Fingerprint Display Box -->
-            <div
-                style="background: rgba(0,0,0,0.5); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1rem; margin-bottom: 1.25rem; text-align: left;">
+            <div class="theme-subbox"
+                style="border-radius: var(--radius-md); padding: 1rem; margin-bottom: 1.25rem; text-align: left;">
                 <div
                     style="display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--accent-cyan); font-weight: 700; margin-bottom: 6px;">
                     <span>CRYPTOGRAPHIC SHA-256 FINGERPRINT:</span>
-                    <span id="qrBlockDisplay" style="color: #34d399;">Anchored Block #1</span>
+                    <span id="qrBlockDisplay" style="color: var(--accent-success);">Anchored Block #1</span>
                 </div>
-                <div id="qrHashDisplay"
-                    style="font-family: var(--font-mono); font-size: 0.78rem; color: #e2e8f0; word-break: break-all; background: rgba(0,0,0,0.5); padding: 8px 12px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.08);">
+                <div id="qrHashDisplay" class="card"
+                    style="font-family: var(--font-mono); font-size: 0.78rem; color: var(--text-primary); word-break: break-all; padding: 8px 12px; border-radius: 6px;">
                 </div>
             </div>
 

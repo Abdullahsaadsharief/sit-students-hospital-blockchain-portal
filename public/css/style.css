@@ -1442,6 +1442,66 @@ select optgroup,
     line-height: 1.4;
 }
 
+/* Beautified Patient Scoped Banner & Alert Boxes */
+.patient-scoped-banner {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.1rem 1.35rem;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #f0fdfa 0%, #e0f2fe 100%);
+    border: 1px solid #99f6e4;
+    border-left: 5px solid #0d9488;
+    margin-bottom: 1.35rem;
+}
+
+.patient-scoped-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 8px;
+    background: #ffffff;
+    border: 1px solid #99f6e4;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.35rem;
+    flex-shrink: 0;
+}
+
+.patient-scoped-title {
+    font-size: 0.96rem;
+    font-weight: 800;
+    color: #0f766e;
+    margin-bottom: 0.15rem;
+}
+
+.patient-scoped-desc {
+    font-size: 0.84rem;
+    color: #334155;
+    line-height: 1.45;
+}
+
+.alert-box.alert-info {
+    background: #f0f9ff !important;
+    border: 1px solid #bae6fd !important;
+    border-left: 4px solid #0284c7 !important;
+    color: #0c4a6e !important;
+}
+
+.alert-box.alert-danger {
+    background: #fef2f2 !important;
+    border: 1px solid #fecaca !important;
+    border-left: 4px solid #dc2626 !important;
+    color: #7f1d1d !important;
+}
+
+.doctor-remarks-box {
+    background: #fffbeb !important;
+    border: 1px solid #fde68a !important;
+    border-left: 4px solid #d97706 !important;
+    color: #1e293b !important;
+}
+
 .metric-label {
     color: #64748b !important;
 }
@@ -1743,6 +1803,43 @@ body.dark-mode .report-ai-title {
 
 body.dark-mode .report-ai-bullet {
     color: #e2e8f0 !important;
+}
+
+body.dark-mode .patient-scoped-banner {
+    background: linear-gradient(135deg, rgba(13, 148, 136, 0.16) 0%, rgba(2, 132, 199, 0.16) 100%) !important;
+    border-color: rgba(45, 212, 191, 0.35) !important;
+    border-left: 5px solid #2dd4bf !important;
+}
+
+body.dark-mode .patient-scoped-icon {
+    background: #0f172a !important;
+    border-color: rgba(45, 212, 191, 0.35) !important;
+}
+
+body.dark-mode .patient-scoped-title {
+    color: #5eead4 !important;
+}
+
+body.dark-mode .patient-scoped-desc {
+    color: #cbd5e1 !important;
+}
+
+body.dark-mode .alert-box.alert-info {
+    background: rgba(14, 165, 233, 0.14) !important;
+    border-color: rgba(56, 189, 248, 0.35) !important;
+    color: #e0f2fe !important;
+}
+
+body.dark-mode .alert-box.alert-danger {
+    background: rgba(239, 68, 68, 0.16) !important;
+    border-color: rgba(248, 113, 113, 0.4) !important;
+    color: #fecaca !important;
+}
+
+body.dark-mode .doctor-remarks-box {
+    background: rgba(245, 158, 11, 0.1) !important;
+    border-color: rgba(245, 158, 11, 0.35) !important;
+    color: #f1f5f9 !important;
 }
 
 
