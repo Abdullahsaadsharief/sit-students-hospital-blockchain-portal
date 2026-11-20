@@ -1253,26 +1253,52 @@ Tab. Pantoprazole 40mg | 1-0-0 | 5 Days | Before Breakfast</textarea>
                         </form>
                     </div>
 
-                    <!-- Consortium User Directory Table -->
-                    <h4 style="font-size: 1rem; color: var(--text-primary); margin-bottom: 0.75rem;">
-                        📋 Enrolled Consortium Identities Directory
-                    </h4>
-                    <div class="lit-table-wrapper">
-                        <table class="lit-table">
-                            <thead>
-                                <tr>
-                                    <th>Identity</th>
-                                    <th>Role</th>
-                                    <th>Email / Login</th>
-                                    <th>Affiliation / Patient ID</th>
-                                    <th>License / Node</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="adminUsersTableBody">
-                                <!-- Populated dynamically -->
-                            </tbody>
-                        </table>
+                    <!-- 1. Hospital Doctors, Lab Technicians & Reception Staff Directory -->
+                    <div style="margin-bottom: 2rem;">
+                        <h4 style="font-size: 1.05rem; color: var(--text-primary); margin-bottom: 0.75rem; display: flex; align-items: center; gap: 8px;">
+                            <span>👨‍⚕️</span> <span>1. Hospital Doctors, Lab Technicians &amp; Reception Staff Directory</span>
+                        </h4>
+                        <div class="lit-table-wrapper">
+                            <table class="lit-table">
+                                <thead>
+                                    <tr>
+                                        <th>Staff Name &amp; ID</th>
+                                        <th>Role</th>
+                                        <th>Email / Login ID</th>
+                                        <th>Hospital Department / Wing</th>
+                                        <th>Medical License / Node</th>
+                                        <th>Manage Staff</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="adminStaffTableBody">
+                                    <!-- Populated dynamically with Doctors, Lab Staff, Receptionist, Admin -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- 2. Registered Hospital Patients Directory -->
+                    <div>
+                        <h4 style="font-size: 1.05rem; color: var(--text-primary); margin-bottom: 0.75rem; display: flex; align-items: center; gap: 8px;">
+                            <span>🧑</span> <span>2. Registered Hospital Patients Directory (Separate Patient Registry)</span>
+                        </h4>
+                        <div class="lit-table-wrapper">
+                            <table class="lit-table">
+                                <thead>
+                                    <tr>
+                                        <th>Patient Name &amp; UHID</th>
+                                        <th>Reception Bill ID (Login Key)</th>
+                                        <th>Age / Gender / Blood</th>
+                                        <th>Assigned Hospital Doctor</th>
+                                        <th>Contact / Email</th>
+                                        <th>Manage Patient</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="adminPatientsTableBody">
+                                    <!-- Populated dynamically with Patients only -->
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>

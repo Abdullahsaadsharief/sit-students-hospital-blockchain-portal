@@ -581,6 +581,50 @@ function getLabRequests(req, res) {
     }
 }
 
+/**
+ * Reception Helpdesk Inquiries (Submitted from /contact.html -> Viewed at /reception.html)
+ */
+function getReceptionInquiries(req, res) {
+    try {
+        return res.json({ success: true, inquiries: db.getInquiries() });
+    } catch (err) {
+        return res.status(500).json({ success: false, message: 'Failed to load inquiries.', error: err.message });
+    }
+}
+
+function createReceptionInquiry(req, res) {
+    try {
+        const { name, contact, department, message } = req.body;
+        if (!name || !message) {
+            return res.status(400).json({ success: false, message: 'Name and message are required.' });
+        }
+        const ticketId = `INQ-${Date.now().toString().slice(-4)}`;
+        const inquiry = db.addInquiry({
+            ticketId,
+            name: String(name).trim(),
+            contact: String(contact || '').trim(),
+            department: String(department || 'OPD Inquiry').trim(),
+            message: String(message).trim(),
+            status: 'OPEN',
+            createdAt: new Date().toISOString()
+        });
+        db.logAudit('HELPDESK_INQUIRY_RECEIVED', inquiry.name, `Submitted inquiry ${ticketId} for ${inquiry.department}`);
+        return res.status(201).json({ success: true, inquiry });
+    } catch (err) {
+        return res.status(500).json({ success: false, message: 'Failed to submit inquiry.', error: err.message });
+    }
+}
+
+function resolveReceptionInquiry(req, res) {
+    try {
+        const { ticketId } = req.params;
+        const resolved = db.resolveInquiry(ticketId);
+        return res.json({ success: true, inquiry: resolved });
+    } catch (err) {
+        return res.status(500).json({ success: false, message: 'Failed to resolve inquiry.', error: err.message });
+    }
+}
+
 module.exports = {
     getConsortiumUsers,
     registerUser,
@@ -594,6 +638,9 @@ module.exports = {
     getPrescriptions,
     createPrescription,
     downloadPrescriptionPDF,
-    getLabRequests
+    getLabRequests,
+    getReceptionInquiries,
+    createReceptionInquiry,
+    resolveReceptionInquiry
 };
 

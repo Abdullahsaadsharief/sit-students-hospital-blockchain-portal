@@ -472,7 +472,7 @@ async function loadReports() {
 }
 
 function getVisibleReportsForCurrentView() {
-    if (currentUser && currentUser.role === 'Doctor') {
+    if (currentUser && (currentUser.role === 'Doctor' || currentUser.role === 'Admin')) {
         if (!selectedDoctorPatientId) {
             return [];
         }
@@ -487,7 +487,7 @@ function updateDoctorPatientGateUI() {
     const archiveCard = document.getElementById('reportsArchiveCard');
     const badgeEl = document.getElementById('recordsCountBadge');
 
-    if (!currentUser || currentUser.role !== 'Doctor') {
+    if (!currentUser || (currentUser.role !== 'Doctor' && currentUser.role !== 'Admin')) {
         if (gateEl) gateEl.style.display = 'none';
         if (bannerEl) bannerEl.style.display = 'none';
         if (archiveCard) archiveCard.style.display = 'block';
@@ -1218,34 +1218,77 @@ async function resetAdminAiConfig() {
 
 
 function renderAdminUsersTable(users) {
-    const tbody = document.getElementById('adminUsersTableBody');
-    if (!tbody) return;
-    tbody.innerHTML = '';
+    const staffTbody = document.getElementById('adminStaffTableBody');
+    const patientsTbody = document.getElementById('adminPatientsTableBody');
 
-    users.forEach(u => {
-        const tr = document.createElement('tr');
-        const avatar = u.role === 'Doctor' ? '👨‍⚕️' : u.role === 'Lab Staff' ? '🔬' : u.role === 'Admin' ? '🛡️' : '👤';
-        const tagClass = u.role === 'Doctor' ? 'tag-doctor' : u.role === 'Lab Staff' ? 'tag-lab' : u.role === 'Admin' ? 'tag-admin' : 'tag-patient';
+    const staffUsers = users.filter(u => u.role !== 'Patient');
+    const patientUsers = users.filter(u => u.role === 'Patient');
 
-        let affiliation = u.hospital || u.laboratory || u.institution || (u.patientId ? `Patient ID: ${u.patientId}` : 'Consortium Member');
-        let licenseOrNode = u.license || u.nodeId || 'Validated Node';
+    if (staffTbody) {
+        staffTbody.innerHTML = '';
+        staffUsers.forEach(u => {
+            const tr = document.createElement('tr');
+            const avatar = u.role === 'Doctor' ? '👨‍⚕️' : u.role === 'Lab Staff' ? '🔬' : u.role === 'Receptionist' ? '🗂️' : '🛡️';
+            const tagClass = u.role === 'Doctor' ? 'tag-doctor' : u.role === 'Lab Staff' ? 'tag-lab' : 'tag-admin';
+            const deptInfo = u.department || u.laboratory || u.institution || 'SIT Students Hospital';
+            const licenseOrNode = u.license || u.nodeId || 'NODE-HOSP-01';
 
-        tr.innerHTML = `
-            <td>
-                <strong>${avatar} ${escapeHtml(u.name)}</strong>
-                <div style="font-size: 0.74rem; color: var(--text-muted); font-family: var(--font-mono);">${escapeHtml(u.id)}</div>
-            </td>
-            <td><span class="role-card-tag ${tagClass}">${escapeHtml(u.role)}</span></td>
-            <td style="font-family: var(--font-mono); font-size: 0.8rem;">${escapeHtml(u.email)}</td>
-            <td style="font-size: 0.82rem;">${escapeHtml(affiliation)}</td>
-            <td style="font-size: 0.78rem; color: var(--text-secondary);">${escapeHtml(licenseOrNode)}</td>
-            <td>
-                ${u.role !== 'Admin' ? `<button class="btn btn-secondary" style="padding: 4px 10px; font-size: 0.75rem; color: var(--accent-danger); border-color: rgba(239, 68, 68, 0.4);" onclick="deleteAdminUser('${escapeHtml(u.id)}')">🗑️ Remove</button>` : `<span style="font-size: 0.75rem; color: var(--text-muted);">Root</span>`}
-            </td>
-        `;
-        tbody.appendChild(tr);
-    });
+            tr.innerHTML = `
+                <td>
+                    <strong>${avatar} ${escapeHtml(u.name)}</strong>
+                    <div style="font-size: 0.74rem; color: var(--text-muted); font-family: var(--font-mono);">${escapeHtml(u.id)}</div>
+                </td>
+                <td><span class="role-card-tag ${tagClass}">${escapeHtml(u.role)}</span></td>
+                <td style="font-family: var(--font-mono); font-size: 0.8rem;">${escapeHtml(u.email)}</td>
+                <td style="font-size: 0.82rem;">${escapeHtml(deptInfo)}</td>
+                <td style="font-size: 0.78rem; color: var(--text-secondary);">${escapeHtml(licenseOrNode)}</td>
+                <td>
+                    ${u.role !== 'Admin'
+                        ? `<button class="btn btn-secondary" style="padding: 4px 10px; font-size: 0.75rem; color: var(--accent-danger); border-color: rgba(239, 68, 68, 0.4);" onclick="deleteAdminUser('${escapeHtml(u.id)}')">🗑️ Remove Staff</button>`
+                        : `<span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 700;">Protected Admin</span>`
+                    }
+                </td>
+            `;
+            staffTbody.appendChild(tr);
+        });
+    }
+
+    if (patientsTbody) {
+        patientsTbody.innerHTML = '';
+        patientUsers.forEach(p => {
+            const tr = document.createElement('tr');
+            const billNo = p.billNumber || p.receptionId || p.patientId || 'BILL-2026-1001';
+            tr.innerHTML = `
+                <td>
+                    <strong>🧑 ${escapeHtml(p.name)}</strong>
+                    <div style="font-size: 0.75rem; color: var(--accent-cyan); font-family: var(--font-mono); font-weight: 700;">UHID: ${escapeHtml(p.patientId || p.id)}</div>
+                </td>
+                <td>
+                    <span class="report-id-badge">${escapeHtml(billNo)}</span>
+                </td>
+                <td style="font-size: 0.82rem;">
+                    <strong>${escapeHtml(p.age || '-')} Y</strong> / ${escapeHtml(p.gender || '-')} • Blood: <strong>${escapeHtml(p.bloodGroup || 'O+')}</strong>
+                </td>
+                <td style="font-size: 0.82rem;">${escapeHtml(p.assignedDoctor || 'Dr. Sarah Rao (General Medicine)')}</td>
+                <td style="font-size: 0.78rem; color: var(--text-secondary);">${escapeHtml(p.contact || p.email || '-')}</td>
+                <td>
+                    <div style="display: flex; gap: 0.4rem; flex-wrap: wrap;">
+                        <button class="btn btn-primary" style="padding: 4px 10px; font-size: 0.75rem;" onclick="adminOpenPatientFile('${escapeHtml(p.id)}')">📂 View File</button>
+                        <button class="btn btn-secondary" style="padding: 4px 10px; font-size: 0.75rem; color: var(--accent-danger); border-color: rgba(239, 68, 68, 0.4);" onclick="deleteAdminUser('${escapeHtml(p.id)}')">🗑️ Remove Patient</button>
+                    </div>
+                </td>
+            `;
+            patientsTbody.appendChild(tr);
+        });
+    }
 }
+
+function adminOpenPatientFile(patientId) {
+    const tabRecords = document.getElementById('tabNavRecords');
+    if (tabRecords) tabRecords.click();
+    selectDoctorPatient(patientId);
+}
+window.adminOpenPatientFile = adminOpenPatientFile;
 
 function populatePatientDropdowns(users) {
     const patients = users.filter(u => u.role === 'Patient');

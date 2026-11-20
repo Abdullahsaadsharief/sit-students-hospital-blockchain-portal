@@ -222,13 +222,51 @@
             if (btn) btn.textContent = isDark ? '☀️ Light' : '🌙 Dark';
         }
 
-        function handleContactSubmit(e) {
+        async function handleContactSubmit(e) {
             e.preventDefault();
-            const name = document.getElementById('contactName').value;
-            const dept = document.getElementById('contactDept').value;
+            const name = document.getElementById('contactName').value.trim();
+            const contact = document.getElementById('contactPhone').value.trim();
+            const department = document.getElementById('contactDept').value;
+            const message = document.getElementById('contactMsg').value.trim();
             const box = document.getElementById('contactSuccessBox');
+
+            const ticketId = 'INQ-' + Date.now().toString().slice(-4);
+            const newInq = {
+                ticketId,
+                name,
+                contact,
+                department,
+                message,
+                status: 'OPEN',
+                createdAt: new Date().toISOString()
+            };
+
+            // Save to localStorage so it immediately shows on /reception.html even without server restart
+            try {
+                const existing = JSON.parse(localStorage.getItem('sit_hospital_inquiries') || '[]');
+                existing.unshift(newInq);
+                localStorage.setItem('sit_hospital_inquiries', JSON.stringify(existing));
+            } catch (err) {}
+
+            // Also send to backend API
+            try {
+                await fetch('/api/reception/inquiries', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, contact, department, message })
+                });
+            } catch (err) {}
+
             box.className = 'verify-result-box active';
-            box.innerHTML = `<strong style="color: #15803d;">✓ Helpdesk Ticket Registered!</strong><br/><span style="font-size: 0.85rem;">Thank you, <strong>${name}</strong>. Your inquiry for <strong>${dept}</strong> has been forwarded to the SIT Students Hospital Reception Desk (Counter 1).</span>`;
+            box.innerHTML = `
+                <strong style="color: #15803d;">✓ Helpdesk Ticket (${ticketId}) Sent to Reception Desk!</strong><br/>
+                <span style="font-size: 0.85rem;">Thank you, <strong>${name}</strong>. Your inquiry for <strong>${department}</strong> is now in the Receptionist's Inbox.</span>
+                <div style="margin-top: 0.5rem;">
+                    <a href="/reception.html" style="color: var(--teal-primary); font-weight: 700; font-size: 0.84rem; text-decoration: none;">
+                        🗂️ View in Receptionist Helpdesk Inbox (/reception.html) &rarr;
+                    </a>
+                </div>
+            `;
             e.target.reset();
         }
     </script>

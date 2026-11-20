@@ -14,6 +14,7 @@ class Database {
         this.auditLogs = [];
         this.prescriptions = [];
         this.labRequests = [];
+        this.inquiries = [];
         this.init();
     }
 
@@ -35,6 +36,7 @@ class Database {
                 this.auditLogs = data.auditLogs || [];
                 this.prescriptions = data.prescriptions || [];
                 this.labRequests = data.labRequests || [];
+                this.inquiries = data.inquiries || [];
 
                 // Ensure Receptionist account and patient billNumbers exist in loaded DB
                 let dbUpdated = false;
@@ -262,7 +264,8 @@ class Database {
                 sharedLinks: this.sharedLinks,
                 auditLogs: this.auditLogs,
                 prescriptions: this.prescriptions,
-                labRequests: this.labRequests
+                labRequests: this.labRequests,
+                inquiries: this.inquiries
             };
             fs.writeFileSync(DB_FILE_PATH, JSON.stringify(payload, null, 2), 'utf8');
         } catch (e) {
@@ -455,6 +458,26 @@ class Database {
             item.status = 'COMPLETED';
             item.linkedReportId = reportId;
             item.completedAt = new Date().toISOString();
+            this.persist();
+        }
+        return item;
+    }
+
+    // --- Patient Helpdesk Inquiries (From /contact.html -> Reception Desk) ---
+    getInquiries() {
+        return this.inquiries;
+    }
+
+    addInquiry(inqData) {
+        this.inquiries.unshift(inqData);
+        this.persist();
+        return inqData;
+    }
+
+    resolveInquiry(ticketId) {
+        const item = this.inquiries.find(i => i.ticketId === ticketId);
+        if (item) {
+            item.status = 'RESOLVED';
             this.persist();
         }
         return item;

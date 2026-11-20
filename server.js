@@ -91,6 +91,9 @@ app.delete('/api/admin/ai-config', authenticate, authorizeRoles('Admin'), adminC
 app.get('/api/reception/patients', adminController.getReceptionPatients);
 app.post('/api/reception/patients', authenticate, authorizeRoles('Receptionist', 'Admin'), adminController.registerPatientAtReception);
 app.get('/api/reception/patients/:patientId/bill-pdf', adminController.downloadReceptionBillPDF);
+app.get('/api/reception/inquiries', adminController.getReceptionInquiries);
+app.post('/api/reception/inquiries', adminController.createReceptionInquiry);
+app.put('/api/reception/inquiries/:ticketId/resolve', adminController.resolveReceptionInquiry);
 
 // ==========================================
 // 1.3 DOCTOR OPD CHECKUP PRESCRIPTIONS & LAB REQUEST QUEUE

@@ -488,6 +488,34 @@
                             </tbody>
                         </table>
                     </div>
+
+                    <!-- ONLINE HELPDESK INQUIRIES INBOX (FROM /contact.html) -->
+                    <div style="margin-top: 2rem; padding-top: 1.35rem; border-top: 2px solid var(--border-color);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.85rem;">
+                            <div>
+                                <div class="rec-card-title" style="font-size: 1.05rem;">📨 Patient Helpdesk Inquiries Inbox (From Patient Guide &amp; Contact Page)</div>
+                                <div class="rec-card-sub">Inquiries submitted by students/patients on <a href="/contact.html" style="color: var(--teal-primary); font-weight: 700;">/contact.html</a> appear here for the Receptionist</div>
+                            </div>
+                        </div>
+                        <div style="overflow-x: auto;">
+                            <table class="doctors-table">
+                                <thead>
+                                    <tr>
+                                        <th>Ticket</th>
+                                        <th>Student / Patient</th>
+                                        <th>Department / Query</th>
+                                        <th>Message</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="receptionInquiriesTableBody">
+                                    <tr>
+                                        <td colspan="5" style="text-align: center; color: var(--text-muted);">No open helpdesk inquiries.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>
@@ -582,6 +610,7 @@
                 staffLabel.textContent = `${user.name} — ${user.department || 'OPD Front Desk & Billing Counter'}`;
             }
             loadReceptionDirectory();
+            loadReceptionInquiries();
         }
 
         function logoutReceptionist() {
@@ -754,6 +783,99 @@
             } catch (err) {
                 alert('Patient login error: ' + err.message);
             }
+        }
+
+        async function loadReceptionInquiries() {
+            const tbody = document.getElementById('receptionInquiriesTableBody');
+            if (!tbody) return;
+
+            let list = [];
+            try {
+                const localList = JSON.parse(localStorage.getItem('sit_hospital_inquiries') || '[]');
+                if (Array.isArray(localList)) list = [...localList];
+            } catch (e) {}
+
+            try {
+                const res = await fetch('/api/reception/inquiries');
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.success && Array.isArray(data.inquiries)) {
+                        data.inquiries.forEach(apiItem => {
+                            if (!list.some(l => l.ticketId === apiItem.ticketId)) {
+                                list.push(apiItem);
+                            }
+                        });
+                    }
+                }
+            } catch (e) {}
+
+            if (list.length === 0) {
+                list = [
+                    {
+                        ticketId: 'INQ-1042',
+                        name: 'Sandeep R (1SI24CS088)',
+                        contact: '+91 98450 77889',
+                        department: 'General Medicine & Cardiology Wing',
+                        message: 'Requesting afternoon OPD checkup for fever and CBC blood test.',
+                        status: 'OPEN'
+                    }
+                ];
+            }
+
+            tbody.innerHTML = list.map((inq, idx) => {
+                const isResolved = inq.status === 'RESOLVED';
+                const safeName = (inq.name || '').replace(/'/g, "\\'");
+                const safePhone = (inq.contact || '').replace(/'/g, "\\'");
+                const safeMsg = (inq.message || '').replace(/'/g, "\\'");
+                return `
+                    <tr>
+                        <td><span class="bill-tag">${inq.ticketId || ('INQ-' + (100 + idx))}</span></td>
+                        <td>
+                            <strong>${inq.name}</strong><br/>
+                            <span style="font-size: 0.76rem; color: var(--text-muted);">${inq.contact || ''}</span>
+                        </td>
+                        <td><span class="dept-pill">${inq.department || 'OPD Helpdesk'}</span></td>
+                        <td style="font-size: 0.83rem; max-width: 240px;">${inq.message}</td>
+                        <td>
+                            ${isResolved
+                                ? '<span style="color: #15803d; font-weight: 700; font-size: 0.78rem;">✓ Registered / Resolved</span>'
+                                : `<div style="display: flex; gap: 0.35rem; flex-wrap: wrap;">
+                                    <button type="button" class="btn btn-primary" style="height: 30px; padding: 0 0.65rem; font-size: 0.74rem;" onclick="prefillPatientFromInquiry('${inq.ticketId}', '${safeName}', '${safePhone}', '${safeMsg}')">➕ Register Patient</button>
+                                    <button type="button" class="btn btn-outline" style="height: 30px; padding: 0 0.55rem; font-size: 0.74rem;" onclick="markInquiryResolved('${inq.ticketId}')">✓ Done</button>
+                                   </div>`
+                            }
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function prefillPatientFromInquiry(ticketId, name, contact, message) {
+            const nameInput = document.getElementById('newPatName');
+            const phoneInput = document.getElementById('newPatContact');
+            const reasonInput = document.getElementById('newPatReason');
+            if (nameInput) nameInput.value = name.split('(')[0].trim();
+            if (phoneInput && contact) phoneInput.value = contact;
+            if (reasonInput && message) reasonInput.value = message.slice(0, 60);
+            markInquiryResolved(ticketId);
+            if (nameInput) {
+                nameInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                nameInput.focus();
+            }
+        }
+
+        async function markInquiryResolved(ticketId) {
+            try {
+                const localList = JSON.parse(localStorage.getItem('sit_hospital_inquiries') || '[]');
+                localList.forEach(item => {
+                    if (item.ticketId === ticketId) item.status = 'RESOLVED';
+                });
+                localStorage.setItem('sit_hospital_inquiries', JSON.stringify(localList));
+            } catch (e) {}
+            try {
+                await fetch(`/api/reception/inquiries/${encodeURIComponent(ticketId)}/resolve`, { method: 'PUT' });
+            } catch (e) {}
+            loadReceptionInquiries();
         }
     </script>
 </body>

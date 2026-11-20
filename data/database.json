@@ -1234,6 +1234,62 @@
   ],
   "auditLogs": [
     {
+      "id": "log_1795201509051_f69l",
+      "action": "USER_LOGIN",
+      "actor": "Hospital IT Admin",
+      "details": "User authenticated successfully with role: Admin",
+      "timestamp": "2026-11-20T19:05:09.051Z"
+    },
+    {
+      "id": "log_1795201504665_2c40",
+      "action": "USER_LOGIN",
+      "actor": "Alex Smith",
+      "details": "User authenticated successfully with role: Lab Staff",
+      "timestamp": "2026-11-20T19:05:04.665Z"
+    },
+    {
+      "id": "log_1795201365468_i8jo",
+      "action": "USER_LOGIN",
+      "actor": "Hospital IT Admin",
+      "details": "User authenticated successfully with role: Admin",
+      "timestamp": "2026-11-20T19:02:45.468Z"
+    },
+    {
+      "id": "log_1795201353888_ytvw",
+      "action": "USER_LOGIN",
+      "actor": "test",
+      "details": "Patient accessed portal via Reception Bill ID (BILL-2026-1005)",
+      "timestamp": "2026-11-20T19:02:33.888Z"
+    },
+    {
+      "id": "log_1795201329763_mtlo",
+      "action": "USER_LOGIN",
+      "actor": "Priya Nair",
+      "details": "User authenticated successfully with role: Receptionist",
+      "timestamp": "2026-11-20T19:02:09.763Z"
+    },
+    {
+      "id": "log_1795201236390_ew0e",
+      "action": "REPORT_DECRYPTED",
+      "actor": "Dr. Sarah Rao",
+      "details": "Decrypted and accessed report REP-8D44B190",
+      "timestamp": "2026-11-20T19:00:36.390Z"
+    },
+    {
+      "id": "log_1795201215993_kpud",
+      "action": "USER_LOGIN",
+      "actor": "Dr. Sarah Rao",
+      "details": "User authenticated successfully with role: Doctor",
+      "timestamp": "2026-11-20T19:00:15.993Z"
+    },
+    {
+      "id": "log_1795201179342_f59k",
+      "action": "USER_LOGIN",
+      "actor": "Priya Nair",
+      "details": "User authenticated successfully with role: Receptionist",
+      "timestamp": "2026-11-20T18:59:39.342Z"
+    },
+    {
       "id": "log_1795199578157_0ve6",
       "action": "USER_LOGIN",
       "actor": "Alex Smith",
