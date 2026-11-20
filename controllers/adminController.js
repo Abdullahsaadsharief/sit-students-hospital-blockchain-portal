@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const db = require('../models/db');
 const { testGeminiApiKey } = require('../utils/aiSummarizer');
+const { generateReceptionBillPDF, generateDoctorPrescriptionPDF } = require('../utils/pdfGenerator');
 
 const ENV_FILE_PATH = path.join(__dirname, '..', '.env');
 
@@ -365,6 +366,23 @@ function registerPatientAtReception(req, res) {
 
         const created = db.addUser(newPatient);
 
+        // If Receptionist also selected an initial Lab Test for the patient, queue it for Lab Staff
+        if (req.body.initialLabTest && req.body.initialLabTest !== 'None') {
+            db.addLabRequest({
+                requestId: `LABREQ-${Date.now().toString().slice(-4)}`,
+                patientId: created.id,
+                patientName: created.name,
+                patientUhid: created.patientId,
+                billNumber: created.billNumber,
+                requestedBy: `${created.assignedDoctor} (via Reception Desk)`,
+                testTitle: req.body.initialLabTest,
+                reportType: 'Pathology / Biochemistry',
+                priority: 'Routine OPD',
+                status: 'PENDING_UPLOAD',
+                createdAt: new Date().toISOString()
+            });
+        }
+
         db.logAudit(
             'PATIENT_REGISTERED_AT_RECEPTION',
             req.user ? req.user.name : 'Priya Nair (Receptionist)',
@@ -381,6 +399,176 @@ function registerPatientAtReception(req, res) {
     }
 }
 
+/**
+ * Download Printable OPD Registration & Billing Receipt PDF with SIT Students Hospital Header
+ */
+async function downloadReceptionBillPDF(req, res) {
+    try {
+        const { patientId } = req.params;
+        const users = db.getAllUsers();
+        const patient = users.find(u =>
+            u.id === patientId ||
+            u.patientId === patientId ||
+            (u.billNumber && u.billNumber.toLowerCase() === patientId.toLowerCase())
+        );
+
+        if (!patient) {
+            return res.status(404).json({ success: false, message: 'Patient bill record not found.' });
+        }
+
+        const hostUrl = req.protocol + '://' + req.get('host');
+        const pdfBuffer = await generateReceptionBillPDF(patient, hostUrl);
+        const safeBill = (patient.billNumber || patient.patientId || 'BILL').replace(/[^a-zA-Z0-9_-]/g, '_');
+
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `attachment; filename="SIT_Hospital_OPD_Bill_${safeBill}.pdf"`);
+        res.setHeader('Content-Length', pdfBuffer.length);
+        return res.send(pdfBuffer);
+    } catch (err) {
+        return res.status(500).json({ success: false, message: 'Failed to generate Bill PDF.', error: err.message });
+    }
+}
+
+/**
+ * Get Doctor OPD Checkup Prescriptions (Doctors see all hospital prescriptions; Patients see their own)
+ */
+function getPrescriptions(req, res) {
+    try {
+        const user = req.user;
+        if (user.role === 'Lab Staff') {
+            return res.status(403).json({ success: false, message: 'Lab Staff cannot access doctor clinical checkup prescriptions.' });
+        }
+        const patientId = user.role === 'Patient' ? user.id : (req.query.patientId || null);
+        const list = db.getPrescriptions(patientId);
+        return res.json({ success: true, count: list.length, prescriptions: list });
+    } catch (err) {
+        return res.status(500).json({ success: false, message: 'Failed to fetch prescriptions.', error: err.message });
+    }
+}
+
+/**
+ * Doctor Creates an OPD Clinical Checkup & Medicine Prescription Slip (+ Optional Lab Test Request)
+ */
+function createPrescription(req, res) {
+    try {
+        const user = req.user;
+        if (user.role !== 'Doctor' && user.role !== 'Admin') {
+            return res.status(403).json({ success: false, message: 'Only Doctors can write clinical checkups and medicine prescriptions.' });
+        }
+
+        const {
+            patientId,
+            vitals,
+            symptoms,
+            diagnosis,
+            medicines,
+            advice,
+            labTestOrdered,
+            labReportType,
+            followUpDate
+        } = req.body;
+
+        const targetPatient = db.findUserById(patientId);
+        if (!targetPatient) {
+            return res.status(400).json({ success: false, message: 'Please select a valid registered patient.' });
+        }
+
+        const rxCount = (db.getPrescriptions() || []).length + 101;
+        const prescriptionId = `RX-2026-${rxCount}`;
+
+        const parsedMeds = Array.isArray(medicines) && medicines.length > 0
+            ? medicines
+            : [{ name: 'Tab. Paracetamol 650mg', dosage: '1 - 0 - 1', duration: '5 Days', instructions: 'After Food' }];
+
+        const newRx = {
+            prescriptionId,
+            patientId: targetPatient.id,
+            patientName: targetPatient.name,
+            patientUhid: targetPatient.patientId || 'PT-9901',
+            billNumber: targetPatient.billNumber || 'BILL-2026-1001',
+            doctorId: user.id,
+            doctorName: user.name,
+            department: user.department || 'General Medicine',
+            vitals: vitals || 'BP: 120/80 mmHg | Pulse: 76 bpm | Temp: 98.4 °F',
+            symptoms: symptoms || 'OPD Clinical Checkup',
+            diagnosis: diagnosis || 'Evaluated & Prescribed Outpatient Treatment',
+            medicines: parsedMeds,
+            advice: advice || 'Take medicines after food as directed.',
+            labTestOrdered: labTestOrdered || 'None',
+            followUpDate: followUpDate || '',
+            createdAt: new Date().toISOString()
+        };
+
+        db.addPrescription(newRx);
+
+        let createdLabRequest = null;
+        if (labTestOrdered && labTestOrdered !== 'None' && labTestOrdered.trim() !== '') {
+            createdLabRequest = db.addLabRequest({
+                requestId: `LABREQ-${Date.now().toString().slice(-4)}`,
+                patientId: targetPatient.id,
+                patientName: targetPatient.name,
+                patientUhid: targetPatient.patientId || 'PT-9901',
+                billNumber: targetPatient.billNumber || 'BILL-2026-1001',
+                requestedBy: `${user.name} (${user.department || 'Hospital Doctor'})`,
+                testTitle: labTestOrdered.trim(),
+                reportType: labReportType || 'Pathology / Biochemistry',
+                priority: 'Doctor Ordered',
+                status: 'PENDING_UPLOAD',
+                createdAt: new Date().toISOString()
+            });
+        }
+
+        db.logAudit(
+            'DOCTOR_CHECKUP_PRESCRIPTION',
+            user.name,
+            `Doctor wrote checkup prescription ${prescriptionId} for ${targetPatient.name}${createdLabRequest ? ' and ordered lab test: ' + labTestOrdered : ''}`
+        );
+
+        return res.status(201).json({
+            success: true,
+            message: `Clinical Checkup & Prescription (${prescriptionId}) saved for ${targetPatient.name}!`,
+            prescription: newRx,
+            labRequest: createdLabRequest
+        });
+    } catch (err) {
+        return res.status(500).json({ success: false, message: 'Failed to create prescription.', error: err.message });
+    }
+}
+
+/**
+ * Download Doctor Checkup & Medicine Prescription PDF
+ */
+async function downloadPrescriptionPDF(req, res) {
+    try {
+        const { prescriptionId } = req.params;
+        const rx = db.findPrescriptionById(prescriptionId);
+        if (!rx) {
+            return res.status(404).json({ success: false, message: 'Prescription not found.' });
+        }
+        const hostUrl = req.protocol + '://' + req.get('host');
+        const pdfBuffer = await generateDoctorPrescriptionPDF(rx, hostUrl);
+
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `attachment; filename="SIT_Hospital_Prescription_${rx.prescriptionId}.pdf"`);
+        res.setHeader('Content-Length', pdfBuffer.length);
+        return res.send(pdfBuffer);
+    } catch (err) {
+        return res.status(500).json({ success: false, message: 'Failed to generate prescription PDF.', error: err.message });
+    }
+}
+
+/**
+ * Get Lab Requests Queue (for Lab Staff Upload Desk & Doctors)
+ */
+function getLabRequests(req, res) {
+    try {
+        const requests = db.getLabRequests();
+        return res.json({ success: true, count: requests.length, labRequests: requests });
+    } catch (err) {
+        return res.status(500).json({ success: false, message: 'Failed to load lab requests.', error: err.message });
+    }
+}
+
 module.exports = {
     getConsortiumUsers,
     registerUser,
@@ -389,6 +577,11 @@ module.exports = {
     updateAiConfig,
     resetAiConfig,
     getReceptionPatients,
-    registerPatientAtReception
+    registerPatientAtReception,
+    downloadReceptionBillPDF,
+    getPrescriptions,
+    createPrescription,
+    downloadPrescriptionPDF,
+    getLabRequests
 };
 

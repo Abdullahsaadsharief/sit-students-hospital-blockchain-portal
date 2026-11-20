@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -369,10 +369,6 @@
                         </select>
                     </div>
 
-                    <a href="/presentation.html" class="btn btn-presentation">
-                        📊 Presentation Deck
-                    </a>
-
                     <!-- Logout Button -->
                     <button type="button" class="btn-logout" onclick="logout()">
                         🚪 Sign Out
@@ -386,7 +382,11 @@
             <div class="nav-tabs">
                 <button class="nav-tab active" data-target="recordsTab" id="tabNavRecords"
                     title="Hospital Medical Records & Smart Search">
-                    📋 Hospital Records <span id="recordsCountBadge" class="badge">4</span>
+                    📋 Hospital Reports <span id="recordsCountBadge" class="badge">4</span>
+                </button>
+                <button class="nav-tab" data-target="prescriptionsTab" id="tabNavPrescriptions"
+                    title="Doctor OPD Checkup Notes, Medicine Prescriptions & Lab Test Orders">
+                    🩺 Checkup &amp; Prescriptions
                 </button>
                 <button class="nav-tab" data-target="timelineTab" id="tabNavTimeline"
                     title="Chronological Patient Medical History Across Hospital Doctors">
@@ -397,7 +397,7 @@
                     📤 Lab Report Upload
                 </button>
                 <button class="nav-tab" data-target="receptionTab" id="tabNavReception"
-                    title="Hospital & Receptionist Desk Settings (Prepared for Next Phase)">
+                    title="Hospital & Receptionist Desk Settings">
                     🗂️ Reception &amp; Hospital Settings
                 </button>
                 <button class="nav-tab" data-target="adminTab" id="tabNavAdmin" style="display: none;"
@@ -499,6 +499,103 @@
             </div>
 
             <!-- ==========================================
+                 TAB 1.5: DOCTOR OPD CHECKUP & MEDICINE PRESCRIPTIONS
+                 ========================================== -->
+            <div id="prescriptionsTab" class="tab-pane">
+                <div class="upload-grid">
+                    <!-- Left: Doctor Checkup & Prescription Pad (Visible to Doctors & Admin) -->
+                    <div class="card" id="doctorPrescriptionFormCard">
+                        <div class="card-header">
+                            <div>
+                                <h3 class="card-title">🩺 Write OPD Clinical Checkup &amp; Medicine Prescription</h3>
+                                <p class="card-subtitle">Record patient checkup findings, prescribe medicines &amp; optionally order a diagnostic test for the Central Lab</p>
+                            </div>
+                        </div>
+
+                        <form id="createPrescriptionForm" onsubmit="handleCreatePrescription(event)">
+                            <div class="form-group">
+                                <label class="form-label">Select Patient (Registered at Reception) *</label>
+                                <select id="rxPatientSelect" class="form-control" required>
+                                    <option value="usr_pat_01">John Doe (PT-9901 | BILL-2026-1001)</option>
+                                    <option value="usr_pat_02">Meera Patel (PT-9902 | BILL-2026-1002)</option>
+                                    <option value="usr_pat_03">Robert Chen (PT-9903 | BILL-2026-1003)</option>
+                                    <option value="usr_pat_04">Ayesha Khan (PT-9904 | BILL-2026-1004)</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Checkup Vitals (BP / Pulse / Temp / SpO2)</label>
+                                <input type="text" id="rxVitalsInput" class="form-control"
+                                    value="BP: 120/80 mmHg | Pulse: 76 bpm | Temp: 98.4 °F | SpO2: 99%" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Chief Complaints &amp; Checkup Symptoms *</label>
+                                <textarea id="rxSymptomsInput" class="form-control" rows="2"
+                                    placeholder="e.g. Fever for 2 days, throat irritation, mild fatigue..." required></textarea>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Clinical Checkup Diagnosis *</label>
+                                <input type="text" id="rxDiagnosisInput" class="form-control"
+                                    placeholder="e.g. Acute Viral Pharyngitis / Stage-2 Type 2 Diabetes" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Rx — Prescribed Medicines (One per line: Medicine | Dosage | Duration | Timing) *</label>
+                                <textarea id="rxMedicinesInput" class="form-control" rows="3"
+                                    placeholder="Tab. Paracetamol 650mg | 1-0-1 | 5 Days | After Food&#10;Tab. Cetirizine 10mg | 0-0-1 | 5 Days | At Bedtime&#10;Cap. Vitamin C 500mg | 0-1-0 | 10 Days | After Lunch" required>Tab. Paracetamol 650mg | 1-0-1 | 5 Days | After Food
+Tab. Pantoprazole 40mg | 1-0-0 | 5 Days | Before Breakfast</textarea>
+                            </div>
+
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem;">
+                                <div class="form-group">
+                                    <label class="form-label">Order Lab Test for Lab Staff Queue</label>
+                                    <select id="rxLabTestOrder" class="form-control">
+                                        <option value="None">No New Lab Test Required</option>
+                                        <option value="Complete Blood Count (CBC) &amp; Differential">Order: Complete Blood Count (CBC)</option>
+                                        <option value="Fasting Blood Sugar (FBS) &amp; HbA1c">Order: Fasting Blood Sugar &amp; HbA1c</option>
+                                        <option value="Comprehensive Lipid Profile">Order: Comprehensive Lipid Profile</option>
+                                        <option value="Thyroid Profile (TSH, FT3, FT4)">Order: Thyroid Profile (TSH, FT3, FT4)</option>
+                                        <option value="Digital Chest / Spine X-Ray">Order: Digital Chest / Spine X-Ray</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Next Follow-Up Date</label>
+                                    <input type="date" id="rxFollowUpInput" class="form-control">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Clinical &amp; Dietary Advice</label>
+                                <input type="text" id="rxAdviceInput" class="form-control"
+                                    value="Take prescribed medicines on time. Drink warm water and rest adequately.">
+                            </div>
+
+                            <button type="submit" id="btnSubmitPrescription" class="btn btn-primary" style="width: 100%; padding: 12px;">
+                                🩺 Save Checkup Prescription &amp; Generate Official Slip
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Right: Issued OPD Checkup & Prescription Slips List -->
+                    <div class="card">
+                        <div class="card-header">
+                            <div>
+                                <h3 class="card-title">📋 OPD Checkup &amp; Medicine Prescription Slips</h3>
+                                <p class="card-subtitle">Download official SIT Students Hospital checkup &amp; medicine slips as PDF</p>
+                            </div>
+                            <button type="button" class="btn btn-secondary" onclick="loadPrescriptions()">🔄 Refresh</button>
+                        </div>
+
+                        <div id="prescriptionsListContainer" style="display: flex; flex-direction: column; gap: 1rem;">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ==========================================
                  TAB 2: CHRONOLOGICAL MEDICAL TIMELINE (Obj 1 & 3)
                  ========================================== -->
             <div id="timelineTab" class="tab-pane">
@@ -547,16 +644,48 @@
                  TAB 3: UPLOAD & ANCHOR (Lab Staff Only)
                  ========================================== -->
             <div id="uploadTab" class="tab-pane">
+                <!-- Pending Lab Test Requests Queue (Ordered by Doctors & Reception Desk) -->
+                <div class="card" style="margin-bottom: 1.5rem;">
+                    <div class="card-header">
+                        <div>
+                            <h3 class="card-title">🧪 Pending Lab Test Orders Queue (From Hospital Doctors &amp; Reception)</h3>
+                            <p class="card-subtitle">Lab Staff can pick any ordered test below to auto-fill the patient &amp; test details for upload. (For patient privacy, Lab Staff cannot browse patients' previous diagnostic reports.)</p>
+                        </div>
+                        <button type="button" class="btn btn-secondary" onclick="loadLabRequestsQueue()">🔄 Refresh Queue</button>
+                    </div>
+                    <div class="lit-table-wrapper">
+                        <table class="lit-table">
+                            <thead>
+                                <tr>
+                                    <th>Order ID</th>
+                                    <th>Patient &amp; Bill Number</th>
+                                    <th>Ordered Test Investigation</th>
+                                    <th>Ordered By (Doctor / Reception)</th>
+                                    <th>Status</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="labRequestsTableBody">
+                                <tr>
+                                    <td colspan="6" style="text-align: center; color: var(--text-muted);">Loading lab test orders...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
                 <div class="upload-grid">
                     <!-- Left: Form -->
                     <div class="card">
                         <div class="card-header">
                             <div>
-                                <h3 class="card-title">Upload & Anchor Diagnostic Report</h3>
+                                <h3 class="card-title">Upload &amp; Anchor Diagnostic Report</h3>
                                 <p class="card-subtitle">Restricted to Lab Staff • Off-chain AES encryption + SHA-256
                                     duplicate check + blockchain anchoring</p>
                             </div>
                         </div>
+
+                        <input type="hidden" id="activeLabRequestId" value="">
 
                         <div id="uploadRestrictedNotice" class="alert-box alert-danger" style="display: none;">
                             <span>⚠️</span>

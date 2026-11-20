@@ -71,6 +71,15 @@ app.delete('/api/admin/ai-config', authenticate, authorizeRoles('Admin'), adminC
 // ==========================================
 app.get('/api/reception/patients', adminController.getReceptionPatients);
 app.post('/api/reception/patients', authenticate, authorizeRoles('Receptionist', 'Admin'), adminController.registerPatientAtReception);
+app.get('/api/reception/patients/:patientId/bill-pdf', adminController.downloadReceptionBillPDF);
+
+// ==========================================
+// 1.3 DOCTOR OPD CHECKUP PRESCRIPTIONS & LAB REQUEST QUEUE
+// ==========================================
+app.get('/api/prescriptions', authenticate, authorizeRoles('Doctor', 'Patient', 'Admin'), adminController.getPrescriptions);
+app.post('/api/prescriptions', authenticate, authorizeRoles('Doctor', 'Admin'), adminController.createPrescription);
+app.get('/api/prescriptions/:prescriptionId/pdf', adminController.downloadPrescriptionPDF);
+app.get('/api/lab-requests', authenticate, authorizeRoles('Lab Staff', 'Doctor', 'Receptionist', 'Admin'), adminController.getLabRequests);
 // Upload medical report (Restricted: Lab Staff & Admin)
 app.post('/api/reports/upload', authenticate, authorizeRoles('Lab Staff', 'Admin'), upload.single('reportFile'), reportController.uploadReport);
 

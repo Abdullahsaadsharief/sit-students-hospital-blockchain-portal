@@ -138,6 +138,26 @@
       "department": "Front Desk & Patient Registration (Counter 1)",
       "hospital": "SIT Students Hospital",
       "nodeId": "NODE-PHARM-01"
+    },
+    {
+      "password": "password123",
+      "id": "usr_pat_mwdc72ql",
+      "name": "test",
+      "email": "test.1005@sit.ac.in",
+      "role": "Patient",
+      "patientId": "PT-9905",
+      "billNumber": "BILL-2026-1005",
+      "receptionId": "BILL-2026-1005",
+      "age": 21,
+      "gender": "Male",
+      "bloodGroup": "O+",
+      "contact": "+91 98450 12345",
+      "assignedDoctor": "Dr. Sarah Rao (Cardiology & General Medicine)",
+      "visitReason": "OPD Consultation & Lab Test",
+      "billAmount": "₹ 350",
+      "registeredBy": "Priya Nair (Receptionist)",
+      "hospital": "SIT Students Hospital",
+      "createdAt": "2026-11-12T09:19:50.686Z"
     }
   ],
   "reports": [
@@ -242,7 +262,29 @@
       "verificationUrl": "http://localhost:3000/verify.html?reportId=REP-7A91F2C4",
       "createdAt": "2026-08-14T00:00:00.000Z",
       "status": "ANCHORED_ON_BLOCKCHAIN",
-      "blockHash": "002bb55ed56f384d1cbbd0b0a1dd844f3296c4ff7779203bc41b1e371058d1e3"
+      "blockHash": "002bb55ed56f384d1cbbd0b0a1dd844f3296c4ff7779203bc41b1e371058d1e3",
+      "sharedDoctorNotes": [
+        {
+          "noteId": "note_init_1",
+          "doctorName": "Dr. Sarah Rao, MD",
+          "doctorId": "usr_doc_01",
+          "department": "Cardiology & General Medicine",
+          "status": "Reviewed & Prescribed",
+          "notes": "Indicative of early Stage-2 Type 2 Diabetes Mellitus with elevated glycemic variability. Advised strict glycemic control, lifestyle modification, and endocrinology follow-up in 90 days.",
+          "prescription": "Tab. Metformin 500mg BD after meals; 45 mins brisk walking daily.",
+          "updatedAt": "2026-08-14T14:30:00Z"
+        },
+        {
+          "noteId": "note_init_2",
+          "doctorName": "Dr. Rajesh Nair, MS",
+          "doctorId": "usr_doc_02",
+          "department": "Orthopedics & Trauma Wing",
+          "status": "Cross-Department Clearance",
+          "notes": "Reviewed glycemic profile (HbA1c 7.4%) prior to lumbar physical therapy. Cleared for supervised physiotherapy.",
+          "prescription": "Tab. Metformin 500mg BD + Calcium & Vitamin D3 supplementation.",
+          "updatedAt": "2026-09-03T11:20:00Z"
+        }
+      ]
     },
     {
       "reportId": "REP-8D44B190",
@@ -346,7 +388,19 @@
       "verificationUrl": "http://localhost:3000/verify.html?reportId=REP-8D44B190",
       "createdAt": "2026-09-02T00:00:00.000Z",
       "status": "ANCHORED_ON_BLOCKCHAIN",
-      "blockHash": "00c89556da6048d9816cef5ff0279652fdf7bb3195831539e10d05096e211b90"
+      "blockHash": "00c89556da6048d9816cef5ff0279652fdf7bb3195831539e10d05096e211b90",
+      "sharedDoctorNotes": [
+        {
+          "noteId": "note_init_1",
+          "doctorName": "Dr. Rajesh Nair, MS",
+          "doctorId": "usr_doc_02",
+          "department": "Orthopedics & Trauma",
+          "status": "Evaluated & Rehabilitation Prescribed",
+          "notes": "No acute cortical fracture or vertebral dislocation identified. Mild lumbar spondylosis with degenerative disc space narrowing at L4-L5 and L5-S1 interspaces.",
+          "prescription": "Core lumbar stabilization physiotherapy; ergonomically contoured lumbar support belt.",
+          "updatedAt": "2026-09-02T16:15:00Z"
+        }
+      ]
     },
     {
       "reportId": "REP-9E11C83F",
@@ -462,7 +516,19 @@
       "verificationUrl": "http://localhost:3000/verify.html?reportId=REP-9E11C83F",
       "createdAt": "2026-09-28T00:00:00.000Z",
       "status": "ANCHORED_ON_BLOCKCHAIN",
-      "blockHash": "003285cc52ed6ac09fcc39a8415d1ec7a86c4b988e2f10c0ef3c97318fd87929"
+      "blockHash": "003285cc52ed6ac09fcc39a8415d1ec7a86c4b988e2f10c0ef3c97318fd87929",
+      "sharedDoctorNotes": [
+        {
+          "noteId": "note_init_1",
+          "doctorName": "Dr. Sarah Rao, MD",
+          "doctorId": "usr_doc_01",
+          "department": "Cardiology & General Medicine",
+          "status": "Verified Normal",
+          "notes": "Normocytic, normochromic peripheral smear. Complete blood count parameters within normal biological reference intervals. No evidence of infection, anemia, or thrombocytopenia.",
+          "prescription": "Normal health maintenance; balanced nutritional intake.",
+          "updatedAt": "2026-09-28T11:45:00Z"
+        }
+      ]
     },
     {
       "reportId": "REP-3C55A701",
@@ -571,7 +637,19 @@
       "verificationUrl": "http://localhost:3000/verify.html?reportId=REP-3C55A701",
       "createdAt": "2026-09-15T00:00:00.000Z",
       "status": "ANCHORED_ON_BLOCKCHAIN",
-      "blockHash": "003ae95f6eaeb9eac3b89ef7fafd10a6567349826e7c40f7ff5f889ae3ed967b"
+      "blockHash": "003ae95f6eaeb9eac3b89ef7fafd10a6567349826e7c40f7ff5f889ae3ed967b",
+      "sharedDoctorNotes": [
+        {
+          "noteId": "note_init_1",
+          "doctorName": "Dr. Sarah Rao, MD",
+          "doctorId": "usr_doc_01",
+          "department": "Cardiology & General Medicine",
+          "status": "Reviewed & Advised",
+          "notes": "Normal lipid profile with low cardiovascular risk index. Borderline LDL noted; advised Mediterranean diet with reduced saturated fat and regular cardio exercise.",
+          "prescription": "Lifestyle and dietary modification; recheck fasting lipid profile in 12 months.",
+          "updatedAt": "2026-09-15T15:00:00Z"
+        }
+      ]
     },
     {
       "reportId": "REP-5C32F810",
@@ -665,7 +743,19 @@
       "verificationUrl": "http://localhost:3000/verify.html?reportId=REP-5C32F810",
       "createdAt": "2026-10-02T00:00:00.000Z",
       "status": "ANCHORED_ON_BLOCKCHAIN",
-      "blockHash": "00c5be7552513e30a8af9778f417048bbbc884895bfba3faeff69fd754c91744"
+      "blockHash": "00c5be7552513e30a8af9778f417048bbbc884895bfba3faeff69fd754c91744",
+      "sharedDoctorNotes": [
+        {
+          "noteId": "note_init_1",
+          "doctorName": "Dr. Sarah Rao, MD",
+          "doctorId": "usr_doc_01",
+          "department": "Cardiology & General Medicine",
+          "status": "Prescribed & Monitoring",
+          "notes": "Serum TSH mildly elevated at 5.42 uIU/mL with normal peripheral Free T4 (1.18 ng/dL). Picture consistent with subclinical hypothyroidism.",
+          "prescription": "Tab. Levothyroxine 25 mcg OD in morning on empty stomach.",
+          "updatedAt": "2026-10-02T12:00:00Z"
+        }
+      ]
     },
     {
       "reportId": "REP-6A18D902",
@@ -760,7 +850,19 @@
       "verificationUrl": "http://localhost:3000/verify.html?reportId=REP-6A18D902",
       "createdAt": "2026-09-10T00:00:00.000Z",
       "status": "ANCHORED_ON_BLOCKCHAIN",
-      "blockHash": "0005567ecf0a739da07313c75494528a72c6a93e4cc0dc37e8cbce915403f6f9"
+      "blockHash": "0005567ecf0a739da07313c75494528a72c6a93e4cc0dc37e8cbce915403f6f9",
+      "sharedDoctorNotes": [
+        {
+          "noteId": "note_init_1",
+          "doctorName": "Dr. Sarah Rao, MD",
+          "doctorId": "usr_doc_01",
+          "department": "Cardiology & General Medicine",
+          "status": "Stabilized & Investigated",
+          "notes": "Sinus tachycardia (HR 96 bpm). Trace ST flattening in leads V4-V6 without acute ST-elevation. Serial Troponin-I within normal reference limits. Acute coronary syndrome excluded.",
+          "prescription": "Tab. Aspirin 75mg OD; Tab. Atorvastatin 20mg HS; Urgent Stress Echocardiogram.",
+          "updatedAt": "2026-09-10T18:00:00Z"
+        }
+      ]
     },
     {
       "reportId": "REP-9F71E304",
@@ -854,7 +956,19 @@
       "verificationUrl": "http://localhost:3000/verify.html?reportId=REP-9F71E304",
       "createdAt": "2026-09-18T00:00:00.000Z",
       "status": "ANCHORED_ON_BLOCKCHAIN",
-      "blockHash": "006cea2bbbcab84fed2937d9793a1f1ac0b387e5ae806315ef8232e50a98dbe6"
+      "blockHash": "006cea2bbbcab84fed2937d9793a1f1ac0b387e5ae806315ef8232e50a98dbe6",
+      "sharedDoctorNotes": [
+        {
+          "noteId": "note_init_1",
+          "doctorName": "Dr. Sarah Rao, MD",
+          "doctorId": "usr_doc_01",
+          "department": "Cardiology & General Medicine",
+          "status": "Cleared & Outpatient Follow-up",
+          "notes": "Negative for inducible myocardial ischemia up to 9.2 METs. Preserved left ventricular systolic function with LVEF 62%. Good functional exercise tolerance.",
+          "prescription": "Lifestyle modification; reduce sodium intake; routine cardiology follow-up in 6 months.",
+          "updatedAt": "2026-09-18T14:30:00Z"
+        }
+      ]
     },
     {
       "reportId": "REP-2D44C119",
@@ -950,7 +1064,19 @@
       "verificationUrl": "http://localhost:3000/verify.html?reportId=REP-2D44C119",
       "createdAt": "2026-09-05T00:00:00.000Z",
       "status": "ANCHORED_ON_BLOCKCHAIN",
-      "blockHash": "003203cca6a3fb4943865f63af9cc83b00f4231738d39d8d6ac5a1ba517ed4be"
+      "blockHash": "003203cca6a3fb4943865f63af9cc83b00f4231738d39d8d6ac5a1ba517ed4be",
+      "sharedDoctorNotes": [
+        {
+          "noteId": "note_init_1",
+          "doctorName": "Dr. Ananya Sen, MD",
+          "doctorId": "usr_doc_03",
+          "department": "Pulmonology & Respiratory Care",
+          "status": "Diagnosed & Managed",
+          "notes": "Spirometry reveals mild reversible obstructive airway pattern with 15% post-bronchodilator FEV1 improvement. Findings diagnostic of mild bronchial asthma.",
+          "prescription": "Inhaler Budesonide + Formoterol 200/6 mcg 1 puff BD; SOS Levosalbutamol inhaler.",
+          "updatedAt": "2026-09-05T16:00:00Z"
+        }
+      ]
     },
     {
       "reportId": "REP-8B99A045",
@@ -1045,7 +1171,19 @@
       "verificationUrl": "http://localhost:3000/verify.html?reportId=REP-8B99A045",
       "createdAt": "2026-09-22T00:00:00.000Z",
       "status": "ANCHORED_ON_BLOCKCHAIN",
-      "blockHash": "00206251cd9456dbeff03be6f07f1a8cc9ff1632590abc7fa4f139c49c769b79"
+      "blockHash": "00206251cd9456dbeff03be6f07f1a8cc9ff1632590abc7fa4f139c49c769b79",
+      "sharedDoctorNotes": [
+        {
+          "noteId": "note_init_1",
+          "doctorName": "Dr. Ananya Sen, MD",
+          "doctorId": "usr_doc_03",
+          "department": "Pulmonology & Respiratory Care",
+          "status": "Reviewed & Addressed",
+          "notes": "Markedly elevated Total IgE (480 IU/mL). Strong positive specific IgE reactivity to House Dust Mites (D. pteronyssinus) Class 4. Negative for common fungal molds.",
+          "prescription": "Allergen barrier bed encasings; HEPA room air purifier; oral antihistamines as needed.",
+          "updatedAt": "2026-09-22T17:15:00Z"
+        }
+      ]
     }
   ],
   "sharedLinks": [
@@ -1096,6 +1234,153 @@
   ],
   "auditLogs": [
     {
+      "id": "log_1795182044472_5uho",
+      "action": "USER_LOGIN",
+      "actor": "Hospital IT Admin",
+      "details": "User authenticated successfully with role: Admin",
+      "timestamp": "2026-11-20T13:40:44.472Z"
+    },
+    {
+      "id": "log_1795182044111_xci8",
+      "action": "USER_LOGIN",
+      "actor": "John Doe",
+      "details": "Patient accessed portal via Reception Bill ID (BILL-2026-1001)",
+      "timestamp": "2026-11-20T13:40:44.111Z"
+    },
+    {
+      "id": "log_1795182043677_y637",
+      "action": "USER_LOGIN",
+      "actor": "Alex Smith",
+      "details": "User authenticated successfully with role: Lab Staff",
+      "timestamp": "2026-11-20T13:40:43.677Z"
+    },
+    {
+      "id": "log_1795182042864_9tq1",
+      "action": "USER_LOGIN",
+      "actor": "Dr. Sarah Rao",
+      "details": "User authenticated successfully with role: Doctor",
+      "timestamp": "2026-11-20T13:40:42.864Z"
+    },
+    {
+      "id": "log_1795182040806_csmz",
+      "action": "USER_LOGIN",
+      "actor": "Dr. Ananya Sen",
+      "details": "User authenticated successfully with role: Doctor",
+      "timestamp": "2026-11-20T13:40:40.806Z"
+    },
+    {
+      "id": "log_1795182039251_apml",
+      "action": "USER_LOGIN",
+      "actor": "Dr. Sarah Rao",
+      "details": "User authenticated successfully with role: Doctor",
+      "timestamp": "2026-11-20T13:40:39.251Z"
+    },
+    {
+      "id": "log_1795182033623_iqze",
+      "action": "USER_LOGIN",
+      "actor": "Dr. Sarah Rao",
+      "details": "User authenticated successfully with role: Doctor",
+      "timestamp": "2026-11-20T13:40:33.623Z"
+    },
+    {
+      "id": "log_1795182011457_bm15",
+      "action": "USER_LOGIN",
+      "actor": "Hospital IT Admin",
+      "details": "User authenticated successfully with role: Admin",
+      "timestamp": "2026-11-20T13:40:11.457Z"
+    },
+    {
+      "id": "log_1795181995870_fmli",
+      "action": "USER_LOGIN",
+      "actor": "Hospital IT Admin",
+      "details": "User authenticated successfully with role: Admin",
+      "timestamp": "2026-11-20T13:39:55.870Z"
+    },
+    {
+      "id": "log_1795181988414_dgec",
+      "action": "USER_LOGIN",
+      "actor": "John Doe",
+      "details": "Patient accessed portal via Reception Bill ID (BILL-2026-1001)",
+      "timestamp": "2026-11-20T13:39:48.414Z"
+    },
+    {
+      "id": "log_1795181976688_6x6v",
+      "action": "USER_LOGIN",
+      "actor": "Alex Smith",
+      "details": "User authenticated successfully with role: Lab Staff",
+      "timestamp": "2026-11-20T13:39:36.688Z"
+    },
+    {
+      "id": "log_1795181861013_zjep",
+      "action": "USER_LOGIN",
+      "actor": "Dr. Sarah Rao",
+      "details": "User authenticated successfully with role: Doctor",
+      "timestamp": "2026-11-20T13:37:41.013Z"
+    },
+    {
+      "id": "log_1795181777896_7vil",
+      "action": "USER_LOGIN",
+      "actor": "Priya Nair",
+      "details": "User authenticated successfully with role: Receptionist",
+      "timestamp": "2026-11-20T13:36:17.896Z"
+    },
+    {
+      "id": "log_1795181756431_wyut",
+      "action": "USER_LOGIN",
+      "actor": "Robert Chen",
+      "details": "Patient accessed portal via Reception Bill ID (BILL-2026-1003)",
+      "timestamp": "2026-11-20T13:35:56.431Z"
+    },
+    {
+      "id": "log_1795181746199_lhim",
+      "action": "USER_LOGIN",
+      "actor": "Priya Nair",
+      "details": "User authenticated successfully with role: Receptionist",
+      "timestamp": "2026-11-20T13:35:46.199Z"
+    },
+    {
+      "id": "log_1795181736583_vo8m",
+      "action": "USER_LOGIN",
+      "actor": "test",
+      "details": "Patient accessed portal via Reception Bill ID (BILL-2026-1005)",
+      "timestamp": "2026-11-20T13:35:36.583Z"
+    },
+    {
+      "id": "log_1795181653959_uhmx",
+      "action": "USER_LOGIN",
+      "actor": "Dr. Sarah Rao",
+      "details": "User authenticated successfully with role: Doctor",
+      "timestamp": "2026-11-20T13:34:13.959Z"
+    },
+    {
+      "id": "log_1794475205410_l1lm",
+      "action": "USER_LOGIN",
+      "actor": "test",
+      "details": "Patient accessed portal via Reception Bill ID (BILL-2026-1005)",
+      "timestamp": "2026-11-12T09:20:05.410Z"
+    },
+    {
+      "id": "log_1794475190688_bknv",
+      "action": "PATIENT_REGISTERED_AT_RECEPTION",
+      "actor": "Priya Nair",
+      "details": "Receptionist registered patient test (UHID: PT-9905) with Bill/Reception ID: BILL-2026-1005 assigned to Dr. Sarah Rao (Cardiology & General Medicine)",
+      "timestamp": "2026-11-12T09:19:50.688Z"
+    },
+    {
+      "id": "log_1794475159797_3ypl",
+      "action": "USER_LOGIN",
+      "actor": "Priya Nair",
+      "details": "User authenticated successfully with role: Receptionist",
+      "timestamp": "2026-11-12T09:19:19.797Z"
+    },
+    {
+      "id": "log_1794472080840_32xa",
+      "action": "USER_LOGIN",
+      "actor": "Priya Nair",
+      "details": "User authenticated successfully with role: Receptionist",
+      "timestamp": "2026-11-12T08:28:00.840Z"
+    },
+    {
       "id": "log_1793867350931_1zvu",
       "action": "ANTI_FORGERY_VERIFICATION",
       "actor": "Doctor / Verification Scanner",
@@ -1115,6 +1400,104 @@
       "details": "Healthcare Consortium Blockchain Ledger and Database Initialized with Authentic Diagnostic Reports",
       "timestamp": "2026-11-05T08:18:37.150Z",
       "actor": "Consortium SuperAdmin"
+    }
+  ],
+  "prescriptions": [
+    {
+      "prescriptionId": "RX-2026-101",
+      "patientId": "usr_pat_01",
+      "patientName": "John Doe",
+      "patientUhid": "PT-9901",
+      "billNumber": "BILL-2026-1001",
+      "doctorId": "usr_doc_01",
+      "doctorName": "Dr. Sarah Rao, MD",
+      "department": "Cardiology & General Medicine",
+      "vitals": "BP: 132/84 mmHg | Pulse: 78 bpm | Temp: 98.4 °F | Weight: 74 kg",
+      "symptoms": "Mild fatigue, increased thirst (polydipsia), and lower back stiffness.",
+      "diagnosis": "Stage-2 Type 2 Diabetes Mellitus with Mild Lumbar Spondylosis",
+      "medicines": [
+        {
+          "name": "Tab. Metformin Sustained Release 500mg",
+          "dosage": "1 - 0 - 1",
+          "duration": "30 Days",
+          "instructions": "After Meals"
+        },
+        {
+          "name": "Tab.Shelcal-500 (Calcium + Vit D3)",
+          "dosage": "0 - 1 - 0",
+          "duration": "30 Days",
+          "instructions": "After Lunch"
+        },
+        {
+          "name": "Gel Volini / Diclofenac Topical",
+          "dosage": "Apply BD",
+          "duration": "7 Days",
+          "instructions": "Lower Back"
+        }
+      ],
+      "advice": "Avoid refined sugar and deep-fried foods. 30 minutes brisk morning walk daily.",
+      "labTestOrdered": "Fasting & Postprandial Blood Glucose Follow-up",
+      "followUpDate": "2026-12-05",
+      "createdAt": "2026-10-12T10:30:00.000Z"
+    },
+    {
+      "prescriptionId": "RX-2026-102",
+      "patientId": "usr_pat_04",
+      "patientName": "Ayesha Khan",
+      "patientUhid": "PT-9904",
+      "billNumber": "BILL-2026-1004",
+      "doctorId": "usr_doc_03",
+      "doctorName": "Dr. Ananya Sen, MD",
+      "department": "Pulmonology & Respiratory Care",
+      "vitals": "BP: 116/74 mmHg | SpO2: 98% | Pulse: 82 bpm | Temp: 98.2 °F",
+      "symptoms": "Dry nocturnal cough and wheezing after exposure to classroom dust.",
+      "diagnosis": "Mild Persistent Allergic Bronchial Asthma",
+      "medicines": [
+        {
+          "name": "Inhaler Budesonide + Formoterol 200/6 mcg",
+          "dosage": "1 Puff - 0 - 1 Puff",
+          "duration": "30 Days",
+          "instructions": "Rinse Mouth After Use"
+        },
+        {
+          "name": "Tab. Montelukast + Levocetirizine 10/5mg",
+          "dosage": "0 - 0 - 1",
+          "duration": "10 Days",
+          "instructions": "At Bedtime"
+        }
+      ],
+      "advice": "Use warm water for drinking; avoid cold beverages and dusty environments.",
+      "labTestOrdered": "Complete Blood Count (CBC) & Eosinophil Count",
+      "followUpDate": "2026-11-28",
+      "createdAt": "2026-10-15T14:15:00.000Z"
+    }
+  ],
+  "labRequests": [
+    {
+      "requestId": "LABREQ-201",
+      "patientId": "usr_pat_01",
+      "patientName": "John Doe",
+      "patientUhid": "PT-9901",
+      "billNumber": "BILL-2026-1001",
+      "requestedBy": "Dr. Sarah Rao (Cardiology & General Medicine)",
+      "testTitle": "Fasting & Postprandial Blood Glucose Follow-up",
+      "reportType": "Pathology / Biochemistry",
+      "priority": "Routine OPD",
+      "status": "PENDING_UPLOAD",
+      "createdAt": "2026-10-12T10:35:00.000Z"
+    },
+    {
+      "requestId": "LABREQ-202",
+      "patientId": "usr_pat_04",
+      "patientName": "Ayesha Khan",
+      "patientUhid": "PT-9904",
+      "billNumber": "BILL-2026-1004",
+      "requestedBy": "Dr. Ananya Sen (Pulmonology Wing)",
+      "testTitle": "Complete Blood Count (CBC) & Absolute Eosinophil Count",
+      "reportType": "Hematology",
+      "priority": "Priority OPD",
+      "status": "PENDING_UPLOAD",
+      "createdAt": "2026-10-15T14:20:00.000Z"
     }
   ]
 }

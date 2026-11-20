@@ -1,38 +1,38 @@
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
 
 :root {
-    color-scheme: dark;
-    --bg-primary: #0f172a;
-    --bg-secondary: #1e293b;
-    --bg-surface-2: #1e293b;
-    --bg-card: #162238;
-    --bg-card-hover: #1d2d49;
-    --bg-glass: #162238;
+    color-scheme: light;
+    --bg-primary: #f4f7fb;
+    --bg-secondary: #ffffff;
+    --bg-surface-2: #f8fafc;
+    --bg-card: #ffffff;
+    --bg-card-hover: #f8fafc;
+    --bg-glass: #162d4c;
     
-    --border-color: rgba(148, 163, 184, 0.28);
-    --border-subtle: rgba(148, 163, 184, 0.2);
-    --border-glow: rgba(56, 189, 248, 0.35);
+    --border-color: #dbe3ee;
+    --border-subtle: #dbe3ee;
+    --border-glow: #0d9488;
     
-    --text-primary: #f8fafc;
-    --text-secondary: #cbd5e1;
-    --text-muted: #94a3b8;
+    --text-primary: #1e293b;
+    --text-secondary: #475569;
+    --text-muted: #64748b;
     
-    --accent-cyan: #38bdf8;
-    --accent-blue: #2563eb;
-    --accent-indigo: #4f46e5;
+    --accent-cyan: #0369a1;
+    --accent-blue: #1e3a5f;
+    --accent-indigo: #1e3a5f;
     --accent-teal: #0d9488;
-    --accent-success: #10b981;
-    --accent-warning: #f59e0b;
-    --accent-danger: #ef4444;
+    --accent-success: #15803d;
+    --accent-warning: #b45309;
+    --accent-danger: #b91c1c;
     
-    --glow-cyan: 0 4px 14px rgba(15, 23, 42, 0.35);
-    --glow-green: 0 4px 14px rgba(16, 185, 129, 0.2);
-    --glow-red: 0 4px 14px rgba(239, 68, 68, 0.25);
+    --glow-cyan: 0 2px 8px rgba(22, 45, 76, 0.08);
+    --glow-green: 0 2px 8px rgba(21, 128, 61, 0.12);
+    --glow-red: 0 2px 8px rgba(185, 28, 28, 0.12);
     
     --radius-sm: 6px;
-    --radius-md: 10px;
-    --radius-lg: 12px;
-    --radius-full: 9999px;
+    --radius-md: 8px;
+    --radius-lg: 10px;
+    --radius-full: 6px;
     
     --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
     --font-mono: 'JetBrains Mono', monospace;
@@ -50,12 +50,7 @@
 
 body {
     background-color: var(--bg-primary);
-    background-image: 
-        radial-gradient(circle at 15% 15%, rgba(0, 229, 255, 0.08) 0%, transparent 40%),
-        radial-gradient(circle at 85% 85%, rgba(99, 102, 241, 0.08) 0%, transparent 40%),
-        linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
-    background-size: 100% 100%, 100% 100%, 40px 40px, 40px 40px;
+    background-image: none;
     color: var(--text-primary);
     font-family: var(--font-sans);
     line-height: 1.6;
@@ -64,13 +59,12 @@ body {
 }
 
 /* ==========================================================================
-   HEADER & ROLE SWITCHER (Demo Toolbar)
+   HEADER & ROLE SWITCHER (Clean SIT Hospital Navy Header)
    ========================================================================== */
 .top-header {
-    background: var(--bg-glass);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border-bottom: 1px solid var(--border-subtle);
+    background: #162d4c;
+    color: #ffffff;
+    border-bottom: 2px solid #0d9488;
     position: sticky;
     top: 0;
     z-index: 100;
@@ -92,51 +86,59 @@ body {
     align-items: center;
     gap: 0.85rem;
     text-decoration: none;
-    color: inherit;
+    color: #ffffff;
 }
 
 .brand-icon {
-    width: 42px;
-    height: 42px;
-    background: linear-gradient(135deg, #00e5ff, #3b82f6);
+    width: 44px;
+    height: 44px;
+    background: #1e3a5f;
+    border: 2px solid #0d9488;
+    color: #ffffff;
     border-radius: var(--radius-md);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.4rem;
-    box-shadow: var(--glow-cyan);
+    font-size: 1.1rem;
+    font-weight: 800;
 }
 
 .brand-text h1 {
-    font-size: 1.15rem;
+    font-size: 1.18rem;
     font-weight: 800;
     letter-spacing: -0.02em;
-    background: linear-gradient(90deg, #ffffff, #00e5ff);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+    color: #ffffff;
+    background: none;
+    -webkit-text-fill-color: #ffffff;
 }
 
 .brand-text p {
-    font-size: 0.72rem;
-    color: var(--text-secondary);
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
+    font-size: 0.74rem;
+    color: #cbd5e1;
+    letter-spacing: 0.02em;
 }
 
 .header-actions {
     display: flex;
     align-items: center;
-    gap: 1rem;
+    gap: 0.75rem;
     flex-wrap: wrap;
+}
+
+.top-header #headerUserName {
+    color: #ffffff !important;
+}
+.top-header #headerUserRoleBadge {
+    color: #99f6e4 !important;
 }
 
 /* Demo Role Switcher Bar */
 .role-switcher-bar {
     display: flex;
     align-items: center;
-    background: rgba(0, 0, 0, 0.4);
-    border: 1px solid var(--border-subtle);
-    border-radius: var(--radius-full);
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: var(--radius-md);
     padding: 4px;
     gap: 4px;
 }
@@ -144,18 +146,17 @@ body {
 .role-switcher-label {
     font-size: 0.75rem;
     font-weight: 600;
-    color: var(--text-muted);
-    padding: 0 8px 0 12px;
+    color: #cbd5e1;
+    padding: 0 8px 0 10px;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
 }
 
 .role-btn {
     background: transparent;
-    border: none;
-    color: var(--text-secondary);
-    padding: 6px 14px;
-    border-radius: var(--radius-full);
+    border: 1px solid transparent;
+    color: #e2e8f0;
+    padding: 5px 12px;
+    border-radius: var(--radius-sm);
     font-size: 0.8rem;
     font-weight: 600;
     font-family: inherit;
@@ -163,68 +164,37 @@ body {
     transition: var(--transition-fast);
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 5px;
 }
 
 .role-btn:hover {
-    color: var(--text-primary);
-    background: rgba(255, 255, 255, 0.05);
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.12);
 }
 
 .role-btn.active {
-    background: linear-gradient(135deg, rgba(0, 229, 255, 0.2), rgba(59, 130, 246, 0.25));
-    border: 1px solid var(--accent-cyan);
-    color: var(--accent-cyan);
-    box-shadow: 0 0 12px rgba(0, 229, 255, 0.2);
+    background: #0d9488;
+    border-color: #14b8a6;
+    color: #ffffff;
 }
 
 .header-user-select {
-    color-scheme: dark !important;
-    background-color: #0d172e !important;
-    color: #f1f5f9 !important;
-    border: 1px solid rgba(0, 229, 255, 0.4) !important;
-    border-radius: var(--radius-full) !important;
-    padding: 6px 30px 6px 12px !important;
-    font-size: 0.77rem !important;
-    font-weight: 600 !important;
+    color-scheme: light !important;
+    background-color: #ffffff !important;
+    color: #162d4c !important;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: var(--radius-sm) !important;
+    padding: 5px 26px 5px 10px !important;
+    font-size: 0.78rem !important;
+    font-weight: 700 !important;
     font-family: inherit !important;
     cursor: pointer !important;
-    transition: var(--transition-fast) !important;
-    outline: none !important;
-    box-shadow: 0 0 12px rgba(0, 229, 255, 0.15) !important;
-    appearance: none;
-    -webkit-appearance: none;
-    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2300e5ff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-    background-repeat: no-repeat;
-    background-position: right 10px center;
-    background-size: 11px;
 }
 
-.header-user-select:hover {
-    border-color: var(--accent-cyan) !important;
-    background-color: #132244 !important;
-    color: #ffffff !important;
-    box-shadow: 0 0 18px rgba(0, 229, 255, 0.35) !important;
-}
-
-.header-user-select:focus {
-    border-color: var(--accent-cyan) !important;
-    box-shadow: 0 0 20px rgba(0, 229, 255, 0.45) !important;
-}
-
-.header-user-select option {
-    background-color: #0b1329 !important;
-    color: #f8fafc !important;
-    padding: 8px 12px !important;
-    font-size: 0.84rem !important;
-}
-
+.header-user-select option,
 .header-user-select optgroup {
-    background-color: #060a16 !important;
-    color: #00e5ff !important;
-    font-weight: 700 !important;
-    padding: 8px 10px !important;
-    letter-spacing: 0.5px !important;
+    background-color: #ffffff !important;
+    color: #1e293b !important;
 }
 
 .btn-presentation {
@@ -1343,3 +1313,221 @@ select optgroup,
     letter-spacing: 0.05em;
     margin-top: 4px;
 }
+
+/* ==========================================================================
+   CLEAN MODULAR CLINICAL LIGHT THEME (MATCHING SIT HOSPITAL HOMEPAGE)
+   ========================================================================== */
+.nav-tabs-wrapper {
+    background: #ffffff !important;
+    border-bottom: 2px solid #dbe3ee !important;
+    box-shadow: 0 2px 6px rgba(22, 45, 76, 0.04) !important;
+}
+
+.nav-tab {
+    color: #475569 !important;
+    font-weight: 700 !important;
+    border-bottom: 3px solid transparent !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+}
+
+.nav-tab:hover {
+    color: #162d4c !important;
+    background: #f8fafc !important;
+}
+
+.nav-tab.active {
+    color: #162d4c !important;
+    border-bottom-color: #0d9488 !important;
+    background: #f0fdfa !important;
+    box-shadow: none !important;
+}
+
+.nav-tab .badge {
+    background: #1e3a5f !important;
+    color: #ffffff !important;
+}
+
+.status-banner {
+    background: #ffffff !important;
+    border: 1px solid #dbe3ee !important;
+    border-left: 5px solid #1e3a5f !important;
+    box-shadow: 0 2px 8px rgba(22, 45, 76, 0.06) !important;
+}
+
+.user-avatar {
+    background: #eef3f9 !important;
+    border: 1px solid #cbd5e1 !important;
+}
+
+.user-info h2 {
+    color: #162d4c !important;
+}
+
+.user-info p {
+    color: #475569 !important;
+}
+
+.metric-item {
+    background: #f8fafc !important;
+    border: 1px solid #e2e8f0 !important;
+}
+
+.metric-value {
+    color: #162d4c !important;
+}
+
+.metric-label {
+    color: #64748b !important;
+}
+
+.card, .report-card, .login-card, .modal-container, .role-card-select, .login-form-box, .role-permission-matrix, .admin-stat-card {
+    background: #ffffff !important;
+    border: 1px solid #dbe3ee !important;
+    box-shadow: 0 4px 14px rgba(22, 45, 76, 0.06) !important;
+    color: #1e293b !important;
+}
+
+.role-card-select:hover, .report-card:hover {
+    border-color: #0d9488 !important;
+    transform: translateY(-2px);
+}
+
+.card-title, .report-title, .login-brand-title, .role-card-title {
+    color: #162d4c !important;
+    background: none !important;
+    -webkit-text-fill-color: #162d4c !important;
+}
+
+.card-subtitle, .login-brand-subtitle, .role-card-desc, .role-card-perms {
+    color: #475569 !important;
+}
+
+.form-control, .search-input, select.form-control, textarea.form-control {
+    background: #f8fafc !important;
+    border: 1px solid #cbd5e1 !important;
+    color: #1e293b !important;
+}
+
+.form-control:focus, .search-input:focus {
+    background: #ffffff !important;
+    border-color: #1e3a5f !important;
+    box-shadow: 0 0 0 3px rgba(30, 58, 95, 0.1) !important;
+}
+
+.form-label {
+    color: #162d4c !important;
+    font-weight: 700 !important;
+}
+
+.btn-primary {
+    background: #1e3a5f !important;
+    color: #ffffff !important;
+    border: 1px solid #162d4c !important;
+    box-shadow: none !important;
+}
+
+.btn-primary:hover {
+    background: #162d4c !important;
+}
+
+.btn-secondary {
+    background: #ffffff !important;
+    color: #1e3a5f !important;
+    border: 1px solid #cbd5e1 !important;
+}
+
+.btn-secondary:hover {
+    background: #eef3f9 !important;
+    border-color: #1e3a5f !important;
+}
+
+.btn-qr, .btn-login-select {
+    background: #0d9488 !important;
+    color: #ffffff !important;
+    border: 1px solid #0f766e !important;
+}
+
+.btn-qr:hover, .role-card-select:hover .btn-login-select {
+    background: #0f766e !important;
+    color: #ffffff !important;
+}
+
+.btn-share {
+    background: #f0f9ff !important;
+    color: #0369a1 !important;
+    border: 1px solid #bae6fd !important;
+}
+
+.btn-edit {
+    background: #fffbeb !important;
+    color: #b45309 !important;
+    border: 1px solid #fcd34d !important;
+}
+
+.filter-tag-chip {
+    background: #f8fafc !important;
+    color: #334155 !important;
+    border: 1px solid #cbd5e1 !important;
+}
+
+.filter-tag-chip.active, .filter-tag-chip:hover {
+    background: #1e3a5f !important;
+    color: #ffffff !important;
+    border-color: #1e3a5f !important;
+}
+
+.lit-table th {
+    background: #1e3a5f !important;
+    color: #ffffff !important;
+}
+
+.lit-table td {
+    background: #ffffff !important;
+    color: #1e293b !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+}
+
+.lit-table tr:nth-child(even) td {
+    background: #f8fafc !important;
+}
+
+.login-screen-wrapper {
+    background: #eef4fa !important;
+}
+
+.login-mode-tabs {
+    background: #f1f5f9 !important;
+    border: 1px solid #cbd5e1 !important;
+}
+
+.login-mode-tab {
+    color: #475569 !important;
+}
+
+.login-mode-tab.active {
+    background: #1e3a5f !important;
+    color: #ffffff !important;
+}
+
+.tag-doctor { background: #e0f2fe !important; color: #0369a1 !important; border: 1px solid #bae6fd !important; }
+.tag-lab { background: #f0fdfa !important; color: #0f766e !important; border: 1px solid #99f6e4 !important; }
+.tag-patient { background: #fef3c7 !important; color: #b45309 !important; border: 1px solid #fde68a !important; }
+.tag-admin { background: #f3e8ff !important; color: #6b21a8 !important; border: 1px solid #d8b4fe !important; }
+
+.drop-zone {
+    background: #f8fafc !important;
+    border: 2px dashed #94a3b8 !important;
+    color: #334155 !important;
+}
+
+.modal-overlay {
+    background: rgba(15, 23, 42, 0.55) !important;
+}
+
+.block-card, .timeline-content {
+    background: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    color: #1e293b !important;
+}
+

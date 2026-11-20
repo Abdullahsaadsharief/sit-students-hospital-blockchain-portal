@@ -226,13 +226,19 @@ function applySession(token, user) {
     // Enforce Role Permissions across Navigation & Views
     applyRolePermissions(user.role);
 
-    // Load initial data
+    // Load initial data according to role permissions
     loadStats();
-    loadReports();
-    loadTimeline();
-    loadBlockchain();
-    loadAuditLogs();
     refreshConsortiumUsers();
+    if (user.role === 'Lab Staff') {
+        loadLabRequestsQueue();
+    } else {
+        loadReports();
+        loadTimeline();
+        loadPrescriptions();
+        loadLabRequestsQueue();
+        loadBlockchain();
+        loadAuditLogs();
+    }
     if (user.role === 'Admin') {
         loadAdminUsers();
     }
@@ -308,8 +314,10 @@ async function switchUserRole(userId) {
 // ==========================================================================
 function applyRolePermissions(role) {
     const tabRecords = document.getElementById('tabNavRecords');
+    const tabPrescriptions = document.getElementById('tabNavPrescriptions');
     const tabTimeline = document.getElementById('tabNavTimeline');
     const tabUpload = document.getElementById('tabNavUpload');
+    const tabReception = document.getElementById('tabNavReception');
     const tabAdmin = document.getElementById('tabNavAdmin');
     const tabBlockchain = document.getElementById('tabNavBlockchain');
     const tabAudit = document.getElementById('tabNavAudit');
@@ -318,60 +326,63 @@ function applyRolePermissions(role) {
     const uploadRestrictedNotice = document.getElementById('uploadRestrictedNotice');
     const uploadForm = document.getElementById('uploadForm');
     const timelinePatientSelectorWrapper = document.getElementById('timelinePatientSelectorWrapper');
+    const doctorRxFormCard = document.getElementById('doctorPrescriptionFormCard');
 
-    // Reset default display - Use inline-flex to respect modern tab layout
-    tabRecords.style.display = 'inline-flex';
-    tabTimeline.style.display = 'inline-flex';
-    tabUpload.style.display = 'inline-flex';
-    tabAdmin.style.display = 'none';
-    tabBlockchain.style.display = 'inline-flex';
-    tabAudit.style.display = 'inline-flex'; // Always visible across all roles!
+    // Reset default display
+    if (tabRecords) tabRecords.style.display = 'inline-flex';
+    if (tabPrescriptions) tabPrescriptions.style.display = 'inline-flex';
+    if (tabTimeline) tabTimeline.style.display = 'inline-flex';
+    if (tabUpload) tabUpload.style.display = 'inline-flex';
+    if (tabReception) tabReception.style.display = 'inline-flex';
+    if (tabAdmin) tabAdmin.style.display = 'none';
+    if (tabBlockchain) tabBlockchain.style.display = 'inline-flex';
+    if (tabAudit) tabAudit.style.display = 'inline-flex';
 
     if (patientNotice) patientNotice.style.display = 'none';
     if (uploadRestrictedNotice) uploadRestrictedNotice.style.display = 'none';
     if (uploadForm) uploadForm.style.opacity = '1';
     if (timelinePatientSelectorWrapper) timelinePatientSelectorWrapper.style.display = 'flex';
+    if (doctorRxFormCard) doctorRxFormCard.style.display = 'block';
 
     if (role === 'Patient') {
-        // Patient can view their own records, timeline, and blockchain audit trail
-        tabUpload.style.display = 'none';
-        tabAdmin.style.display = 'none';
-        tabBlockchain.style.display = 'inline-flex';
-        tabAudit.style.display = 'inline-flex';
+        // Patient sees ONLY their own reports, doctor checkup prescriptions, and medical timeline
+        if (tabUpload) tabUpload.style.display = 'none';
+        if (tabReception) tabReception.style.display = 'none';
+        if (tabAdmin) tabAdmin.style.display = 'none';
+        if (tabBlockchain) tabBlockchain.style.display = 'none';
+        if (tabAudit) tabAudit.style.display = 'none';
+        if (doctorRxFormCard) doctorRxFormCard.style.display = 'none';
 
         if (patientNotice) patientNotice.style.display = 'flex';
         if (timelinePatientSelectorWrapper) timelinePatientSelectorWrapper.style.display = 'none';
 
-        // Auto select records tab
-        tabRecords.click();
+        if (tabRecords) tabRecords.click();
 
     } else if (role === 'Lab Staff') {
-        // Lab staff uploads data, explores ledger, and verifies audit logs
-        tabTimeline.style.display = 'none';
-        tabAdmin.style.display = 'none';
-        tabBlockchain.style.display = 'inline-flex';
-        tabAudit.style.display = 'inline-flex';
+        // STRICT LAB STAFF PRIVACY: Lab Staff can ONLY see the Lab Upload & Ordered Test Queue tab!
+        // They CANNOT browse patients' previous diagnostic reports, timelines, prescriptions, ledger, or audit logs.
+        if (tabRecords) tabRecords.style.display = 'none';
+        if (tabPrescriptions) tabPrescriptions.style.display = 'none';
+        if (tabTimeline) tabTimeline.style.display = 'none';
+        if (tabReception) tabReception.style.display = 'none';
+        if (tabAdmin) tabAdmin.style.display = 'none';
+        if (tabBlockchain) tabBlockchain.style.display = 'none';
+        if (tabAudit) tabAudit.style.display = 'none';
 
         if (uploadRestrictedNotice) uploadRestrictedNotice.style.display = 'none';
-        tabUpload.click();
+        if (tabUpload) tabUpload.click();
 
     } else if (role === 'Doctor') {
-        // Doctor reviews records, updates diagnosis, views timeline, verifies ledger and audits
-        tabAdmin.style.display = 'none';
-        tabAudit.style.display = 'inline-flex';
+        // Doctor accesses all hospital patient reports, writes checkup prescriptions, views timelines, and adds shared notes
+        if (tabAdmin) tabAdmin.style.display = 'none';
+        if (tabUpload) tabUpload.style.display = 'none';
+        if (doctorRxFormCard) doctorRxFormCard.style.display = 'block';
 
-        if (uploadRestrictedNotice) {
-            uploadRestrictedNotice.style.display = 'flex';
-            uploadRestrictedNotice.innerHTML = `<span>ℹ️</span><div><strong>Consortium Workflow Policy:</strong> Diagnostic documents are uploaded by <strong>Lab Staff</strong>. Doctors review results, add clinical diagnoses, and manage treatment plans.</div>`;
-        }
-
-        tabRecords.click();
+        if (tabRecords) tabRecords.click();
 
     } else if (role === 'Admin') {
-        // Admin has full consortium privileges including User Management
-        tabAdmin.style.display = 'inline-flex';
-        tabAudit.style.display = 'inline-flex';
-        tabAdmin.click();
+        if (tabAdmin) tabAdmin.style.display = 'inline-flex';
+        if (tabAdmin) tabAdmin.click();
     }
 }
 
@@ -733,6 +744,10 @@ function initUploadDropzone() {
         formData.append('testDate', document.getElementById('uploadDate').value);
         formData.append('notes', document.getElementById('uploadNotes').value);
         formData.append('nodeId', document.getElementById('uploadNode').value);
+        const activeReqEl = document.getElementById('activeLabRequestId');
+        if (activeReqEl && activeReqEl.value) {
+            formData.append('labRequestId', activeReqEl.value);
+        }
 
         try {
             const res = await fetch('/api/reports/upload', {
@@ -761,12 +776,18 @@ function initUploadDropzone() {
 
             form.reset();
             selectedUploadFile = null;
+            if (document.getElementById('activeLabRequestId')) {
+                document.getElementById('activeLabRequestId').value = '';
+            }
             fileNameDisplay.textContent = 'Drag & Drop or Click to Select';
             dropZone.style.borderColor = '';
 
-            loadReports();
-            loadTimeline();
+            loadLabRequestsQueue();
             loadStats();
+            if (currentUser && currentUser.role !== 'Lab Staff') {
+                loadReports();
+                loadTimeline();
+            }
             loadBlockchain();
 
             // Switch to Records tab
@@ -1085,6 +1106,7 @@ function populatePatientDropdowns(users) {
     const patients = users.filter(u => u.role === 'Patient');
     const uploadSelect = document.getElementById('uploadPatient');
     const timelineSelect = document.getElementById('timelinePatientSelect');
+    const rxPatientSelect = document.getElementById('rxPatientSelect');
     const billChipsBox = document.getElementById('portalBillChipsBox');
 
     if (uploadSelect) {
@@ -1095,6 +1117,12 @@ function populatePatientDropdowns(users) {
 
     if (timelineSelect) {
         timelineSelect.innerHTML = patients.map(p => 
+            `<option value="${p.id}">${escapeHtml(p.name)} (${p.patientId || p.id}${p.billNumber ? ' | ' + p.billNumber : ''})</option>`
+        ).join('');
+    }
+
+    if (rxPatientSelect) {
+        rxPatientSelect.innerHTML = patients.map(p => 
             `<option value="${p.id}">${escapeHtml(p.name)} (${p.patientId || p.id}${p.billNumber ? ' | ' + p.billNumber : ''})</option>`
         ).join('');
     }
@@ -1611,14 +1639,40 @@ async function openReportModal(reportId) {
                 downloadReportFile(r.reportId, safeDownloadName);
             };
 
-            if (r.doctorRemarks) {
+            if (r.doctorRemarks || (Array.isArray(r.sharedDoctorNotes) && r.sharedDoctorNotes.length > 0)) {
                 remarksSection.style.display = 'block';
+                const notesList = Array.isArray(r.sharedDoctorNotes) && r.sharedDoctorNotes.length > 0
+                    ? r.sharedDoctorNotes
+                    : [{
+                        doctorName: r.doctorRemarks ? r.doctorRemarks.doctorName : 'Dr. Sarah Rao, MD',
+                        department: r.doctorRemarks ? r.doctorRemarks.department : 'General Medicine',
+                        status: r.doctorRemarks ? r.doctorRemarks.status : 'Verified',
+                        notes: r.notes || 'Reviewed clinical findings.',
+                        prescription: r.prescription || '',
+                        followUpDate: r.followUpDate || '',
+                        updatedAt: r.doctorRemarks ? r.doctorRemarks.updatedAt : r.testDate
+                    }];
+
                 remarksContent.innerHTML = `
-                    <strong>Diagnosis Status:</strong> ${escapeHtml(r.doctorRemarks.status || 'Verified')}<br>
-                    <strong>Attending Physician:</strong> ${escapeHtml(r.doctorRemarks.doctorName || '')} (${escapeHtml(r.doctorRemarks.department || '')})<br>
-                    <strong>Doctor Clinical Remarks:</strong> ${escapeHtml(r.notes || 'None recorded')}<br>
-                    ${r.prescription ? `<strong>Prescription / Treatment Plan:</strong> ${escapeHtml(r.prescription)}<br>` : ''}
-                    ${r.followUpDate ? `<strong>Follow-up Date:</strong> ${escapeHtml(r.followUpDate)}` : ''}
+                    <div style="margin-bottom: 0.65rem; font-size: 0.8rem; font-weight: 700; color: var(--accent-teal);">
+                        🏥 Multi-Doctor Shared Consultation Thread (${notesList.length} SIT Hospital Doctor Review${notesList.length > 1 ? 's' : ''}):
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 0.65rem;">
+                        ${notesList.map((dn, idx) => `
+                            <div style="padding: 0.75rem 0.9rem; border-radius: 6px; background: #ffffff; border: 1px solid #cbd5e1; border-left: 4px solid #0d9488;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.35rem;">
+                                    <strong style="color: #162d4c; font-size: 0.88rem;">👨‍⚕️ #${idx + 1} ${escapeHtml(dn.doctorName || 'Hospital Doctor')} (${escapeHtml(dn.department || 'SIT Hospital')})</strong>
+                                    <span style="font-size: 0.74rem; background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; padding: 2px 8px; border-radius: 4px; font-weight: 700;">
+                                        ${escapeHtml(dn.status || 'Reviewed')} • ${escapeHtml((dn.updatedAt || '').slice(0, 10))}
+                                    </span>
+                                </div>
+                                <div style="font-size: 0.84rem; color: #334155; margin-bottom: 0.25rem;">
+                                    <strong>Clinical Note:</strong> ${escapeHtml(dn.notes || 'Reviewed')}
+                                </div>
+                                ${dn.prescription ? `<div style="font-size: 0.84rem; color: #0f766e;"><strong>Rx / Medicines Prescribed:</strong> ${escapeHtml(dn.prescription)}</div>` : ''}
+                            </div>
+                        `).join('')}
+                    </div>
                 `;
             }
         }
@@ -1874,6 +1928,188 @@ function resetHospitalReceptionSettings() {
 }
 
 // Expose handlers globally on window object for inline onclick handlers
+// ==========================================================================
+// 15. DOCTOR OPD CHECKUP PRESCRIPTIONS & LAB REQUEST QUEUE
+// ==========================================================================
+async function loadPrescriptions() {
+    const container = document.getElementById('prescriptionsListContainer');
+    if (!container) return;
+
+    try {
+        const res = await fetch('/api/prescriptions', { headers: getAuthHeaders() });
+        const data = await res.json();
+        if (!data.success || !Array.isArray(data.prescriptions) || data.prescriptions.length === 0) {
+            container.innerHTML = '<div style="padding: 1.25rem; color: var(--text-muted); text-align: center;">No OPD checkup prescriptions recorded yet.</div>';
+            return;
+        }
+
+        container.innerHTML = data.prescriptions.map(rx => {
+            const medsHtml = (rx.medicines || []).map(m => `
+                <li style="margin-bottom: 3px;">
+                    <strong>${escapeHtml(m.name)}</strong> — <span style="color: #0f766e; font-weight: 700;">${escapeHtml(m.dosage || '1-0-1')}</span> (${escapeHtml(m.duration || '5 Days')}, ${escapeHtml(m.instructions || 'After Food')})
+                </li>
+            `).join('');
+
+            return `
+                <div style="border: 1px solid var(--border-color); border-left: 4px solid #1e3a5f; border-radius: 8px; padding: 1.15rem; background: #ffffff;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.65rem;">
+                        <div>
+                            <span style="font-family: var(--font-mono); font-size: 0.76rem; font-weight: 700; background: #e0f2fe; color: #0369a1; padding: 2px 8px; border-radius: 4px;">
+                                ${escapeHtml(rx.prescriptionId)} • ${escapeHtml((rx.createdAt || '').slice(0, 10))}
+                            </span>
+                            <h4 style="font-size: 1.02rem; color: #162d4c; margin-top: 0.35rem;">
+                                Patient: ${escapeHtml(rx.patientName)} (${escapeHtml(rx.patientUhid || '')} | ${escapeHtml(rx.billNumber || '')})
+                            </h4>
+                            <div style="font-size: 0.8rem; color: #475569;">
+                                Attending Doctor: <strong>${escapeHtml(rx.doctorName)}</strong> (${escapeHtml(rx.department || 'General Medicine')})
+                            </div>
+                        </div>
+                        <a href="/api/prescriptions/${encodeURIComponent(rx.prescriptionId)}/pdf" target="_blank" class="btn btn-primary" style="font-size: 0.78rem; padding: 6px 12px; text-decoration: none;">
+                            📄 Download Prescription PDF
+                        </a>
+                    </div>
+
+                    <div style="font-size: 0.82rem; color: #334155; background: #f8fafc; padding: 0.6rem 0.8rem; border-radius: 6px; border: 1px solid #e2e8f0; margin-bottom: 0.65rem;">
+                        <div><strong>Vitals:</strong> ${escapeHtml(rx.vitals || 'Normal')}</div>
+                        <div><strong>Complaints:</strong> ${escapeHtml(rx.symptoms || '-')}</div>
+                        <div style="color: #0f766e;"><strong>Clinical Diagnosis:</strong> ${escapeHtml(rx.diagnosis || '-')}</div>
+                    </div>
+
+                    <div style="font-size: 0.83rem; color: #1e293b; margin-bottom: 0.5rem;">
+                        <strong style="color: #162d4c;">Rx — Prescribed Medicines:</strong>
+                        <ul style="margin: 4px 0 0 18px; padding: 0;">${medsHtml}</ul>
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; font-size: 0.78rem; color: #64748b; border-top: 1px solid #e2e8f0; padding-top: 0.5rem;">
+                        <span><strong>Advice:</strong> ${escapeHtml(rx.advice || 'Follow dosage schedule')}</span>
+                        ${rx.labTestOrdered && rx.labTestOrdered !== 'None' ? `<span style="background: #fef3c7; color: #92400e; border: 1px solid #fde68a; padding: 2px 8px; border-radius: 4px; font-weight: 700;">🧪 Lab Ordered: ${escapeHtml(rx.labTestOrdered)}</span>` : ''}
+                    </div>
+                </div>
+            `;
+        }).join('');
+    } catch (err) {
+        console.error('Error loading prescriptions:', err);
+    }
+}
+
+async function handleCreatePrescription(e) {
+    e.preventDefault();
+    const btn = document.getElementById('btnSubmitPrescription');
+    if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Saving Checkup & Generating Prescription...';
+    }
+
+    try {
+        const rawLines = (document.getElementById('rxMedicinesInput')?.value || '').split('\n').map(l => l.trim()).filter(Boolean);
+        const medicines = rawLines.map(line => {
+            const parts = line.split('|').map(p => p.trim());
+            return {
+                name: parts[0] || line,
+                dosage: parts[1] || '1 - 0 - 1',
+                duration: parts[2] || '5 Days',
+                instructions: parts[3] || 'After Food'
+            };
+        });
+
+        const payload = {
+            patientId: document.getElementById('rxPatientSelect')?.value,
+            vitals: document.getElementById('rxVitalsInput')?.value,
+            symptoms: document.getElementById('rxSymptomsInput')?.value,
+            diagnosis: document.getElementById('rxDiagnosisInput')?.value,
+            medicines,
+            labTestOrdered: document.getElementById('rxLabTestOrder')?.value || 'None',
+            followUpDate: document.getElementById('rxFollowUpInput')?.value || '',
+            advice: document.getElementById('rxAdviceInput')?.value || ''
+        };
+
+        const res = await fetch('/api/prescriptions', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
+            body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (!res.ok || !data.success) {
+            alert(data.message || 'Failed to save checkup prescription.');
+            return;
+        }
+
+        showToast(`✓ ${data.message}`, 'success');
+        if (document.getElementById('rxSymptomsInput')) document.getElementById('rxSymptomsInput').value = '';
+        if (document.getElementById('rxDiagnosisInput')) document.getElementById('rxDiagnosisInput').value = '';
+        await loadPrescriptions();
+        await loadLabRequestsQueue();
+    } catch (err) {
+        alert('Error creating prescription: ' + err.message);
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.textContent = '🩺 Save Checkup Prescription & Generate Official Slip';
+        }
+    }
+}
+
+async function loadLabRequestsQueue() {
+    const tbody = document.getElementById('labRequestsTableBody');
+    if (!tbody) return;
+
+    try {
+        const res = await fetch('/api/lab-requests', { headers: getAuthHeaders() });
+        const data = await res.json();
+        if (!data.success || !Array.isArray(data.labRequests) || data.labRequests.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-muted);">No lab test orders queued.</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = data.labRequests.map(lr => {
+            const isPending = lr.status === 'PENDING_UPLOAD';
+            const badgeHtml = isPending
+                ? '<span style="background: #fef3c7; color: #92400e; border: 1px solid #fde68a; padding: 2px 8px; border-radius: 4px; font-size: 0.74rem; font-weight: 700;">⏳ PENDING LAB UPLOAD</span>'
+                : `<span style="background: #dcfce7; color: #166534; border: 1px solid #86efac; padding: 2px 8px; border-radius: 4px; font-size: 0.74rem; font-weight: 700;">✓ UPLOADED (${escapeHtml(lr.linkedReportId || 'Done')})</span>`;
+
+            const actionHtml = isPending
+                ? `<button type="button" class="btn btn-primary" style="font-size: 0.76rem; padding: 5px 10px;" onclick="selectLabRequestForUpload('${escapeHtml(lr.requestId)}', '${escapeHtml(lr.patientId)}', '${escapeHtml(lr.testTitle)}', '${escapeHtml(lr.reportType || 'Pathology / Biochemistry')}')">📤 Select &amp; Upload Report</button>`
+                : `<span style="font-size: 0.76rem; color: var(--text-muted);">Anchored on Ledger</span>`;
+
+            return `
+                <tr>
+                    <td style="font-family: var(--font-mono); font-weight: 700; font-size: 0.8rem;">${escapeHtml(lr.requestId)}</td>
+                    <td>
+                        <strong>${escapeHtml(lr.patientName)}</strong><br/>
+                        <span style="font-family: var(--font-mono); font-size: 0.74rem; color: var(--text-muted);">${escapeHtml(lr.patientUhid || '')} | ${escapeHtml(lr.billNumber || '')}</span>
+                    </td>
+                    <td><strong>${escapeHtml(lr.testTitle)}</strong></td>
+                    <td style="font-size: 0.82rem;">${escapeHtml(lr.requestedBy)}</td>
+                    <td>${badgeHtml}</td>
+                    <td>${actionHtml}</td>
+                </tr>
+            `;
+        }).join('');
+    } catch (err) {
+        console.error('Error loading lab requests queue:', err);
+    }
+}
+
+function selectLabRequestForUpload(requestId, patientId, testTitle, reportType) {
+    const patSelect = document.getElementById('uploadPatient');
+    const titleInput = document.getElementById('uploadTitle');
+    const typeSelect = document.getElementById('uploadType');
+    const reqInput = document.getElementById('activeLabRequestId');
+
+    if (patSelect) patSelect.value = patientId;
+    if (titleInput) titleInput.value = testTitle;
+    if (typeSelect && reportType) typeSelect.value = reportType;
+    if (reqInput) reqInput.value = requestId;
+
+    showToast(`✓ Selected Lab Order ${requestId} for ${testTitle}. Attach the PDF file below to upload!`, 'info');
+    const formEl = document.getElementById('uploadForm');
+    if (formEl) formEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+window.loadPrescriptions = loadPrescriptions;
+window.handleCreatePrescription = handleCreatePrescription;
+window.loadLabRequestsQueue = loadLabRequestsQueue;
+window.selectLabRequestForUpload = selectLabRequestForUpload;
 window.saveHospitalReceptionSettings = saveHospitalReceptionSettings;
 window.resetHospitalReceptionSettings = resetHospitalReceptionSettings;
 window.loginWithBillNumber = loginWithBillNumber;

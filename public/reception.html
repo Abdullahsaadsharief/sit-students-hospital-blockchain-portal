@@ -338,6 +338,9 @@
                         Share this <strong>Bill Number</strong> with the patient. They can log in using only this number to view their reports, and Lab Staff can now upload reports for this patient.
                     </span>
                     <div style="display: flex; gap: 0.6rem; flex-wrap: wrap;">
+                        <a id="btnDownloadNewBillPdf" href="#" target="_blank" class="btn btn-teal" style="font-size: 0.82rem; padding: 0.45rem 0.95rem; text-decoration: none;">
+                            📄 Download OPD Bill PDF (Hospital Header)
+                        </a>
                         <button type="button" class="btn btn-outline" id="btnCopyNewBill" style="font-size: 0.82rem; padding: 0.45rem 0.9rem;">
                             📋 Copy Bill Number
                         </button>
@@ -427,6 +430,17 @@
                                 <label class="rec-label">OPD / Lab Bill Amount</label>
                                 <input type="text" id="newPatBillAmount" class="rec-input" value="₹ 350" required />
                             </div>
+                        </div>
+
+                        <div class="rec-form-group">
+                            <label class="rec-label">Queue Initial Diagnostic Test for Lab Staff (Optional)</label>
+                            <select id="newPatInitialLabTest" class="rec-select">
+                                <option value="Complete Blood Count (CBC) &amp; Differential">Queue Lab Order: Complete Blood Count (CBC)</option>
+                                <option value="Fasting Blood Glucose &amp; HbA1c Panel">Queue Lab Order: Fasting Blood Glucose &amp; HbA1c</option>
+                                <option value="Comprehensive Lipid Profile">Queue Lab Order: Comprehensive Lipid Profile</option>
+                                <option value="Digital X-Ray Examination">Queue Lab Order: Digital X-Ray Examination</option>
+                                <option value="None">OPD Doctor Checkup Only (Doctor will order lab tests if needed)</option>
+                            </select>
                         </div>
 
                         <button type="submit" id="btnCreatePatient" class="btn btn-primary" style="width: 100%; padding: 0.8rem; margin-top: 0.4rem;">
@@ -598,9 +612,14 @@
                                 </td>
                                 <td><strong>${p.billAmount || '₹ 350'}</strong></td>
                                 <td>
-                                    <button type="button" class="btn btn-teal" style="padding: 0.35rem 0.75rem; font-size: 0.78rem;" onclick="loginPatientByBillNumber('${billNo}')">
-                                        🧑 Patient Login &rarr;
-                                    </button>
+                                    <div style="display: flex; gap: 0.4rem; flex-wrap: wrap;">
+                                        <a href="/api/reception/patients/${encodeURIComponent(p.id)}/bill-pdf" target="_blank" class="btn btn-outline" style="padding: 0.32rem 0.65rem; font-size: 0.75rem; text-decoration: none;" title="Download Official OPD Bill Receipt PDF with SIT Students Hospital Header">
+                                            📄 Bill PDF
+                                        </a>
+                                        <button type="button" class="btn btn-teal" style="padding: 0.32rem 0.65rem; font-size: 0.75rem;" onclick="loginPatientByBillNumber('${billNo}')">
+                                            🧑 Patient Login &rarr;
+                                        </button>
+                                    </div>
                                 </td>
                             </tr>
                         `;
@@ -627,7 +646,8 @@
                 contact: document.getElementById('newPatContact').value.trim(),
                 assignedDoctor: document.getElementById('newPatDoctor').value,
                 visitReason: document.getElementById('newPatReason').value.trim(),
-                billAmount: document.getElementById('newPatBillAmount').value.trim()
+                billAmount: document.getElementById('newPatBillAmount').value.trim(),
+                initialLabTest: document.getElementById('newPatInitialLabTest') ? document.getElementById('newPatInitialLabTest').value : 'None'
             };
 
             try {
@@ -653,6 +673,11 @@
                 document.getElementById('slipPatientName').textContent = `${pat.name} (${pat.age}Y / ${pat.gender})`;
                 document.getElementById('slipPatientMeta').textContent = `UHID: ${pat.patientId} • Assigned to: ${pat.assignedDoctor} • Bill: ${pat.billAmount}`;
                 document.getElementById('slipBillNumber').textContent = pat.billNumber;
+
+                const pdfBtn = document.getElementById('btnDownloadNewBillPdf');
+                if (pdfBtn) {
+                    pdfBtn.href = `/api/reception/patients/${encodeURIComponent(pat.id)}/bill-pdf`;
+                }
 
                 document.getElementById('btnCopyNewBill').onclick = () => {
                     navigator.clipboard.writeText(pat.billNumber);
@@ -711,3 +736,4 @@
     </script>
 </body>
 </html>
+

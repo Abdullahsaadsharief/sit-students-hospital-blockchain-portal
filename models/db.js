@@ -12,6 +12,8 @@ class Database {
         this.reports = [];
         this.sharedLinks = [];
         this.auditLogs = [];
+        this.prescriptions = [];
+        this.labRequests = [];
         this.init();
     }
 
@@ -31,6 +33,8 @@ class Database {
                 this.reports = data.reports || [];
                 this.sharedLinks = data.sharedLinks || [];
                 this.auditLogs = data.auditLogs || [];
+                this.prescriptions = data.prescriptions || [];
+                this.labRequests = data.labRequests || [];
 
                 // Ensure Receptionist account and patient billNumbers exist in loaded DB
                 let dbUpdated = false;
@@ -71,6 +75,128 @@ class Database {
                     this.users.push({ password: 'password123', ...recSeed });
                     dbUpdated = true;
                 }
+
+                // Ensure multi-doctor sharedDoctorNotes array exists on reports
+                this.reports.forEach(r => {
+                    if (!Array.isArray(r.sharedDoctorNotes) || r.sharedDoctorNotes.length === 0) {
+                        const baseDoc = r.doctorRemarks || {
+                            doctorName: 'Dr. Sarah Rao, MD',
+                            doctorId: 'usr_doc_01',
+                            department: 'Cardiology & General Medicine',
+                            updatedAt: r.testDate || '2026-09-15'
+                        };
+                        r.sharedDoctorNotes = [
+                            {
+                                noteId: 'note_init_1',
+                                doctorName: baseDoc.doctorName,
+                                doctorId: baseDoc.doctorId || 'usr_doc_01',
+                                department: baseDoc.department || 'General Medicine',
+                                status: r.diagnosisStatus || baseDoc.status || 'Reviewed & Authenticated',
+                                notes: r.clinicalImpression || r.notes || 'Reviewed clinical findings.',
+                                prescription: r.prescription || 'Continue prescribed outpatient therapy.',
+                                updatedAt: baseDoc.updatedAt || r.createdAt || new Date().toISOString()
+                            }
+                        ];
+                        // Add a second collaborating doctor note on John Doe's first report to showcase Multi-Doctor Shared View
+                        if (r.reportId === 'REP-7A91F2C4') {
+                            r.sharedDoctorNotes.push({
+                                noteId: 'note_init_2',
+                                doctorName: 'Dr. Rajesh Nair, MS',
+                                doctorId: 'usr_doc_02',
+                                department: 'Orthopedics & Trauma Wing',
+                                status: 'Cross-Department Clearance',
+                                notes: 'Reviewed glycemic profile (HbA1c 7.4%) prior to lumbar physical therapy. Cleared for supervised physiotherapy.',
+                                prescription: 'Tab. Metformin 500mg BD + Calcium & Vitamin D3 supplementation.',
+                                updatedAt: '2026-09-03T11:20:00Z'
+                            });
+                        }
+                        dbUpdated = true;
+                    }
+                });
+
+                // Seed initial Doctor OPD Checkup Prescriptions if empty
+                if (!this.prescriptions || this.prescriptions.length === 0) {
+                    this.prescriptions = [
+                        {
+                            prescriptionId: 'RX-2026-101',
+                            patientId: 'usr_pat_01',
+                            patientName: 'John Doe',
+                            patientUhid: 'PT-9901',
+                            billNumber: 'BILL-2026-1001',
+                            doctorId: 'usr_doc_01',
+                            doctorName: 'Dr. Sarah Rao, MD',
+                            department: 'Cardiology & General Medicine',
+                            vitals: 'BP: 132/84 mmHg | Pulse: 78 bpm | Temp: 98.4 °F | Weight: 74 kg',
+                            symptoms: 'Mild fatigue, increased thirst (polydipsia), and lower back stiffness.',
+                            diagnosis: 'Stage-2 Type 2 Diabetes Mellitus with Mild Lumbar Spondylosis',
+                            medicines: [
+                                { name: 'Tab. Metformin Sustained Release 500mg', dosage: '1 - 0 - 1', duration: '30 Days', instructions: 'After Meals' },
+                                { name: 'Tab.Shelcal-500 (Calcium + Vit D3)', dosage: '0 - 1 - 0', duration: '30 Days', instructions: 'After Lunch' },
+                                { name: 'Gel Volini / Diclofenac Topical', dosage: 'Apply BD', duration: '7 Days', instructions: 'Lower Back' }
+                            ],
+                            advice: 'Avoid refined sugar and deep-fried foods. 30 minutes brisk morning walk daily.',
+                            labTestOrdered: 'Fasting & Postprandial Blood Glucose Follow-up',
+                            followUpDate: '2026-12-05',
+                            createdAt: '2026-10-12T10:30:00.000Z'
+                        },
+                        {
+                            prescriptionId: 'RX-2026-102',
+                            patientId: 'usr_pat_04',
+                            patientName: 'Ayesha Khan',
+                            patientUhid: 'PT-9904',
+                            billNumber: 'BILL-2026-1004',
+                            doctorId: 'usr_doc_03',
+                            doctorName: 'Dr. Ananya Sen, MD',
+                            department: 'Pulmonology & Respiratory Care',
+                            vitals: 'BP: 116/74 mmHg | SpO2: 98% | Pulse: 82 bpm | Temp: 98.2 °F',
+                            symptoms: 'Dry nocturnal cough and wheezing after exposure to classroom dust.',
+                            diagnosis: 'Mild Persistent Allergic Bronchial Asthma',
+                            medicines: [
+                                { name: 'Inhaler Budesonide + Formoterol 200/6 mcg', dosage: '1 Puff - 0 - 1 Puff', duration: '30 Days', instructions: 'Rinse Mouth After Use' },
+                                { name: 'Tab. Montelukast + Levocetirizine 10/5mg', dosage: '0 - 0 - 1', duration: '10 Days', instructions: 'At Bedtime' }
+                            ],
+                            advice: 'Use warm water for drinking; avoid cold beverages and dusty environments.',
+                            labTestOrdered: 'Complete Blood Count (CBC) & Eosinophil Count',
+                            followUpDate: '2026-11-28',
+                            createdAt: '2026-10-15T14:15:00.000Z'
+                        }
+                    ];
+                    dbUpdated = true;
+                }
+
+                // Seed initial Pending Lab Requests for Lab Staff queue if empty
+                if (!this.labRequests || this.labRequests.length === 0) {
+                    this.labRequests = [
+                        {
+                            requestId: 'LABREQ-201',
+                            patientId: 'usr_pat_01',
+                            patientName: 'John Doe',
+                            patientUhid: 'PT-9901',
+                            billNumber: 'BILL-2026-1001',
+                            requestedBy: 'Dr. Sarah Rao (Cardiology & General Medicine)',
+                            testTitle: 'Fasting & Postprandial Blood Glucose Follow-up',
+                            reportType: 'Pathology / Biochemistry',
+                            priority: 'Routine OPD',
+                            status: 'PENDING_UPLOAD',
+                            createdAt: '2026-10-12T10:35:00.000Z'
+                        },
+                        {
+                            requestId: 'LABREQ-202',
+                            patientId: 'usr_pat_04',
+                            patientName: 'Ayesha Khan',
+                            patientUhid: 'PT-9904',
+                            billNumber: 'BILL-2026-1004',
+                            requestedBy: 'Dr. Ananya Sen (Pulmonology Wing)',
+                            testTitle: 'Complete Blood Count (CBC) & Absolute Eosinophil Count',
+                            reportType: 'Hematology',
+                            priority: 'Priority OPD',
+                            status: 'PENDING_UPLOAD',
+                            createdAt: '2026-10-15T14:20:00.000Z'
+                        }
+                    ];
+                    dbUpdated = true;
+                }
+
                 if (dbUpdated) {
                     this.persist();
                 }
@@ -134,7 +260,9 @@ class Database {
                 users: this.users,
                 reports: this.reports,
                 sharedLinks: this.sharedLinks,
-                auditLogs: this.auditLogs
+                auditLogs: this.auditLogs,
+                prescriptions: this.prescriptions,
+                labRequests: this.labRequests
             };
             fs.writeFileSync(DB_FILE_PATH, JSON.stringify(payload, null, 2), 'utf8');
         } catch (e) {
@@ -290,6 +418,46 @@ class Database {
 
     getAuditLogs() {
         return this.auditLogs;
+    }
+
+    // --- Doctor OPD Checkup Prescriptions ---
+    getPrescriptions(patientId = null) {
+        if (patientId) {
+            return this.prescriptions.filter(p => p.patientId === patientId || p.patientUhid === patientId);
+        }
+        return this.prescriptions;
+    }
+
+    findPrescriptionById(prescriptionId) {
+        return this.prescriptions.find(p => p.prescriptionId === prescriptionId);
+    }
+
+    addPrescription(rxData) {
+        this.prescriptions.unshift(rxData);
+        this.persist();
+        return rxData;
+    }
+
+    // --- Lab Test Requests Queue (Doctor / Reception -> Lab Staff) ---
+    getLabRequests() {
+        return this.labRequests;
+    }
+
+    addLabRequest(reqData) {
+        this.labRequests.unshift(reqData);
+        this.persist();
+        return reqData;
+    }
+
+    completeLabRequest(requestId, reportId) {
+        const item = this.labRequests.find(r => r.requestId === requestId);
+        if (item) {
+            item.status = 'COMPLETED';
+            item.linkedReportId = reportId;
+            item.completedAt = new Date().toISOString();
+            this.persist();
+        }
+        return item;
     }
 }
 

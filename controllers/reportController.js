@@ -200,6 +200,17 @@ async function uploadReport(req, res) {
 
         db.addReport(newReport);
 
+        // If uploaded for a pending Lab Request, mark it completed
+        if (req.body.labRequestId) {
+            db.completeLabRequest(req.body.labRequestId, reportId);
+        } else {
+            const matchingReq = (db.getLabRequests() || []).find(
+                lr => lr.patientId === targetPatient.id && lr.status === 'PENDING_UPLOAD'
+            );
+            if (matchingReq) {
+                db.completeLabRequest(matchingReq.requestId, reportId);
+            }
+        }
 
         db.logAudit(
             'REPORT_UPLOADED',
@@ -236,6 +247,17 @@ function getReports(req, res) {
     const user = req.user;
     const { patientId, query } = req.query;
 
+    // Strict Privacy: Lab Staff can ONLY upload new reports; they cannot browse patients' previous medical reports
+    if (user.role === 'Lab Staff') {
+        return res.json({
+            success: true,
+            count: 0,
+            reports: [],
+            restrictedForLab: true,
+            message: 'Lab Staff role is restricted to uploading diagnostic reports and processing lab orders.'
+        });
+    }
+
     let reports;
     if (user.role === 'Patient') {
         // Patient can only view their own diagnostic records
@@ -260,6 +282,12 @@ function getReports(req, res) {
  */
 function getPatientTimeline(req, res) {
     const user = req.user;
+    if (user.role === 'Lab Staff') {
+        return res.status(403).json({
+            success: false,
+            message: 'Access denied. Lab Staff cannot view patients previous medical history timelines.'
+        });
+    }
     let targetPatientId = req.params.patientId;
     
     // Strict privacy: Patient can ONLY view their own clinical timeline
@@ -396,14 +424,30 @@ function updateReport(req, res) {
         if (diagnosisStatus !== undefined) updates.diagnosisStatus = diagnosisStatus;
         if (prescription !== undefined) updates.prescription = prescription;
         if (followUpDate !== undefined) updates.followUpDate = followUpDate;
+        const nowIso = new Date().toISOString();
         updates.doctorRemarks = {
             doctorName: user.name,
             doctorId: user.id,
             department: user.department || 'Attending Physician',
-            hospital: user.hospital || 'Metro Apex Hospital',
-            updatedAt: new Date().toISOString(),
+            hospital: user.hospital || 'SIT Students Hospital',
+            updatedAt: nowIso,
             status: diagnosisStatus || existingReport.diagnosisStatus || 'Reviewed & Verified'
         };
+
+        // Multi-Doctor Shared Notes Thread (Preserves notes from every consulting doctor in SIT Students Hospital)
+        const existingShared = Array.isArray(existingReport.sharedDoctorNotes) ? [...existingReport.sharedDoctorNotes] : [];
+        existingShared.push({
+            noteId: 'note_' + Date.now().toString(36),
+            doctorName: user.name,
+            doctorId: user.id,
+            department: user.department || 'General Medicine',
+            status: diagnosisStatus || 'Reviewed & Prescribed',
+            notes: notes || 'Clinical evaluation completed.',
+            prescription: prescription || 'Continue prescribed treatment.',
+            followUpDate: followUpDate || '',
+            updatedAt: nowIso
+        });
+        updates.sharedDoctorNotes = existingShared;
 
         const updated = db.updateReport(reportId, updates);
 
