@@ -1374,7 +1374,72 @@ select optgroup,
 }
 
 .metric-value {
-    color: #162d4c !important;
+    color: #162d4c;
+}
+
+.metric-value.status-valid,
+#metricChainStatus.status-valid {
+    color: #15803d !important;
+    font-weight: 800 !important;
+}
+
+.metric-value.status-tampered,
+#metricChainStatus.status-tampered {
+    color: #dc2626 !important;
+    font-weight: 800 !important;
+}
+
+.theme-subbox {
+    background: #f8fafc;
+    border: 1px solid #cbd5e1;
+    color: #1e293b;
+}
+
+.patient-select-card {
+    background: #f8fafc;
+    border: 1px solid #cbd5e1;
+    border-left: 4px solid #1e3a5f;
+    border-radius: 8px;
+    padding: 1.15rem;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.patient-select-card:hover {
+    background: #ffffff;
+    border-color: #0d9488;
+    box-shadow: 0 4px 12px rgba(22, 45, 76, 0.08);
+    transform: translateY(-2px);
+}
+
+.report-eval-box {
+    margin-top: 8px;
+    padding: 6px 10px;
+    background: #fffbeb;
+    border: 1px solid #fcd34d;
+    border-left: 3px solid #d97706;
+    border-radius: 6px;
+    font-size: 0.76rem;
+    color: #92400e;
+}
+
+.report-ai-box {
+    margin-top: 8px;
+    padding: 8px 10px;
+    background: #f0f9ff;
+    border: 1px solid #bae6fd;
+    border-left: 3px solid #0284c7;
+    border-radius: 6px;
+    font-size: 0.76rem;
+}
+
+.report-ai-title {
+    color: #0369a1;
+}
+
+.report-ai-bullet {
+    color: #334155;
+    line-height: 1.4;
 }
 
 .metric-label {
@@ -1530,4 +1595,154 @@ select optgroup,
     border: 1px solid #cbd5e1 !important;
     color: #1e293b !important;
 }
+
+/* ==========================================================================
+   REFINED HOSPITAL DARK MODE OVERRIDES (body.dark-mode)
+   ========================================================================== */
+body.dark-mode {
+    color-scheme: dark;
+    --bg-primary: #0b1120;
+    --bg-secondary: #111827;
+    --bg-card: #162032;
+    --border-color: #26354d;
+    --border-subtle: #26354d;
+    --text-primary: #f1f5f9;
+    --text-secondary: #cbd5e1;
+    --text-muted: #94a3b8;
+    --accent-cyan: #38bdf8;
+    --accent-teal: #2dd4bf;
+    background-color: #0b1120 !important;
+    color: #f1f5f9 !important;
+}
+
+body.dark-mode .login-screen-wrapper {
+    background: #0b1120 !important;
+}
+
+body.dark-mode .nav-tabs-wrapper {
+    background: #111827 !important;
+    border-bottom-color: #1e293b !important;
+}
+
+body.dark-mode .nav-tab {
+    color: #94a3b8 !important;
+}
+
+body.dark-mode .nav-tab:hover {
+    color: #f8fafc !important;
+    background: #1e293b !important;
+}
+
+body.dark-mode .nav-tab.active {
+    color: #2dd4bf !important;
+    background: rgba(13, 148, 136, 0.14) !important;
+    border-bottom-color: #2dd4bf !important;
+}
+
+body.dark-mode .status-banner,
+body.dark-mode .card,
+body.dark-mode .report-card,
+body.dark-mode .login-card,
+body.dark-mode .modal-container,
+body.dark-mode .role-card-select,
+body.dark-mode .login-form-box,
+body.dark-mode .role-permission-matrix,
+body.dark-mode .admin-stat-card,
+body.dark-mode .block-card,
+body.dark-mode .timeline-content {
+    background: #162032 !important;
+    border-color: #26354d !important;
+    color: #f1f5f9 !important;
+}
+
+body.dark-mode .card-title,
+body.dark-mode .report-title,
+body.dark-mode .login-brand-title,
+body.dark-mode .role-card-title,
+body.dark-mode .user-info h2,
+body.dark-mode .metric-value,
+body.dark-mode .form-label {
+    color: #f8fafc !important;
+    -webkit-text-fill-color: #f8fafc !important;
+}
+
+body.dark-mode .metric-value.status-valid,
+body.dark-mode #metricChainStatus.status-valid {
+    color: #4ade80 !important;
+}
+
+body.dark-mode .metric-value.status-tampered,
+body.dark-mode #metricChainStatus.status-tampered {
+    color: #f87171 !important;
+}
+
+body.dark-mode .card-subtitle,
+body.dark-mode .login-brand-subtitle,
+body.dark-mode .role-card-desc,
+body.dark-mode .role-card-perms,
+body.dark-mode .user-info p {
+    color: #cbd5e1 !important;
+}
+
+body.dark-mode .metric-item,
+body.dark-mode .theme-subbox,
+body.dark-mode .patient-select-card,
+body.dark-mode .drop-zone {
+    background: #1e293b !important;
+    border-color: #334155 !important;
+    color: #f1f5f9 !important;
+}
+
+body.dark-mode .form-control,
+body.dark-mode .search-input,
+body.dark-mode select.form-control,
+body.dark-mode textarea.form-control {
+    background: #0f172a !important;
+    border-color: #334155 !important;
+    color: #f8fafc !important;
+}
+
+body.dark-mode .btn-secondary,
+body.dark-mode .filter-tag-chip {
+    background: #1e293b !important;
+    color: #e2e8f0 !important;
+    border-color: #334155 !important;
+}
+
+body.dark-mode .btn-secondary:hover,
+body.dark-mode .filter-tag-chip.active {
+    background: #0d9488 !important;
+    color: #ffffff !important;
+    border-color: #14b8a6 !important;
+}
+
+body.dark-mode .lit-table td {
+    background: #162032 !important;
+    color: #e2e8f0 !important;
+    border-bottom-color: #26354d !important;
+}
+
+body.dark-mode .lit-table tr:nth-child(even) td {
+    background: #1a263b !important;
+}
+
+body.dark-mode .report-eval-box {
+    background: rgba(245, 158, 11, 0.14) !important;
+    border-color: rgba(245, 158, 11, 0.4) !important;
+    color: #fde68a !important;
+}
+
+body.dark-mode .report-ai-box {
+    background: rgba(14, 165, 233, 0.12) !important;
+    border-color: rgba(56, 189, 248, 0.35) !important;
+}
+
+body.dark-mode .report-ai-title {
+    color: #38bdf8 !important;
+}
+
+body.dark-mode .report-ai-bullet {
+    color: #e2e8f0 !important;
+}
+
 

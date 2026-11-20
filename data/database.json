@@ -1234,6 +1234,62 @@
   ],
   "auditLogs": [
     {
+      "id": "log_1795197310342_y0xm",
+      "action": "USER_LOGIN",
+      "actor": "Dr. Sarah Rao",
+      "details": "User authenticated successfully with role: Doctor",
+      "timestamp": "2026-11-20T17:55:10.342Z"
+    },
+    {
+      "id": "log_1795197305725_g82v",
+      "action": "USER_LOGIN",
+      "actor": "John Doe",
+      "details": "Patient accessed portal via Reception Bill ID (BILL-2026-1001)",
+      "timestamp": "2026-11-20T17:55:05.725Z"
+    },
+    {
+      "id": "log_1795197299510_ufi7",
+      "action": "USER_LOGIN",
+      "actor": "Alex Smith",
+      "details": "User authenticated successfully with role: Lab Staff",
+      "timestamp": "2026-11-20T17:54:59.510Z"
+    },
+    {
+      "id": "log_1795197227065_dydc",
+      "action": "USER_LOGIN",
+      "actor": "Dr. Sarah Rao",
+      "details": "User authenticated successfully with role: Doctor",
+      "timestamp": "2026-11-20T17:53:47.065Z"
+    },
+    {
+      "id": "log_1795197225923_rdkn",
+      "action": "USER_LOGIN",
+      "actor": "Hospital IT Admin",
+      "details": "User authenticated successfully with role: Admin",
+      "timestamp": "2026-11-20T17:53:45.923Z"
+    },
+    {
+      "id": "log_1795197224244_001k",
+      "action": "USER_LOGIN",
+      "actor": "Dr. Sarah Rao",
+      "details": "User authenticated successfully with role: Doctor",
+      "timestamp": "2026-11-20T17:53:44.244Z"
+    },
+    {
+      "id": "log_1795197222892_y95w",
+      "action": "USER_LOGIN",
+      "actor": "Alex Smith",
+      "details": "User authenticated successfully with role: Lab Staff",
+      "timestamp": "2026-11-20T17:53:42.892Z"
+    },
+    {
+      "id": "log_1795197207251_7r0c",
+      "action": "USER_LOGIN",
+      "actor": "Dr. Sarah Rao",
+      "details": "User authenticated successfully with role: Doctor",
+      "timestamp": "2026-11-20T17:53:27.251Z"
+    },
+    {
       "id": "log_1795182044472_5uho",
       "action": "USER_LOGIN",
       "actor": "Hospital IT Admin",

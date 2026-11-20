@@ -25,14 +25,18 @@
                 <div
                     style="margin-top: 0.75rem; display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap;">
                     <span class="status-pill status-completed">🔒 Hospital Staff &amp; Patient Login Gate</span>
-                    <a href="/reception" class="btn"
-                        style="display: inline-flex; align-items: center; gap: 6px; font-size: 0.78rem; padding: 5px 14px; background: rgba(16, 185, 129, 0.16); border: 1px solid rgba(16, 185, 129, 0.45); color: #34d399; text-decoration: none; border-radius: var(--radius-full); font-weight: 700;">
+                    <a href="/reception" class="btn btn-secondary"
+                        style="display: inline-flex; align-items: center; gap: 6px; font-size: 0.78rem; padding: 5px 14px; text-decoration: none; font-weight: 700;">
                         🗂️ Receptionist Desk Login (/reception)
                     </a>
-                    <a href="/" class="btn"
-                        style="display: inline-flex; align-items: center; gap: 6px; font-size: 0.78rem; padding: 5px 14px; background: rgba(0, 229, 255, 0.12); border: 1px solid rgba(0, 229, 255, 0.35); color: var(--accent-cyan); text-decoration: none; border-radius: var(--radius-full); font-weight: 600;">
+                    <a href="/" class="btn btn-secondary"
+                        style="display: inline-flex; align-items: center; gap: 6px; font-size: 0.78rem; padding: 5px 14px; text-decoration: none; font-weight: 600;">
                         🏠 Back to SIT Students Hospital Website
                     </a>
+                    <button type="button" class="btn btn-secondary" onclick="togglePortalTheme()"
+                        style="display: inline-flex; align-items: center; gap: 6px; font-size: 0.78rem; padding: 5px 14px; font-weight: 700;">
+                        <span class="theme-toggle-label">🌙 Dark Mode</span>
+                    </button>
                 </div>
             </div>
 
@@ -144,51 +148,49 @@
                 </div>
 
                 <!-- Other Doctors & Patients Inside SIT Students Hospital -->
-                <div
-                    style="margin-top: 1.25rem; padding: 1.1rem; background: #0d172e; border: 1px solid rgba(0, 229, 255, 0.25); border-radius: var(--radius-md);">
+                <div class="theme-subbox" style="margin-top: 1.25rem; padding: 1.1rem; border-radius: var(--radius-md);">
                     <div
                         style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 0.5rem;">
                         <span
                             style="font-size: 0.8rem; font-weight: 700; color: var(--accent-cyan); text-transform: uppercase; letter-spacing: 0.5px;">
                             🏥 Other Department Doctors &amp; Patients at SIT Students Hospital
                         </span>
-                        <span style="font-size: 0.72rem; color: var(--text-muted);">Switch between hospital departments to see shared patient records</span>
+                        <span style="font-size: 0.72rem; color: var(--text-muted);">Sign in directly as another hospital department doctor or patient</span>
                     </div>
                     <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
-                        <button type="button" class="btn"
-                            style="font-size: 0.76rem; padding: 6px 12px; background: rgba(26, 42, 75, 0.7); border: 1px solid rgba(70, 95, 140, 0.45); color: #f8fafc;"
+                        <button type="button" class="btn btn-secondary"
+                            style="font-size: 0.76rem; padding: 6px 12px;"
                             onclick="loginAsRole('usr_doc_02')">👨‍⚕️ Dr. Rajesh Nair (Orthopedics Wing)</button>
-                        <button type="button" class="btn"
-                            style="font-size: 0.76rem; padding: 6px 12px; background: rgba(26, 42, 75, 0.7); border: 1px solid rgba(70, 95, 140, 0.45); color: #f8fafc;"
+                        <button type="button" class="btn btn-secondary"
+                            style="font-size: 0.76rem; padding: 6px 12px;"
                             onclick="loginAsRole('usr_doc_03')">👩‍⚕️ Dr. Ananya Sen (Pulmonology Wing)</button>
-                        <button type="button" class="btn"
-                            style="font-size: 0.76rem; padding: 6px 12px; background: rgba(26, 42, 75, 0.7); border: 1px solid rgba(70, 95, 140, 0.45); color: #f8fafc;"
+                        <button type="button" class="btn btn-secondary"
+                            style="font-size: 0.76rem; padding: 6px 12px;"
                             onclick="loginAsRole('usr_doc_04')">👨‍⚕️ Dr. Vikram Mehta (Neurology Wing)</button>
-                        <button type="button" class="btn"
-                            style="font-size: 0.76rem; padding: 6px 12px; background: rgba(26, 42, 75, 0.7); border: 1px solid rgba(70, 95, 140, 0.45); color: #f8fafc;"
+                        <button type="button" class="btn btn-secondary"
+                            style="font-size: 0.76rem; padding: 6px 12px;"
                             onclick="loginAsRole('usr_pat_02')">👩 Meera Patel (PT-9902)</button>
-                        <button type="button" class="btn"
-                            style="font-size: 0.76rem; padding: 6px 12px; background: rgba(26, 42, 75, 0.7); border: 1px solid rgba(70, 95, 140, 0.45); color: #f8fafc;"
+                        <button type="button" class="btn btn-secondary"
+                            style="font-size: 0.76rem; padding: 6px 12px;"
                             onclick="loginAsRole('usr_pat_03')">👨 Robert Chen (PT-9903)</button>
-                        <button type="button" class="btn"
-                            style="font-size: 0.76rem; padding: 6px 12px; background: rgba(26, 42, 75, 0.7); border: 1px solid rgba(70, 95, 140, 0.45); color: #f8fafc;"
+                        <button type="button" class="btn btn-secondary"
+                            style="font-size: 0.76rem; padding: 6px 12px;"
                             onclick="loginAsRole('usr_pat_04')">👩 Ayesha Khan (PT-9904)</button>
                     </div>
                 </div>
 
                 <!-- Patient Passwordless Bill Number Login Bar -->
-                <div
-                    style="margin-top: 1.15rem; padding: 1.1rem; background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.35); border-radius: var(--radius-md);">
+                <div class="theme-subbox" style="margin-top: 1.15rem; padding: 1.1rem; border-radius: var(--radius-md); border-left: 4px solid var(--accent-teal);">
                     <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 0.65rem;">
                         <div>
-                            <span style="font-size: 0.82rem; font-weight: 800; color: #34d399; text-transform: uppercase;">
+                            <span style="font-size: 0.82rem; font-weight: 800; color: var(--accent-teal); text-transform: uppercase;">
                                 🧾 Patient Direct Login (Bill Number / Reception ID Only — No Password Needed)
                             </span>
                             <div style="font-size: 0.76rem; color: var(--text-secondary);">
                                 Enter the Bill Number generated by the Receptionist at <a href="/reception" style="color: var(--accent-cyan); font-weight: 700;">/reception</a> to view your medical reports:
                             </div>
                         </div>
-                        <a href="/reception" class="btn btn-secondary" style="font-size: 0.76rem; padding: 6px 12px; text-decoration: none; border-color: rgba(56, 189, 248, 0.4); color: var(--accent-cyan);">
+                        <a href="/reception" class="btn btn-secondary" style="font-size: 0.76rem; padding: 6px 12px; text-decoration: none;">
                             🗂️ Go to Receptionist Page to Add New Patient &rarr;
                         </a>
                     </div>
@@ -308,65 +310,34 @@
                 <div class="header-actions">
                     <!-- Link to Reception Desk & Hospital Homepage -->
                     <a href="/reception" class="btn"
-                        style="display: flex; align-items: center; gap: 6px; font-size: 0.78rem; padding: 6px 14px; background: rgba(16, 185, 129, 0.14); border: 1px solid rgba(16, 185, 129, 0.4); color: #34d399; text-decoration: none; border-radius: var(--radius-full); font-weight: 700;"
+                        style="display: flex; align-items: center; gap: 6px; font-size: 0.78rem; padding: 6px 14px; background: rgba(255, 255, 255, 0.12); border: 1px solid rgba(255, 255, 255, 0.25); color: #ffffff; text-decoration: none; border-radius: var(--radius-sm); font-weight: 700;"
                         title="Open Receptionist & Patient Billing Desk">
                         🗂️ Reception Desk
                     </a>
                     <a href="/" class="btn"
-                        style="display: flex; align-items: center; gap: 6px; font-size: 0.78rem; padding: 6px 14px; background: rgba(0, 229, 255, 0.1); border: 1px solid rgba(0, 229, 255, 0.35); color: var(--accent-cyan); text-decoration: none; border-radius: var(--radius-full); font-weight: 600;"
+                        style="display: flex; align-items: center; gap: 6px; font-size: 0.78rem; padding: 6px 14px; background: rgba(255, 255, 255, 0.12); border: 1px solid rgba(255, 255, 255, 0.25); color: #ffffff; text-decoration: none; border-radius: var(--radius-sm); font-weight: 600;"
                         title="Return to SIT Students Hospital Website">
                         🏠 Hospital Website
                     </a>
 
+                    <!-- Light / Dark Theme Toggle -->
+                    <button type="button" class="btn" onclick="togglePortalTheme()"
+                        style="display: flex; align-items: center; gap: 6px; font-size: 0.78rem; padding: 6px 14px; background: rgba(255, 255, 255, 0.12); border: 1px solid rgba(255, 255, 255, 0.25); color: #ffffff; border-radius: var(--radius-sm); font-weight: 700; cursor: pointer;"
+                        title="Toggle Light / Dark Mode">
+                        <span class="theme-toggle-label">🌙 Dark Mode</span>
+                    </button>
+
                     <!-- Active User Identity Chip -->
                     <div
-                        style="display: flex; align-items: center; gap: 8px; background: rgba(0,0,0,0.3); border: 1px solid var(--border-subtle); padding: 5px 12px; border-radius: var(--radius-full);">
+                        style="display: flex; align-items: center; gap: 8px; background: rgba(0,0,0,0.28); border: 1px solid rgba(255,255,255,0.22); padding: 5px 14px; border-radius: var(--radius-sm);">
                         <span id="headerUserAvatar" style="font-size: 1.1rem;">👨‍⚕️</span>
                         <div style="line-height: 1.2;">
                             <div id="headerUserName"
-                                style="font-size: 0.82rem; font-weight: 700; color: var(--text-primary);">Dr. Sarah Rao
+                                style="font-size: 0.82rem; font-weight: 700; color: #ffffff;">Dr. Sarah Rao
                             </div>
-                            <div id="headerUserRoleBadge" style="font-size: 0.68rem; color: var(--accent-cyan);">DOCTOR
+                            <div id="headerUserRoleBadge" style="font-size: 0.68rem; color: #99f6e4;">DOCTOR
                             </div>
                         </div>
-                    </div>
-
-                    <!-- Role Switcher for Panel Evaluation -->
-                    <div class="role-switcher-bar">
-                        <span class="role-switcher-label">Switch Role:</span>
-                        <button class="role-btn" data-user-id="usr_doc_01" onclick="switchUserRole('usr_doc_01')"
-                            title="Dr. Sarah Rao (Cardiology)">
-                            👨‍⚕️ Doctor
-                        </button>
-                        <button class="role-btn" data-user-id="usr_lab_01" onclick="switchUserRole('usr_lab_01')"
-                            title="Alex Smith (Pathology Lab)">
-                            🔬 Lab
-                        </button>
-                        <button class="role-btn" data-user-id="usr_pat_01" onclick="switchUserRole('usr_pat_01')"
-                            title="John Doe (PT-9901)">
-                            👤 Patient
-                        </button>
-                        <button class="role-btn" data-user-id="usr_adm_01" onclick="switchUserRole('usr_adm_01')"
-                            title="Consortium SuperAdmin">
-                            🛡️ Admin
-                        </button>
-                        <select id="headerUserSelect" class="header-user-select"
-                            title="Switch between consortium Doctors and Patients"
-                            onchange="if(this.value) { switchUserRole(this.value); this.value=''; }">
-                            <option value="" disabled selected>👤 More Identities...</option>
-                            <optgroup label="Attending Doctors">
-                                <option value="usr_doc_01">👨‍⚕️ Dr. Sarah Rao (Cardiology)</option>
-                                <option value="usr_doc_02">👨‍⚕️ Dr. Rajesh Nair (Orthopedics)</option>
-                                <option value="usr_doc_03">👩‍⚕️ Dr. Ananya Sen (Pulmonology)</option>
-                                <option value="usr_doc_04">👨‍⚕️ Dr. Vikram Mehta (Neurology)</option>
-                            </optgroup>
-                            <optgroup label="Registered Patients">
-                                <option value="usr_pat_01">👤 John Doe (PT-9901)</option>
-                                <option value="usr_pat_02">👩 Meera Patel (PT-9902)</option>
-                                <option value="usr_pat_03">👨 Robert Chen (PT-9903)</option>
-                                <option value="usr_pat_04">👩 Ayesha Khan (PT-9904)</option>
-                            </optgroup>
-                        </select>
                     </div>
 
                     <!-- Logout Button -->
@@ -450,13 +421,63 @@
             </section>
 
             <!-- ==========================================
-                 TAB 1: MEDICAL RECORDS & SEARCH
+                 TAB 1: MEDICAL RECORDS & SEARCH (WITH DOCTOR PATIENT SELECTION GATE)
                  ========================================== -->
             <div id="recordsTab" class="tab-pane active">
-                <div class="card">
+
+                <!-- DOCTOR PATIENT SELECTION GATE (Shown to Doctors before opening a patient's file) -->
+                <div id="doctorPatientSelectorGate" class="card" style="display: none; margin-bottom: 1.5rem;">
                     <div class="card-header">
                         <div>
-                            <h3 class="card-title">Diagnostic Reports Archive</h3>
+                            <h3 class="card-title">👨‍⚕️ Select a Hospital Patient to Open Their Medical File</h3>
+                            <p class="card-subtitle">For patient privacy and clinical clarity, please select a patient by Name, UHID, or Reception Bill Number to view their diagnostic reports and clinical history.</p>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; gap: 0.85rem; flex-wrap: wrap; margin-bottom: 1.25rem;">
+                        <input type="text" id="doctorPatientSearchInput" class="form-control"
+                            placeholder="Filter patients by Name, UHID (PT-9901), or Bill Number (BILL-2026-1001)..."
+                            style="flex: 1; min-width: 260px;"
+                            oninput="renderDoctorPatientDirectory(this.value)">
+                        <select id="doctorQuickPatientDropdown" class="form-control" style="width: auto; min-width: 260px;"
+                            onchange="if(this.value) selectDoctorPatient(this.value)">
+                            <option value="">-- Or Choose Patient from Dropdown --</option>
+                        </select>
+                    </div>
+
+                    <div id="doctorPatientCardsGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem;">
+                        <!-- Populated dynamically with Patient Directory Cards -->
+                    </div>
+                </div>
+
+                <!-- ACTIVE SELECTED PATIENT HEADER BANNER (Shown once Doctor opens a patient's file) -->
+                <div id="doctorActivePatientBanner" class="card" style="display: none; margin-bottom: 1.25rem; border-left: 5px solid var(--accent-teal);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                        <div>
+                            <div style="font-size: 0.75rem; font-weight: 800; color: var(--accent-teal); text-transform: uppercase; letter-spacing: 0.04em;">
+                                📂 Active Patient File Open (SIT Students Hospital)
+                            </div>
+                            <h3 id="activePatBannerName" style="font-size: 1.25rem; margin: 0.15rem 0;">Patient Name</h3>
+                            <div id="activePatBannerMeta" style="font-size: 0.85rem; color: var(--text-secondary);">
+                                UHID • Bill Number • Age / Gender / Blood Group
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 0.65rem; flex-wrap: wrap;">
+                            <button type="button" class="btn btn-primary" onclick="openCheckupForSelectedPatient()">
+                                🩺 Write Checkup &amp; Prescription
+                            </button>
+                            <button type="button" class="btn btn-secondary" onclick="clearDoctorSelectedPatient()">
+                                🔄 Switch / Select Another Patient
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- REPORTS ARCHIVE CARD (Shown for Patient/Admin, or for Doctor after selecting a patient) -->
+                <div class="card" id="reportsArchiveCard">
+                    <div class="card-header">
+                        <div>
+                            <h3 class="card-title" id="reportsArchiveTitle">Diagnostic Reports Archive</h3>
                             <p class="card-subtitle">Searchable via Smart OCR Keyword Indexing without exposing raw
                                 files (Feature 7.3)</p>
                         </div>

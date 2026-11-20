@@ -3,6 +3,8 @@ let currentUser = null;
 let authToken = localStorage.getItem('hc_auth_token') || null;
 
 let allReportsCache = [];
+let allPatientsCache = [];
+let selectedDoctorPatientId = null;
 let activeTagFilter = '';
 let currentVerificationUrl = '';
 let currentShareUrl = '';
@@ -89,6 +91,7 @@ const USERS_MAP = {
 // 1. INITIALIZATION & SESSION RESTORATION
 // ==========================================================================
 document.addEventListener('DOMContentLoaded', () => {
+    initPortalTheme();
     initTabs();
     initUploadDropzone();
     initSearch();
@@ -213,6 +216,7 @@ async function loginWithCredentials(emailOrId, password) {
 function applySession(token, user) {
     authToken = token;
     currentUser = user;
+    selectedDoctorPatientId = null;
     localStorage.setItem('hc_auth_token', token);
     localStorage.setItem('hc_current_user', JSON.stringify(user));
 
@@ -373,16 +377,25 @@ function applyRolePermissions(role) {
         if (tabUpload) tabUpload.click();
 
     } else if (role === 'Doctor') {
-        // Doctor accesses all hospital patient reports, writes checkup prescriptions, views timelines, and adds shared notes
+        // Doctor sees ONLY clinical tabs (Patient Medical Records, Checkup & Prescriptions, Patient Timeline)
+        // Hospital Ledger, Audit Logs, Reception Settings, Lab Upload, and Admin Directory are hidden for Doctors
         if (tabAdmin) tabAdmin.style.display = 'none';
         if (tabUpload) tabUpload.style.display = 'none';
+        if (tabReception) tabReception.style.display = 'none';
+        if (tabBlockchain) tabBlockchain.style.display = 'none';
+        if (tabAudit) tabAudit.style.display = 'none';
         if (doctorRxFormCard) doctorRxFormCard.style.display = 'block';
 
+        updateDoctorPatientGateUI();
         if (tabRecords) tabRecords.click();
 
     } else if (role === 'Admin') {
+        updateDoctorPatientGateUI();
         if (tabAdmin) tabAdmin.style.display = 'inline-flex';
         if (tabAdmin) tabAdmin.click();
+    }
+    if (role !== 'Doctor') {
+        updateDoctorPatientGateUI();
     }
 }
 
@@ -424,10 +437,12 @@ async function loadStats() {
             const statusEl = document.getElementById('metricChainStatus');
             if (data.stats.isBlockchainValid) {
                 statusEl.textContent = 'VALID';
-                statusEl.style.color = 'var(--accent-success)';
+                statusEl.className = 'metric-value status-valid';
+                statusEl.style.color = '';
             } else {
                 statusEl.textContent = 'TAMPERED';
-                statusEl.style.color = 'var(--accent-danger)';
+                statusEl.className = 'metric-value status-tampered';
+                statusEl.style.color = '';
             }
         }
     } catch (e) {
@@ -448,12 +463,140 @@ async function loadReports() {
         const data = await res.json();
         if (data.success) {
             allReportsCache = data.reports || [];
-            document.getElementById('recordsCountBadge').textContent = allReportsCache.length;
-            renderReports(allReportsCache);
+            updateDoctorPatientGateUI();
+            renderReports(getVisibleReportsForCurrentView());
         }
     } catch (err) {
         console.error('Error loading reports:', err);
     }
+}
+
+function getVisibleReportsForCurrentView() {
+    if (currentUser && currentUser.role === 'Doctor') {
+        if (!selectedDoctorPatientId) {
+            return [];
+        }
+        return allReportsCache.filter(r => r.patientId === selectedDoctorPatientId || r.patientPseudonym === selectedDoctorPatientId);
+    }
+    return allReportsCache;
+}
+
+function updateDoctorPatientGateUI() {
+    const gateEl = document.getElementById('doctorPatientSelectorGate');
+    const bannerEl = document.getElementById('doctorActivePatientBanner');
+    const archiveCard = document.getElementById('reportsArchiveCard');
+    const badgeEl = document.getElementById('recordsCountBadge');
+
+    if (!currentUser || currentUser.role !== 'Doctor') {
+        if (gateEl) gateEl.style.display = 'none';
+        if (bannerEl) bannerEl.style.display = 'none';
+        if (archiveCard) archiveCard.style.display = 'block';
+        if (badgeEl) badgeEl.textContent = allReportsCache.length;
+        return;
+    }
+
+    // For Doctor: check if a patient has been selected
+    if (!selectedDoctorPatientId) {
+        if (gateEl) gateEl.style.display = 'block';
+        if (bannerEl) bannerEl.style.display = 'none';
+        if (archiveCard) archiveCard.style.display = 'none';
+        if (badgeEl) badgeEl.textContent = allPatientsCache.length + ' Patients';
+        renderDoctorPatientDirectory(document.getElementById('doctorPatientSearchInput')?.value || '');
+    } else {
+        if (gateEl) gateEl.style.display = 'none';
+        if (bannerEl) bannerEl.style.display = 'block';
+        if (archiveCard) archiveCard.style.display = 'block';
+
+        const pat = allPatientsCache.find(p => p.id === selectedDoctorPatientId);
+        const patReports = getVisibleReportsForCurrentView();
+        if (badgeEl) badgeEl.textContent = patReports.length;
+
+        if (pat) {
+            const nameEl = document.getElementById('activePatBannerName');
+            const metaEl = document.getElementById('activePatBannerMeta');
+            const titleEl = document.getElementById('reportsArchiveTitle');
+            if (nameEl) nameEl.textContent = `${pat.name} (${pat.patientId || pat.id})`;
+            if (metaEl) metaEl.textContent = `Bill No: ${pat.billNumber || 'N/A'} • Age: ${pat.age || '-'} Y / ${pat.gender || '-'} • Blood Group: ${pat.bloodGroup || 'O+'} • Contact: ${pat.contact || '-'} • ${patReports.length} Diagnostic Report(s)`;
+            if (titleEl) titleEl.textContent = `Diagnostic Reports for ${pat.name} (${pat.patientId})`;
+        }
+    }
+}
+
+function renderDoctorPatientDirectory(filterQuery = '') {
+    const grid = document.getElementById('doctorPatientCardsGrid');
+    if (!grid) return;
+
+    const q = (filterQuery || '').toLowerCase().trim();
+    const filteredPatients = allPatientsCache.filter(p => {
+        if (!q) return true;
+        return (
+            (p.name && p.name.toLowerCase().includes(q)) ||
+            (p.patientId && p.patientId.toLowerCase().includes(q)) ||
+            (p.billNumber && p.billNumber.toLowerCase().includes(q))
+        );
+    });
+
+    if (filteredPatients.length === 0) {
+        grid.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; padding: 2rem; color: var(--text-muted);">No matching patient found for "${escapeHtml(filterQuery)}".</div>`;
+        return;
+    }
+
+    grid.innerHTML = filteredPatients.map(p => {
+        const reportCount = allReportsCache.filter(r => r.patientId === p.id || r.patientPseudonym === p.patientId).length;
+        return `
+            <div class="patient-select-card" onclick="selectDoctorPatient('${escapeHtml(p.id)}')">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.45rem;">
+                    <span class="report-id-badge">${escapeHtml(p.patientId || p.id)}</span>
+                    <span style="font-family: var(--font-mono); font-size: 0.75rem; font-weight: 700; color: var(--accent-teal);">${escapeHtml(p.billNumber || '')}</span>
+                </div>
+                <h4 style="font-size: 1.05rem; margin-bottom: 0.25rem; color: var(--text-primary);">${escapeHtml(p.name)}</h4>
+                <div style="font-size: 0.82rem; color: var(--text-secondary); margin-bottom: 0.65rem;">
+                    Age: <strong>${escapeHtml(p.age || '-')} Y</strong> • ${escapeHtml(p.gender || '-')} • Blood: <strong>${escapeHtml(p.bloodGroup || 'O+')}</strong><br/>
+                    <span style="font-size: 0.76rem; color: var(--text-muted);">Diagnostic Reports on File: <strong>${reportCount}</strong></span>
+                </div>
+                <button type="button" class="btn btn-primary" style="width: 100%; font-size: 0.8rem; padding: 7px 12px;">
+                    📂 Open Patient Medical File &rarr;
+                </button>
+            </div>
+        `;
+    }).join('');
+}
+
+function selectDoctorPatient(patientId) {
+    selectedDoctorPatientId = patientId;
+    const quickDropdown = document.getElementById('doctorQuickPatientDropdown');
+    if (quickDropdown) quickDropdown.value = patientId;
+
+    // Also sync Timeline and Checkup Prescription dropdowns to this patient
+    const timelineSelect = document.getElementById('timelinePatientSelect');
+    if (timelineSelect) {
+        timelineSelect.value = patientId;
+        loadTimeline();
+    }
+    const rxSelect = document.getElementById('rxPatientSelect');
+    if (rxSelect) {
+        rxSelect.value = patientId;
+    }
+
+    updateDoctorPatientGateUI();
+    renderReports(getVisibleReportsForCurrentView());
+    loadPrescriptions();
+}
+
+function clearDoctorSelectedPatient() {
+    selectedDoctorPatientId = null;
+    const quickDropdown = document.getElementById('doctorQuickPatientDropdown');
+    if (quickDropdown) quickDropdown.value = '';
+    updateDoctorPatientGateUI();
+}
+
+function openCheckupForSelectedPatient() {
+    if (selectedDoctorPatientId) {
+        const rxSelect = document.getElementById('rxPatientSelect');
+        if (rxSelect) rxSelect.value = selectedDoctorPatientId;
+    }
+    const tabRx = document.getElementById('tabNavPrescriptions');
+    if (tabRx) tabRx.click();
 }
 
 function renderReports(reports) {
@@ -491,9 +634,10 @@ function renderReports(reports) {
         // Doctor diagnosis remarks badge if present
         let remarksBadge = '';
         if (r.doctorRemarks) {
+            const notesCount = Array.isArray(r.sharedDoctorNotes) ? r.sharedDoctorNotes.length : 1;
             remarksBadge = `
-                <div style="margin-top: 6px; padding: 4px 8px; background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.35); border-radius: var(--radius-sm); font-size: 0.74rem; color: #fde68a;">
-                    👨‍⚕️ <strong>Evaluation:</strong> ${escapeHtml(r.doctorRemarks.status || 'Reviewed')} • ${escapeHtml(r.doctorRemarks.doctorName || '')}
+                <div class="report-eval-box">
+                    👨‍⚕️ <strong>Clinical Evaluation (${notesCount} Doctor${notesCount > 1 ? 's' : ''}):</strong> ${escapeHtml(r.doctorRemarks.status || 'Reviewed')} • ${escapeHtml(r.doctorRemarks.doctorName || '')}
                 </div>
             `;
         }
@@ -503,7 +647,7 @@ function renderReports(reports) {
         if (isDoctorOrAdmin) {
             editBtnHtml = `
                 <button class="btn btn-edit" onclick="openEditReportModal('${escapeHtml(r.reportId)}')">
-                    ✏️ Edit Notes
+                    ✏️ Add Doctor Note
                 </button>
             `;
         }
@@ -511,7 +655,7 @@ function renderReports(reports) {
         let deleteBtnHtml = '';
         if (canDelete) {
             deleteBtnHtml = `
-                <button class="btn btn-delete" onclick="confirmDeleteReport('${escapeHtml(r.reportId)}', '${escapeHtml(r.title)}')" title="Delete test report from consortium registry">
+                <button class="btn btn-delete" onclick="confirmDeleteReport('${escapeHtml(r.reportId)}', '${escapeHtml(r.title)}')" title="Delete test report from hospital registry">
                     🗑️ Delete
                 </button>
             `;
@@ -521,12 +665,12 @@ function renderReports(reports) {
         if (r.aiHighlights && (r.aiHighlights.keyFindings || r.aiHighlights.diagnosticImpression)) {
             const keyBullets = (r.aiHighlights.keyFindings || []).slice(0, 2);
             aiBadgeHtml = `
-                <div style="margin-top: 8px; padding: 6px 10px; background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: var(--radius-sm); font-size: 0.74rem;">
+                <div class="report-ai-box">
                     <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
-                        <strong style="color: #34d399;">🤖 AI Key Highlights:</strong>
-                        <span style="font-size: 0.68rem; color: var(--accent-cyan);">${escapeHtml(r.aiHighlights.aiEngine || 'Hybrid AI')}</span>
+                        <strong class="report-ai-title">🤖 Clinical Key Findings:</strong>
+                        <span style="font-size: 0.68rem; color: var(--accent-cyan); font-weight: 700;">${escapeHtml(r.aiHighlights.aiEngine || 'Clinical Rule Engine')}</span>
                     </div>
-                    ${keyBullets.map(b => `<div style="color: #cbd5e1; line-height: 1.35;">• ${escapeHtml(b)}</div>`).join('')}
+                    ${keyBullets.map(b => `<div class="report-ai-bullet">• ${escapeHtml(b)}</div>`).join('')}
                 </div>
             `;
         }
@@ -577,12 +721,13 @@ function initSearch() {
     if (!input) return;
     input.addEventListener('input', (e) => {
         const query = e.target.value.toLowerCase().trim();
+        const baseList = getVisibleReportsForCurrentView();
         if (!query) {
-            renderReports(allReportsCache);
+            renderReports(baseList);
             return;
         }
 
-        const filtered = allReportsCache.filter(r => {
+        const filtered = baseList.filter(r => {
             const title = (r.title || '').toLowerCase();
             const patient = (r.patientName || '').toLowerCase();
             const tags = (r.keywords || []).map(k => k.toLowerCase()).join(' ');
@@ -599,7 +744,7 @@ function filterByTag(tag) {
     document.querySelectorAll('.filter-tag-chip').forEach(c => {
         c.classList.toggle('active', c.textContent.toLowerCase().includes(tag.toLowerCase()) || (!tag && c.textContent.includes('All')));
     });
-    renderReports(allReportsCache);
+    renderReports(getVisibleReportsForCurrentView());
 }
 
 // ==========================================================================
@@ -1104,9 +1249,12 @@ function renderAdminUsersTable(users) {
 
 function populatePatientDropdowns(users) {
     const patients = users.filter(u => u.role === 'Patient');
+    allPatientsCache = patients;
+
     const uploadSelect = document.getElementById('uploadPatient');
     const timelineSelect = document.getElementById('timelinePatientSelect');
     const rxPatientSelect = document.getElementById('rxPatientSelect');
+    const docQuickDropdown = document.getElementById('doctorQuickPatientDropdown');
     const billChipsBox = document.getElementById('portalBillChipsBox');
 
     if (uploadSelect) {
@@ -1119,12 +1267,20 @@ function populatePatientDropdowns(users) {
         timelineSelect.innerHTML = patients.map(p => 
             `<option value="${p.id}">${escapeHtml(p.name)} (${p.patientId || p.id}${p.billNumber ? ' | ' + p.billNumber : ''})</option>`
         ).join('');
+        if (selectedDoctorPatientId) timelineSelect.value = selectedDoctorPatientId;
     }
 
     if (rxPatientSelect) {
         rxPatientSelect.innerHTML = patients.map(p => 
             `<option value="${p.id}">${escapeHtml(p.name)} (${p.patientId || p.id}${p.billNumber ? ' | ' + p.billNumber : ''})</option>`
         ).join('');
+        if (selectedDoctorPatientId) rxPatientSelect.value = selectedDoctorPatientId;
+    }
+
+    if (docQuickDropdown) {
+        docQuickDropdown.innerHTML = `<option value="">-- Choose Patient from Dropdown (${patients.length} Registered) --</option>` +
+            patients.map(p => `<option value="${p.id}">${escapeHtml(p.name)} (${p.patientId || p.id} | ${p.billNumber || ''})</option>`).join('');
+        if (selectedDoctorPatientId) docQuickDropdown.value = selectedDoctorPatientId;
     }
 
     if (billChipsBox) {
@@ -1133,6 +1289,8 @@ function populatePatientDropdowns(users) {
             return `<button type="button" class="btn btn-secondary" style="font-size: 0.74rem; padding: 4px 10px;" onclick="loginWithBillNumber('${escapeHtml(bNo)}')">${escapeHtml(bNo)} (${escapeHtml(p.name)})</button>`;
         }).join('');
     }
+
+    updateDoctorPatientGateUI();
 }
 
 async function deleteAdminUser(userId) {
@@ -1936,10 +2094,14 @@ async function loadPrescriptions() {
     if (!container) return;
 
     try {
-        const res = await fetch('/api/prescriptions', { headers: getAuthHeaders() });
+        let url = '/api/prescriptions';
+        if (currentUser && currentUser.role === 'Doctor' && selectedDoctorPatientId) {
+            url += `?patientId=${encodeURIComponent(selectedDoctorPatientId)}`;
+        }
+        const res = await fetch(url, { headers: getAuthHeaders() });
         const data = await res.json();
         if (!data.success || !Array.isArray(data.prescriptions) || data.prescriptions.length === 0) {
-            container.innerHTML = '<div style="padding: 1.25rem; color: var(--text-muted); text-align: center;">No OPD checkup prescriptions recorded yet.</div>';
+            container.innerHTML = '<div style="padding: 1.25rem; color: var(--text-muted); text-align: center;">No OPD checkup prescriptions recorded for this patient yet.</div>';
             return;
         }
 
@@ -2106,6 +2268,34 @@ function selectLabRequestForUpload(requestId, patientId, testTitle, reportType) 
     if (formEl) formEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
+function initPortalTheme() {
+    const savedTheme = localStorage.getItem('sit_hospital_theme') || 'light';
+    if (savedTheme === 'dark') {
+        document.body.classList.add('dark-mode');
+    } else {
+        document.body.classList.remove('dark-mode');
+    }
+    updateThemeToggleLabels();
+}
+
+function togglePortalTheme() {
+    const isDark = document.body.classList.toggle('dark-mode');
+    localStorage.setItem('sit_hospital_theme', isDark ? 'dark' : 'light');
+    updateThemeToggleLabels();
+}
+
+function updateThemeToggleLabels() {
+    const isDark = document.body.classList.contains('dark-mode');
+    document.querySelectorAll('.theme-toggle-label').forEach(el => {
+        el.textContent = isDark ? '☀️ Light Mode' : '🌙 Dark Mode';
+    });
+}
+
+window.togglePortalTheme = togglePortalTheme;
+window.selectDoctorPatient = selectDoctorPatient;
+window.clearDoctorSelectedPatient = clearDoctorSelectedPatient;
+window.renderDoctorPatientDirectory = renderDoctorPatientDirectory;
+window.openCheckupForSelectedPatient = openCheckupForSelectedPatient;
 window.loadPrescriptions = loadPrescriptions;
 window.handleCreatePrescription = handleCreatePrescription;
 window.loadLabRequestsQueue = loadLabRequestsQueue;

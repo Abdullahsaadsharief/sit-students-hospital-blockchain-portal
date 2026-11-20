@@ -711,6 +711,65 @@ body {
     color: #94a3b8;
 }
 
+/* ==========================================================================
+   DARK MODE SUPPORT FOR HOMEPAGE & RECEPTION PAGE (body.dark-mode)
+   ========================================================================== */
+body.dark-mode {
+    --bg-page: #0b1120;
+    --bg-white: #162032;
+    --bg-soft: #1e293b;
+    --navy-dark: #f8fafc;
+    --navy-primary: #1e3a5f;
+    --text-main: #f1f5f9;
+    --text-secondary: #cbd5e1;
+    --text-muted: #94a3b8;
+    --border-color: #26354d;
+    background-color: #0b1120;
+    color: #f1f5f9;
+}
+
+body.dark-mode .hospital-navbar,
+body.dark-mode .section-alt-wrapper,
+body.dark-mode .step-card,
+body.dark-mode .fact-box,
+body.dark-mode .hero-photo-frame,
+body.dark-mode .doctors-table-card,
+body.dark-mode .verifier-card,
+body.dark-mode .rec-card {
+    background: #162032 !important;
+    border-color: #26354d !important;
+    color: #f1f5f9 !important;
+}
+
+body.dark-mode .hero-banner {
+    background: linear-gradient(180deg, #111827 0%, #0b1120 100%) !important;
+    border-bottom-color: #26354d !important;
+}
+
+body.dark-mode .wing-card,
+body.dark-mode .doctors-table tr:nth-child(even),
+body.dark-mode .verifier-input,
+body.dark-mode .rec-input,
+body.dark-mode .rec-select,
+body.dark-mode .verify-result-box {
+    background: #1e293b !important;
+    border-color: #334155 !important;
+    color: #f1f5f9 !important;
+}
+
+body.dark-mode .btn-outline {
+    background: #1e293b !important;
+    color: #e2e8f0 !important;
+    border-color: #334155 !important;
+}
+
+body.dark-mode .reception-preview-banner {
+    background: rgba(217, 119, 6, 0.15) !important;
+    border-color: rgba(245, 158, 11, 0.4) !important;
+}
+body.dark-mode .reception-preview-banner h4 { color: #fcd34d !important; }
+body.dark-mode .reception-preview-banner p { color: #fde68a !important; }
+
 @media (max-width: 960px) {
     .hero-grid,
     .wings-grid,
