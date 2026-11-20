@@ -12,11 +12,27 @@ const UPLOADS_DIR = path.join(__dirname, '..', 'uploads');
  */
 function createExpiringShareLink(req, res) {
     try {
+        const user = req.user;
         const { reportId, durationMinutes, doctorNotes, recipientDoctor } = req.body;
         const report = db.findReportById(reportId);
 
         if (!report) {
             return res.status(404).json({ success: false, message: 'Report not found.' });
+        }
+
+        if (user && user.role === 'Lab Staff') {
+            return res.status(403).json({
+                success: false,
+                message: 'Access denied. Lab Staff cannot generate external share links for patient reports.'
+            });
+        }
+
+        if (user && user.role === 'Patient' && report.patientId !== user.id) {
+            db.logAudit('UNAUTHORIZED_SHARE_BLOCKED', user.name, `Blocked Patient ${user.id} from creating share link for another patient's report (${reportId})`);
+            return res.status(403).json({
+                success: false,
+                message: 'Access denied. You can only share your own medical reports.'
+            });
         }
 
         // Default: 60 minutes. Supports short 2-minute demo for evaluation panel!

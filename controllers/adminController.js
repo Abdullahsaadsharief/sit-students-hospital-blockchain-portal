@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const db = require('../models/db');
+const { sanitizeUser } = require('../middleware/authMiddleware');
 const { testGeminiApiKey } = require('../utils/aiSummarizer');
 const { generateReceptionBillPDF, generateDoctorPrescriptionPDF } = require('../utils/pdfGenerator');
 
@@ -48,7 +49,7 @@ function getConsortiumUsers(req, res) {
         return res.json({
             success: true,
             stats,
-            users
+            users: users.map(u => sanitizeUser(u, true))
         });
     } catch (err) {
         return res.status(500).json({ success: false, message: 'Failed to retrieve consortium users.', error: err.message });
@@ -278,8 +279,8 @@ function resetAiConfig(req, res) {
 function getReceptionPatients(req, res) {
     try {
         const users = db.getAllUsers();
-        const patients = users.filter(u => u.role === 'Patient');
-        const doctors = users.filter(u => u.role === 'Doctor');
+        const patients = users.filter(u => u.role === 'Patient').map(p => sanitizeUser(p, true));
+        const doctors = users.filter(u => u.role === 'Doctor').map(d => sanitizeUser(d, false));
         const nextIndex = 1001 + patients.length;
         const suggestedBillNumber = `BILL-2026-${nextIndex}`;
         const suggestedPatientId = `PT-${9901 + patients.length}`;
@@ -540,11 +541,22 @@ function createPrescription(req, res) {
  */
 async function downloadPrescriptionPDF(req, res) {
     try {
+        const user = req.user;
         const { prescriptionId } = req.params;
         const rx = db.findPrescriptionById(prescriptionId);
         if (!rx) {
             return res.status(404).json({ success: false, message: 'Prescription not found.' });
         }
+
+        if (user && user.role === 'Lab Staff') {
+            return res.status(403).json({ success: false, message: 'Access denied. Lab Staff cannot download doctor prescriptions.' });
+        }
+
+        if (user && user.role === 'Patient' && rx.patientId !== user.id) {
+            db.logAudit('UNAUTHORIZED_IDOR_BLOCKED', user.name, `Blocked attempt by Patient ${user.id} to download prescription ${prescriptionId} belonging to ${rx.patientId}`);
+            return res.status(403).json({ success: false, message: 'Access denied. You can only download your own prescriptions.' });
+        }
+
         const hostUrl = req.protocol + '://' + req.get('host');
         const pdfBuffer = await generateDoctorPrescriptionPDF(rx, hostUrl);
 

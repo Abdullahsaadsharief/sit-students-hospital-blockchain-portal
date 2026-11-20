@@ -240,17 +240,17 @@ function applySession(token, user) {
         loadTimeline();
         loadPrescriptions();
         loadLabRequestsQueue();
-        loadBlockchain();
-        loadAuditLogs();
-    }
-    if (user.role === 'Admin') {
-        loadAdminUsers();
+        if (user.role === 'Admin') {
+            loadBlockchain();
+            loadAuditLogs();
+            loadAdminUsers();
+        }
     }
 }
 
 async function refreshConsortiumUsers() {
     try {
-        const res = await fetch('/api/auth/users');
+        const res = await fetch('/api/auth/users', { headers: getAuthHeaders() });
         if (res.ok) {
             const data = await res.json();
             if (data.success && data.users) {
@@ -2126,7 +2126,7 @@ async function loadPrescriptions() {
                                 Attending Doctor: <strong>${escapeHtml(rx.doctorName)}</strong> (${escapeHtml(rx.department || 'General Medicine')})
                             </div>
                         </div>
-                        <a href="/api/prescriptions/${encodeURIComponent(rx.prescriptionId)}/pdf" target="_blank" class="btn btn-primary" style="font-size: 0.78rem; padding: 6px 12px; text-decoration: none;">
+                        <a href="/api/prescriptions/${encodeURIComponent(rx.prescriptionId)}/pdf?token=${encodeURIComponent(authToken || '')}" target="_blank" class="btn btn-primary" style="font-size: 0.78rem; padding: 6px 12px; text-decoration: none;">
                             📄 Download Prescription PDF
                         </a>
                     </div>

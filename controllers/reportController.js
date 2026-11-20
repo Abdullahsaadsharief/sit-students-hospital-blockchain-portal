@@ -310,25 +310,58 @@ function getPatientTimeline(req, res) {
 }
 
 /**
- * Get individual report metadata
+ * Get individual report metadata (Patched against IDOR & unauthorized Lab Staff viewing)
  */
 function getReportById(req, res) {
+    const user = req.user;
     const report = db.findReportById(req.params.reportId);
     if (!report) {
         return res.status(404).json({ success: false, message: 'Report not found.' });
     }
+
+    if (user.role === 'Lab Staff') {
+        return res.status(403).json({
+            success: false,
+            message: 'Access denied. Lab Staff cannot view or decrypt patients diagnostic reports.'
+        });
+    }
+
+    if (user.role === 'Patient' && report.patientId !== user.id) {
+        db.logAudit('UNAUTHORIZED_IDOR_BLOCKED', user.name, `Blocked attempt by Patient ${user.id} to view report ${report.reportId} belonging to ${report.patientId}`);
+        return res.status(403).json({
+            success: false,
+            message: 'Access denied. Patients are strictly restricted to viewing only their own medical reports.'
+        });
+    }
+
     return res.json({ success: true, report });
 }
 
 /**
  * Decrypt and download medical report
- * Verifies SHA-256 hash against blockchain before delivering
+ * Verifies SHA-256 hash against blockchain and enforces strict RBAC ownership before delivering
  */
 function downloadDecryptedReport(req, res) {
     try {
+        const user = req.user;
         const report = db.findReportById(req.params.reportId);
         if (!report) {
             return res.status(404).json({ success: false, message: 'Report not found in database.' });
+        }
+
+        if (user.role === 'Lab Staff') {
+            return res.status(403).json({
+                success: false,
+                message: 'Access denied. Lab Staff cannot download patients diagnostic reports.'
+            });
+        }
+
+        if (user.role === 'Patient' && report.patientId !== user.id) {
+            db.logAudit('UNAUTHORIZED_IDOR_BLOCKED', user.name, `Blocked attempt by Patient ${user.id} to download report ${report.reportId} belonging to ${report.patientId}`);
+            return res.status(403).json({
+                success: false,
+                message: 'Access denied. You cannot download another patient\'s medical report.'
+            });
         }
 
         const filePath = path.join(UPLOADS_DIR, report.storageReference);
@@ -387,6 +420,12 @@ function downloadDecryptedReport(req, res) {
 function searchReports(req, res) {
     const { q, patientId } = req.query;
     const user = req.user;
+    if (user.role === 'Lab Staff') {
+        return res.status(403).json({
+            success: false,
+            message: 'Access denied. Lab Staff cannot search patients previous medical reports.'
+        });
+    }
     const results = db.searchReports(q, user.role, user.role === 'Patient' ? user.id : patientId);
 
     return res.json({

@@ -1234,6 +1234,27 @@
   ],
   "auditLogs": [
     {
+      "id": "log_1795198881809_qh3h",
+      "action": "USER_LOGIN",
+      "actor": "Alex Smith",
+      "details": "User authenticated successfully with role: Lab Staff",
+      "timestamp": "2026-11-20T18:21:21.809Z"
+    },
+    {
+      "id": "log_1795198855270_o48p",
+      "action": "USER_LOGIN",
+      "actor": "Dr. Sarah Rao",
+      "details": "User authenticated successfully with role: Doctor",
+      "timestamp": "2026-11-20T18:20:55.270Z"
+    },
+    {
+      "id": "log_1795198830048_8s9y",
+      "action": "USER_LOGIN",
+      "actor": "Priya Nair",
+      "details": "User authenticated successfully with role: Receptionist",
+      "timestamp": "2026-11-20T18:20:30.048Z"
+    },
+    {
       "id": "log_1795197310342_y0xm",
       "action": "USER_LOGIN",
       "actor": "Dr. Sarah Rao",

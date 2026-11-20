@@ -18,8 +18,15 @@ const blockchainController = require('./controllers/blockchainController');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Enable CORS and JSON parsing
+// Enable CORS, Security HTTP Headers, and JSON parsing
 app.use(cors());
+app.use((req, res, next) => {
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+    res.setHeader('X-XSS-Protection', '1; mode=block');
+    res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+    next();
+});
 app.use(express.json({ limit: '30mb' }));
 app.use(express.urlencoded({ extended: true, limit: '30mb' }));
 
@@ -78,7 +85,7 @@ app.get('/api/reception/patients/:patientId/bill-pdf', adminController.downloadR
 // ==========================================
 app.get('/api/prescriptions', authenticate, authorizeRoles('Doctor', 'Patient', 'Admin'), adminController.getPrescriptions);
 app.post('/api/prescriptions', authenticate, authorizeRoles('Doctor', 'Admin'), adminController.createPrescription);
-app.get('/api/prescriptions/:prescriptionId/pdf', adminController.downloadPrescriptionPDF);
+app.get('/api/prescriptions/:prescriptionId/pdf', authenticate, authorizeRoles('Doctor', 'Patient', 'Admin'), adminController.downloadPrescriptionPDF);
 app.get('/api/lab-requests', authenticate, authorizeRoles('Lab Staff', 'Doctor', 'Receptionist', 'Admin'), adminController.getLabRequests);
 // Upload medical report (Restricted: Lab Staff & Admin)
 app.post('/api/reports/upload', authenticate, authorizeRoles('Lab Staff', 'Admin'), upload.single('reportFile'), reportController.uploadReport);
@@ -118,14 +125,14 @@ app.get('/api/share/view', shareController.getSharedReport);
 app.get('/api/share/download', shareController.downloadSharedReportFile);
 
 // ==========================================
-// 5. PERMISSIONED BLOCKCHAIN EXPLORER ROUTES
+// 5. PERMISSIONED BLOCKCHAIN EXPLORER ROUTES (Admin & System Stats)
 // ==========================================
-app.get('/api/blockchain/ledger', blockchainController.getBlockchainLedger);
-app.get('/api/blockchain/verify', blockchainController.verifyBlockchain);
-app.post('/api/blockchain/tamper-demo', blockchainController.simulateTamper);
-app.post('/api/blockchain/restore', blockchainController.restoreLedger);
+app.get('/api/blockchain/ledger', authenticate, authorizeRoles('Admin'), blockchainController.getBlockchainLedger);
+app.get('/api/blockchain/verify', authenticate, authorizeRoles('Admin'), blockchainController.verifyBlockchain);
+app.post('/api/blockchain/tamper-demo', authenticate, authorizeRoles('Admin'), blockchainController.simulateTamper);
+app.post('/api/blockchain/restore', authenticate, authorizeRoles('Admin'), blockchainController.restoreLedger);
 app.get('/api/blockchain/stats', blockchainController.getSystemStats);
-app.get('/api/blockchain/audit-logs', blockchainController.getAuditLogs);
+app.get('/api/blockchain/audit-logs', authenticate, authorizeRoles('Admin'), blockchainController.getAuditLogs);
 
 // Fallback middleware for single-page app routes
 app.use((req, res, next) => {

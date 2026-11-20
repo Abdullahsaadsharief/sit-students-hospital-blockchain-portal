@@ -4,10 +4,23 @@ const db = require('../models/db');
 const JWT_SECRET = process.env.JWT_SECRET || 'med-blockchain-jwt-super-secret-key-2026';
 
 /**
- * Authentication middleware that verifies JWT tokens or switches demo user
+ * Strips sensitive credential fields before sending user objects to the client
+ */
+function sanitizeUser(user, includeBillNumber = true) {
+    if (!user) return null;
+    const { password, passwordHash, ...safeUser } = user;
+    if (!includeBillNumber) {
+        delete safeUser.billNumber;
+        delete safeUser.receptionId;
+    }
+    return safeUser;
+}
+
+/**
+ * Authentication middleware that strictly verifies signed JWT tokens
+ * (Patched: Removed unverified x-demo-user-id header/query parameter bypass to prevent spoofing)
  */
 function authenticate(req, res, next) {
-    // 1. Check for standard Authorization Header or Query Parameter (used for browser file downloads)
     const authHeader = req.headers['authorization'];
     let token = null;
 
@@ -17,30 +30,27 @@ function authenticate(req, res, next) {
         token = req.query.token;
     }
 
-    // 2. Demo role / user header or query parameter override for fast panel evaluation switcher
-    const demoUserId = req.headers['x-demo-user-id'] || (req.query && (req.query.demoUserId || req.query.userId));
-    if (demoUserId) {
-        const demoUser = db.findUserById(demoUserId);
-        if (demoUser) {
-            req.user = demoUser;
-            return next();
-        }
-    }
-
     if (!token) {
-        return res.status(401).json({ success: false, message: 'Authentication required. Access denied without login credentials.' });
+        return res.status(401).json({
+            success: false,
+            message: 'Authentication required. Valid signed JWT token missing.'
+        });
     }
 
     try {
         const decoded = jwt.verify(token, JWT_SECRET);
         const user = db.findUserById(decoded.id);
         if (!user) {
-            return res.status(401).json({ success: false, message: 'User not found in consortium database.' });
+            return res.status(401).json({ success: false, message: 'User not found in SIT Students Hospital database.' });
         }
         req.user = user;
         next();
     } catch (err) {
-        return res.status(401).json({ success: false, message: 'Invalid or expired session token.', error: err.message });
+        return res.status(401).json({
+            success: false,
+            message: 'Invalid or expired session token.',
+            error: err.message
+        });
     }
 }
 
@@ -68,5 +78,6 @@ function authorizeRoles(...allowedRoles) {
 module.exports = {
     authenticate,
     authorizeRoles,
+    sanitizeUser,
     JWT_SECRET
 };

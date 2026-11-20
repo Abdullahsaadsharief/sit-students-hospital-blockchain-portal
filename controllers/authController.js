@@ -1,9 +1,21 @@
 const jwt = require('jsonwebtoken');
 const db = require('../models/db');
-const { JWT_SECRET } = require('../middleware/authMiddleware');
+const { JWT_SECRET, sanitizeUser } = require('../middleware/authMiddleware');
 
 function getAllUsers(req, res) {
-    const users = db.getAllUsers();
+    // Only expose billNumbers if caller provides a valid staff JWT token
+    let isAuthorizedStaff = false;
+    const authHeader = req.headers['authorization'];
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+        try {
+            const decoded = jwt.verify(authHeader.split(' ')[1], JWT_SECRET);
+            if (decoded && ['Doctor', 'Lab Staff', 'Receptionist', 'Admin'].includes(decoded.role)) {
+                isAuthorizedStaff = true;
+            }
+        } catch (e) {}
+    }
+
+    const users = db.getAllUsers().map(u => sanitizeUser(u, isAuthorizedStaff));
     return res.json({ success: true, users });
 }
 
@@ -15,7 +27,7 @@ function login(req, res) {
         user = db.findUserById(userId);
     }
 
-    // Check if logging in via Bill Number / Reception ID (Passwordless Patient Login)
+    // Check if logging in via Bill Number / Reception ID (Passwordless Patient Login ONLY)
     const lookupBill = (billNumber || '').trim();
     if (!user && lookupBill) {
         const cleanBill = lookupBill.toLowerCase();
@@ -23,23 +35,19 @@ function login(req, res) {
             u.role === 'Patient' && (
                 (u.billNumber && u.billNumber.toLowerCase() === cleanBill) ||
                 (u.receptionId && u.receptionId.toLowerCase() === cleanBill) ||
-                (u.patientId && u.patientId.toLowerCase() === cleanBill) ||
-                (u.billNumber && u.billNumber.toLowerCase().endsWith('-' + cleanBill))
+                (u.patientId && u.patientId.toLowerCase() === cleanBill)
             )
         );
     }
 
     if (!user && email) {
-        const cleanInput = email.trim().toLowerCase();
+        const cleanInput = String(email).trim().toLowerCase();
         user = db.findUserByEmail(cleanInput);
         if (!user) {
-            // Also check by billNumber, receptionId, patientId, or userId
             user = db.getAllUsers().find(u =>
                 (u.email && u.email.toLowerCase() === cleanInput) ||
                 (u.id && u.id.toLowerCase() === cleanInput) ||
-                (u.patientId && u.patientId.toLowerCase() === cleanInput) ||
-                (u.billNumber && u.billNumber.toLowerCase() === cleanInput) ||
-                (u.receptionId && u.receptionId.toLowerCase() === cleanInput)
+                (u.patientId && u.patientId.toLowerCase() === cleanInput)
             );
         }
     }
@@ -53,15 +61,20 @@ function login(req, res) {
         });
     }
 
-    // Patients logging in via Bill Number / Reception ID do NOT need a password
-    const isPasswordlessPatientLogin = Boolean(
-        user.role === 'Patient' && (lookupBill || !password)
-    );
+    // SECURITY PATCH:
+    // 1. Only Patients logging in via lookupBill (or one-click demo userId) bypass password check.
+    // 2. Any login attempt via email/username MUST provide a valid non-empty password matching userPass!
+    const isPasswordlessPatientBillLogin = Boolean(user.role === 'Patient' && lookupBill);
+    const isDemoCardQuickLogin = Boolean(userId && !email && !password);
 
-    if (!isPasswordlessPatientLogin && !userId) {
-        const userPass = user.password || 'password123';
-        if (password && password !== userPass) {
-            return res.status(401).json({ success: false, message: 'Invalid credentials. Password verification failed.' });
+    if (!isPasswordlessPatientBillLogin && !isDemoCardQuickLogin) {
+        const userPass = user.password || user.passwordHash || 'password123';
+        if (!password || String(password) !== String(userPass)) {
+            db.logAudit('FAILED_LOGIN_ATTEMPT', user.name, `Failed password verification for ${user.email} (${user.role})`);
+            return res.status(401).json({
+                success: false,
+                message: 'Invalid credentials. Password verification failed.'
+            });
         }
     }
 
@@ -81,7 +94,7 @@ function login(req, res) {
     db.logAudit(
         'USER_LOGIN',
         user.name,
-        isPasswordlessPatientLogin
+        isPasswordlessPatientBillLogin
             ? `Patient accessed portal via Reception Bill ID (${user.billNumber || user.patientId})`
             : `User authenticated successfully with role: ${user.role}`
     );
@@ -90,14 +103,14 @@ function login(req, res) {
         success: true,
         message: `Welcome, ${user.name}!`,
         token,
-        user
+        user: sanitizeUser(user, true)
     });
 }
 
 function getCurrentUser(req, res) {
     return res.json({
         success: true,
-        user: req.user
+        user: sanitizeUser(req.user, true)
     });
 }
 
