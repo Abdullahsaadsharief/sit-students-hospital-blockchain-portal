@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>About Us | SIT Students Hospital &amp; Health Center</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/home.css" />
+</head>
+<body>
+
+    <!-- TOP CAMPUS HELPLINE BAR -->
+    <div class="top-utility-bar">
+        <div class="top-utility-inner">
+            <div class="utility-left">
+                <span class="utility-pill">SIT CAMPUS HEALTH CENTER</span>
+                <span>B.H. Road, Siddaganga Institute of Technology Campus, Tumakuru - 572103</span>
+            </div>
+            <div class="utility-right">
+                <span>OPD Hours: Mon–Sat (8:30 AM – 5:30 PM)</span>
+                <span>•</span>
+                <span>24x7 Campus Casualty: +91 (0816) 2214001</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- HOSPITAL NAVBAR -->
+    <nav class="hospital-navbar">
+        <div class="nav-container">
+            <a href="/" class="brand-identity">
+                <div class="hospital-crest">SIT</div>
+                <div>
+                    <div class="brand-title">SIT Students Hospital</div>
+                    <div class="brand-subtitle">Centralized Medical Document &amp; Diagnostic Management System</div>
+                </div>
+            </a>
+
+            <ul class="nav-links">
+                <li><a href="/">Home</a></li>
+                <li><a href="/about" style="color: var(--navy-primary); border-bottom-color: var(--teal-primary);">About Hospital</a></li>
+                <li><a href="/departments">Departments &amp; Doctors</a></li>
+                <li><a href="/contact">Patient Guide &amp; Contact</a></li>
+            </ul>
+
+            <div class="nav-actions">
+                <button type="button" class="btn btn-outline" onclick="toggleSiteTheme()" id="homeThemeBtn">🌙 Dark</button>
+                <a href="/reception" class="btn btn-teal">🗂️ Reception Desk</a>
+                <a href="/portal" class="btn btn-primary">🏥 Hospital Portal</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ABOUT HERO -->
+    <header class="hero-banner" style="padding: 2.75rem 2rem;">
+        <div class="hero-grid">
+            <div>
+                <span class="campus-tag">About Our Campus Hospital</span>
+                <h1 class="hero-heading" style="font-size: 2.15rem;">
+                    Dedicated Healthcare &amp; Digital Record Management for the <span>SIT Campus Community.</span>
+                </h1>
+                <p class="hero-lead">
+                    <strong>SIT Students Hospital &amp; Health Center</strong> serves students, faculty, and staff at Siddaganga Institute of Technology, Tumakuru. Our digital document portal replaces paper files with a single, tamper-proof hospital record accessible across our OPD doctors, central pathology laboratory, and patients.
+                </p>
+                <div class="hero-cta-row" style="margin-bottom: 0;">
+                    <a href="/departments" class="btn btn-primary">👨‍⚕️ Explore Wings &amp; Doctors</a>
+                    <a href="/reception" class="btn btn-teal">🗂️ Visit Reception Desk</a>
+                    <a href="/contact" class="btn btn-outline">📞 Contact &amp; Helpdesk</a>
+                </div>
+            </div>
+
+            <div class="hero-photo-frame">
+                <img src="/images/metro-hospital.jpg" alt="SIT Students Hospital Campus Wing" style="height: 270px;" />
+                <div class="photo-caption-bar">
+                    <span>SIT Students Hospital — Outpatient &amp; Diagnostic Wing</span>
+                    <span style="color: var(--teal-dark);">Est. SIT Campus, Tumakuru</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- WHY THIS SYSTEM WAS BUILT -->
+    <section class="page-section">
+        <div class="section-header-block">
+            <div>
+                <div class="section-kicker">Our Mission &amp; System Architecture</div>
+                <h2 class="section-title">Why We Digitized SIT Students Hospital Records</h2>
+            </div>
+            <p class="section-desc">
+                In a busy campus hospital, students and patients often consult general physicians, orthopedic specialists, and pulmonologists across different visits.
+            </p>
+        </div>
+
+        <div class="workflow-steps-grid">
+            <div class="step-card">
+                <span class="step-number">01 • UNIFIED FILE</span>
+                <h3>Single-Hospital Record Sharing</h3>
+                <p>
+                    All departments inside SIT Students Hospital share one patient UHID timeline so doctors can review previous blood tests or X-rays before prescribing new ones.
+                </p>
+            </div>
+            <div class="step-card">
+                <span class="step-number">02 • RECEPTION BILL ID</span>
+                <h3>Passwordless Patient Access</h3>
+                <p>
+                    Patients don't need to remember complex accounts. The Reception Desk issues a unique Bill Number (`BILL-2026-XXXX`) that lets patients view and download their reports.
+                </p>
+            </div>
+            <div class="step-card">
+                <span class="step-number">03 • LAB PRIVACY</span>
+                <h3>Strict Role Separation</h3>
+                <p>
+                    Lab technicians only see ordered tests and upload new diagnostic PDFs, while doctors select individual patients to write checkup prescriptions and clinical notes.
+                </p>
+            </div>
+            <div class="step-card">
+                <span class="step-number">04 • TAMPER-PROOF</span>
+                <h3>AES-256 &amp; SHA-256 Integrity</h3>
+                <p>
+                    Every diagnostic report is encrypted off-chain with AES-256-CBC and anchored with a SHA-256 hash on our internal hospital ledger to prevent duplicates and tampering.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- CAMPUS FACILITIES & PROJECT CREDITS -->
+    <div class="section-alt-wrapper">
+        <section class="page-section">
+            <div class="section-header-block">
+                <div>
+                    <div class="section-kicker">Campus Medical Facilities &amp; Development Team</div>
+                    <h2 class="section-title">Facilities Available at SIT Students Hospital</h2>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">
+                <div class="step-card">
+                    <h3>🏥 Outpatient Consultation Wings</h3>
+                    <p style="margin-top: 0.4rem;">
+                        General Medicine, Cardiology Screening, Orthopedics &amp; Sports Trauma, Pulmonology &amp; Allergy Clinic, and Visiting Neurology consultations.
+                    </p>
+                </div>
+                <div class="step-card">
+                    <h3>🔬 Central Diagnostic &amp; Pathology Lab</h3>
+                    <p style="margin-top: 0.4rem;">
+                        Complete Blood Count (CBC), Fasting &amp; Postprandial Blood Glucose, HbA1c, Lipid Profile, Thyroid (TSH) Assay, Digital X-Ray, and Pulmonary Spirometry.
+                    </p>
+                </div>
+                <div class="step-card">
+                    <h3>💻 Dept. of CSE Project Team (SIT)</h3>
+                    <p style="margin-top: 0.4rem;">
+                        <strong>Developed By:</strong><br/>
+                        • Abdullah Saad Sharief (<code>1SI24CS003</code>)<br/>
+                        • Harsh Kumar Singh (<code>1SI24CS064</code>)<br/>
+                        • H Abhishek (<code>1SI25CS404</code>)<br/>
+                        <strong>Project Guide:</strong> Mrs. Nidhi L. G. (Asst. Professor, Dept. of CSE)
+                    </p>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="site-footer">
+        <div class="footer-inner">
+            <div class="footer-col">
+                <h4>SIT Students Hospital &amp; Health Center</h4>
+                <p style="color: #94a3b8; line-height: 1.6; margin-bottom: 0.75rem;">
+                    Centralized hospital document and laboratory report management portal enabling seamless collaboration between our reception desk, diagnostic laboratory, doctors, and patients.
+                </p>
+                <p style="font-size: 0.8rem; color: #cbd5e1;">
+                    Location: SIT Campus, B.H. Road, Tumakuru, Karnataka 572103
+                </p>
+            </div>
+            <div class="footer-col">
+                <h4>Quick Navigation</h4>
+                <ul>
+                    <li><a href="/">Hospital Home</a></li>
+                    <li><a href="/about">About SIT Students Hospital</a></li>
+                    <li><a href="/departments">Departments &amp; Doctors Schedule</a></li>
+                    <li><a href="/contact">Patient Guide &amp; Helpdesk</a></li>
+                    <li><a href="/reception">Reception &amp; Billing Desk</a></li>
+                    <li><a href="/portal">Main Hospital Portal</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Project Team (Dept. of CSE, SIT)</h4>
+                <ul>
+                    <li><strong>Abdullah Saad Sharief</strong> (1SI24CS003)</li>
+                    <li><strong>Harsh Kumar Singh</strong> (1SI24CS064)</li>
+                    <li><strong>H Abhishek</strong> (1SI25CS404)</li>
+                    <li style="margin-top: 0.5rem; color: #99f6e4;">
+                        <strong>Project Guide:</strong> Mrs. Nidhi L. G.<br/>
+                        <span style="font-size: 0.76rem; color: #94a3b8;">Assistant Professor, Dept. of CSE, SIT</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <span>&copy; 2026 SIT Students Hospital Document Management System. Developed at Siddaganga Institute of Technology, Tumakuru.</span>
+            <span>AES-256 Encrypted Storage • SHA-256 Document Integrity</span>
+        </div>
+    </footer>
+
+    <script>
+        (function initSiteTheme() {
+            const saved = localStorage.getItem('sit_hospital_theme') || 'light';
+            if (saved === 'dark') document.body.classList.add('dark-mode');
+            const btn = document.getElementById('homeThemeBtn');
+            if (btn) btn.textContent = saved === 'dark' ? '☀️ Light' : '🌙 Dark';
+        })();
+
+        function toggleSiteTheme() {
+            const isDark = document.body.classList.toggle('dark-mode');
+            localStorage.setItem('sit_hospital_theme', isDark ? 'dark' : 'light');
+            const btn = document.getElementById('homeThemeBtn');
+            if (btn) btn.textContent = isDark ? '☀️ Light' : '🌙 Dark';
+        }
+    </script>
+</body>
+</html>

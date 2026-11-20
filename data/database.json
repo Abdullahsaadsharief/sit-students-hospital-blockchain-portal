@@ -1234,6 +1234,20 @@
   ],
   "auditLogs": [
     {
+      "id": "log_1795199578157_0ve6",
+      "action": "USER_LOGIN",
+      "actor": "Alex Smith",
+      "details": "User authenticated successfully with role: Lab Staff",
+      "timestamp": "2026-11-20T18:32:58.157Z"
+    },
+    {
+      "id": "log_1795199571600_bd3a",
+      "action": "USER_LOGIN",
+      "actor": "Dr. Sarah Rao",
+      "details": "User authenticated successfully with role: Doctor",
+      "timestamp": "2026-11-20T18:32:51.600Z"
+    },
+    {
       "id": "log_1795198981665_x9mg",
       "action": "USER_LOGIN",
       "actor": "John Doe",

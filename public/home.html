@@ -40,16 +40,17 @@
             </a>
 
             <ul class="nav-links">
-                <li><a href="#workflow">How It Works</a></li>
-                <li><a href="#wings">Hospital Wings &amp; Labs</a></li>
-                <li><a href="#doctors">In-House Doctors</a></li>
-                <li><a href="#verifier">Verify Lab Report</a></li>
+                <li><a href="/" style="color: var(--navy-primary); border-bottom-color: var(--teal-primary);">Home</a></li>
+                <li><a href="/about">About Hospital</a></li>
+                <li><a href="/departments">Departments &amp; Doctors</a></li>
+                <li><a href="/contact">Patient Guide &amp; Contact</a></li>
+                <li><a href="#verifier">Verify Report</a></li>
             </ul>
 
             <div class="nav-actions">
-                <button type="button" class="btn btn-outline" onclick="toggleSiteTheme()" id="homeThemeBtn">🌙 Dark Mode</button>
-                <a href="/reception" class="btn btn-teal">🗂️ Receptionist Desk</a>
-                <a href="/portal" class="btn btn-primary">Open Hospital Portal</a>
+                <button type="button" class="btn btn-outline" onclick="toggleSiteTheme()" id="homeThemeBtn">🌙 Dark</button>
+                <a href="/reception" class="btn btn-teal">🗂️ Reception Desk</a>
+                <a href="/portal" class="btn btn-primary">🏥 Hospital Portal</a>
             </div>
         </div>
     </nav>
@@ -68,8 +69,9 @@
                 </p>
 
                 <div class="hero-cta-row">
-                    <a href="/reception" class="btn btn-teal">🗂️ Receptionist Login (Register Patient &amp; Generate Bill ID)</a>
-                    <a href="/portal" class="btn btn-primary">Login to Hospital Portal (Doctors / Lab / Patients)</a>
+                    <a href="/portal" class="btn btn-primary">🏥 Hospital Portal Login</a>
+                    <a href="/reception" class="btn btn-teal">🗂️ Reception &amp; Billing Desk</a>
+                    <a href="/departments" class="btn btn-outline">👨‍⚕️ View Departments &amp; Doctors</a>
                 </div>
 
                 <div class="quick-facts-row">
@@ -405,14 +407,14 @@
             const saved = localStorage.getItem('sit_hospital_theme') || 'light';
             if (saved === 'dark') document.body.classList.add('dark-mode');
             const btn = document.getElementById('homeThemeBtn');
-            if (btn) btn.textContent = saved === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode';
+            if (btn) btn.textContent = saved === 'dark' ? '☀️ Light' : '🌙 Dark';
         })();
 
         function toggleSiteTheme() {
             const isDark = document.body.classList.toggle('dark-mode');
             localStorage.setItem('sit_hospital_theme', isDark ? 'dark' : 'light');
             const btn = document.getElementById('homeThemeBtn');
-            if (btn) btn.textContent = isDark ? '☀️ Light Mode' : '🌙 Dark Mode';
+            if (btn) btn.textContent = isDark ? '☀️ Light' : '🌙 Dark';
         }
 
         function quickVerify(reportId) {

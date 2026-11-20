@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Patient Guide &amp; Contact Helpdesk | SIT Students Hospital</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/home.css" />
+</head>
+<body>
+
+    <!-- TOP CAMPUS HELPLINE BAR -->
+    <div class="top-utility-bar">
+        <div class="top-utility-inner">
+            <div class="utility-left">
+                <span class="utility-pill">SIT CAMPUS HEALTH CENTER</span>
+                <span>B.H. Road, Siddaganga Institute of Technology Campus, Tumakuru - 572103</span>
+            </div>
+            <div class="utility-right">
+                <span>OPD Hours: Mon–Sat (8:30 AM – 5:30 PM)</span>
+                <span>•</span>
+                <span>24x7 Campus Casualty: +91 (0816) 2214001</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- HOSPITAL NAVBAR -->
+    <nav class="hospital-navbar">
+        <div class="nav-container">
+            <a href="/" class="brand-identity">
+                <div class="hospital-crest">SIT</div>
+                <div>
+                    <div class="brand-title">SIT Students Hospital</div>
+                    <div class="brand-subtitle">Centralized Medical Document &amp; Diagnostic Management System</div>
+                </div>
+            </a>
+
+            <ul class="nav-links">
+                <li><a href="/">Home</a></li>
+                <li><a href="/about">About Hospital</a></li>
+                <li><a href="/departments">Departments &amp; Doctors</a></li>
+                <li><a href="/contact" style="color: var(--navy-primary); border-bottom-color: var(--teal-primary);">Patient Guide &amp; Contact</a></li>
+            </ul>
+
+            <div class="nav-actions">
+                <button type="button" class="btn btn-outline" onclick="toggleSiteTheme()" id="homeThemeBtn">🌙 Dark</button>
+                <a href="/reception" class="btn btn-teal">🗂️ Reception Desk</a>
+                <a href="/portal" class="btn btn-primary">🏥 Hospital Portal</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- STEP-BY-STEP PATIENT & STUDENT GUIDE -->
+    <section class="page-section" style="padding-top: 2.75rem;">
+        <div class="section-header-block">
+            <div>
+                <div class="section-kicker">Step-by-Step Patient Guide</div>
+                <h1 class="section-title">How Patients &amp; Students Use the Hospital Portal</h1>
+            </div>
+            <p class="section-desc">
+                Follow these 3 simple steps when visiting SIT Students Hospital for a checkup or diagnostic lab test.
+            </p>
+        </div>
+
+        <div class="workflow-steps-grid" style="grid-template-columns: repeat(3, 1fr);">
+            <div class="step-card">
+                <span class="step-number">STEP 1 • RECEPTION COUNTER</span>
+                <h3>Collect Your OPD Bill Receipt</h3>
+                <p>
+                    At the Reception Desk (<a href="/reception" style="color: var(--teal-primary); font-weight: 700;">/reception</a>), the receptionist registers your details, assigns your consulting doctor, and gives you an official OPD Bill PDF with a unique <strong>Bill Number</strong> (e.g., <code>BILL-2026-1001</code>).
+                </p>
+            </div>
+            <div class="step-card">
+                <span class="step-number">STEP 2 • DOCTOR CHECKUP &amp; LAB</span>
+                <h3>Consultation &amp; Lab Upload</h3>
+                <p>
+                    Your doctor selects your patient file, records your checkup vitals &amp; medicine prescription, and orders any needed lab test. The Central Pathology Lab uploads and anchors your PDF report.
+                </p>
+            </div>
+            <div class="step-card">
+                <span class="step-number">STEP 3 • PASSWORDLESS LOGIN</span>
+                <h3>View Reports Using Only Bill No.</h3>
+                <p>
+                    Open the <a href="/portal" style="color: var(--teal-primary); font-weight: 700;">Hospital Portal</a> or <a href="/reception" style="color: var(--teal-primary); font-weight: 700;">Reception Page</a>, enter <strong>only your Bill Number</strong> (no password required), and download your Doctor Prescription PDF and Verified Lab Report PDF.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- CONTACT DIRECTORY & INQUIRY FORM -->
+    <div class="section-alt-wrapper">
+        <section class="page-section">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; align-items: start;">
+                <!-- Left: Campus Hospital Contact Directory -->
+                <div class="step-card" style="padding: 1.75rem;">
+                    <div class="section-kicker">Campus Health Center Directory</div>
+                    <h2 style="font-size: 1.45rem; color: var(--navy-dark); margin-bottom: 1rem;">
+                        Emergency &amp; Department Contact Numbers
+                    </h2>
+
+                    <div style="display: flex; flex-direction: column; gap: 0.9rem; font-size: 0.9rem;">
+                        <div style="padding-bottom: 0.75rem; border-bottom: 1px solid var(--border-color);">
+                            <strong>📍 Hospital Address:</strong><br/>
+                            SIT Students Hospital &amp; Health Center, Near Administrative Block, Siddaganga Institute of Technology (SIT) Campus, B.H. Road, Tumakuru – 572103, Karnataka
+                        </div>
+                        <div style="padding-bottom: 0.75rem; border-bottom: 1px solid var(--border-color);">
+                            <strong>🚑 24x7 Campus Ambulance &amp; Casualty:</strong><br/>
+                            <code>+91 (0816) 2214001</code> / Campus Ext: <code>108</code>
+                        </div>
+                        <div style="padding-bottom: 0.75rem; border-bottom: 1px solid var(--border-color);">
+                            <strong>🗂️ OPD Reception &amp; Billing Counter:</strong><br/>
+                            <code>+91 (0816) 2214010</code> • <code>reception@sithospital.org</code>
+                        </div>
+                        <div style="padding-bottom: 0.75rem; border-bottom: 1px solid var(--border-color);">
+                            <strong>🔬 Central Diagnostic &amp; Pathology Lab:</strong><br/>
+                            <code>+91 (0816) 2214022</code> • <code>alex.lab@sithospital.org</code>
+                        </div>
+                        <div>
+                            <strong>🕒 Working Hours:</strong><br/>
+                            OPD &amp; Central Lab: Monday to Saturday, 8:30 AM – 5:30 PM<br/>
+                            Emergency Casualty &amp; First Aid: Open 24 Hours
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right: Patient Helpdesk / Inquiry Form -->
+                <div class="step-card" style="padding: 1.75rem;">
+                    <div class="section-kicker">Online Helpdesk</div>
+                    <h2 style="font-size: 1.45rem; color: var(--navy-dark); margin-bottom: 0.4rem;">
+                        Send an Inquiry to the Reception Desk
+                    </h2>
+                    <p style="font-size: 0.86rem; color: var(--text-secondary); margin-bottom: 1.25rem;">
+                        Need help finding your Reception Bill Number or scheduling a department consultation? Submit a message below.
+                    </p>
+
+                    <form onsubmit="handleContactSubmit(event)">
+                        <div style="margin-bottom: 0.9rem;">
+                            <label style="display: block; font-size: 0.82rem; font-weight: 700; margin-bottom: 0.3rem;">Your Name / Student USN *</label>
+                            <input type="text" id="contactName" class="verifier-input" style="width: 100%; font-family: var(--font-sans);" placeholder="e.g. Rahul Verma (1SI24CS099)" required />
+                        </div>
+                        <div style="margin-bottom: 0.9rem;">
+                            <label style="display: block; font-size: 0.82rem; font-weight: 700; margin-bottom: 0.3rem;">Mobile Number or Campus Email *</label>
+                            <input type="text" id="contactPhone" class="verifier-input" style="width: 100%; font-family: var(--font-sans);" placeholder="e.g. +91 98450 12345" required />
+                        </div>
+                        <div style="margin-bottom: 0.9rem;">
+                            <label style="display: block; font-size: 0.82rem; font-weight: 700; margin-bottom: 0.3rem;">Department / Query Type</label>
+                            <select id="contactDept" class="verifier-input" style="width: 100%; font-family: var(--font-sans);">
+                                <option>OPD Appointment &amp; Bill Number Lookup</option>
+                                <option>Central Pathology Lab Report Inquiry</option>
+                                <option>General Medicine &amp; Cardiology Wing</option>
+                                <option>Orthopedics &amp; Sports Injury Wing</option>
+                                <option>Pulmonology &amp; Allergy Wing</option>
+                            </select>
+                        </div>
+                        <div style="margin-bottom: 1.1rem;">
+                            <label style="display: block; font-size: 0.82rem; font-weight: 700; margin-bottom: 0.3rem;">Message *</label>
+                            <textarea id="contactMsg" class="verifier-input" rows="3" style="width: 100%; font-family: var(--font-sans);" placeholder="Describe your query or preferred OPD consultation time..." required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary" style="width: 100%;">
+                            📨 Submit Helpdesk Request
+                        </button>
+                    </form>
+
+                    <div id="contactSuccessBox" class="verify-result-box" style="border-color: #16a34a;"></div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="site-footer">
+        <div class="footer-inner">
+            <div class="footer-col">
+                <h4>SIT Students Hospital &amp; Health Center</h4>
+                <p style="color: #94a3b8; line-height: 1.6;">
+                    Centralized hospital document and laboratory report management portal at Siddaganga Institute of Technology, Tumakuru.
+                </p>
+            </div>
+            <div class="footer-col">
+                <h4>Quick Navigation</h4>
+                <ul>
+                    <li><a href="/">Hospital Home</a></li>
+                    <li><a href="/about">About SIT Students Hospital</a></li>
+                    <li><a href="/departments">Departments &amp; Doctors Schedule</a></li>
+                    <li><a href="/contact">Patient Guide &amp; Helpdesk</a></li>
+                    <li><a href="/reception">Reception &amp; Billing Desk</a></li>
+                    <li><a href="/portal">Main Hospital Portal</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Project Team (Dept. of CSE, SIT)</h4>
+                <ul>
+                    <li><strong>Abdullah Saad Sharief</strong> (1SI24CS003)</li>
+                    <li><strong>Harsh Kumar Singh</strong> (1SI24CS064)</li>
+                    <li><strong>H Abhishek</strong> (1SI25CS404)</li>
+                    <li style="margin-top: 0.5rem; color: #99f6e4;">
+                        <strong>Project Guide:</strong> Mrs. Nidhi L. G.
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <span>&copy; 2026 SIT Students Hospital Document Management System.</span>
+            <span>AES-256 Encrypted Storage • SHA-256 Document Integrity</span>
+        </div>
+    </footer>
+
+    <script>
+        (function initSiteTheme() {
+            const saved = localStorage.getItem('sit_hospital_theme') || 'light';
+            if (saved === 'dark') document.body.classList.add('dark-mode');
+            const btn = document.getElementById('homeThemeBtn');
+            if (btn) btn.textContent = saved === 'dark' ? '☀️ Light' : '🌙 Dark';
+        })();
+
+        function toggleSiteTheme() {
+            const isDark = document.body.classList.toggle('dark-mode');
+            localStorage.setItem('sit_hospital_theme', isDark ? 'dark' : 'light');
+            const btn = document.getElementById('homeThemeBtn');
+            if (btn) btn.textContent = isDark ? '☀️ Light' : '🌙 Dark';
+        }
+
+        function handleContactSubmit(e) {
+            e.preventDefault();
+            const name = document.getElementById('contactName').value;
+            const dept = document.getElementById('contactDept').value;
+            const box = document.getElementById('contactSuccessBox');
+            box.className = 'verify-result-box active';
+            box.innerHTML = `<strong style="color: #15803d;">✓ Helpdesk Ticket Registered!</strong><br/><span style="font-size: 0.85rem;">Thank you, <strong>${name}</strong>. Your inquiry for <strong>${dept}</strong> has been forwarded to the SIT Students Hospital Reception Desk (Counter 1).</span>`;
+            e.target.reset();
+        }
+    </script>
+</body>
+</html>

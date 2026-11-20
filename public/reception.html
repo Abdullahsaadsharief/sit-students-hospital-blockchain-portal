@@ -176,10 +176,17 @@
                 </div>
             </a>
 
+            <ul class="nav-links">
+                <li><a href="/">Home</a></li>
+                <li><a href="/about">About Hospital</a></li>
+                <li><a href="/departments">Departments &amp; Doctors</a></li>
+                <li><a href="/contact">Patient Guide &amp; Contact</a></li>
+            </ul>
+
             <div class="nav-actions">
-                <button type="button" class="btn btn-outline" onclick="toggleRecTheme()" id="recThemeBtn">🌙 Dark Mode</button>
-                <a href="/" class="btn btn-outline">🏠 Hospital Home</a>
-                <a href="/portal" class="btn btn-primary">🏥 Main Hospital Portal</a>
+                <button type="button" class="btn btn-outline" onclick="toggleRecTheme()" id="recThemeBtn">🌙 Dark</button>
+                <a href="/" class="btn btn-outline">🏠 Home</a>
+                <a href="/portal" class="btn btn-primary">🏥 Hospital Portal</a>
             </div>
         </div>
     </nav>
@@ -495,14 +502,14 @@
             const saved = localStorage.getItem('sit_hospital_theme') || 'light';
             if (saved === 'dark') document.body.classList.add('dark-mode');
             const btn = document.getElementById('recThemeBtn');
-            if (btn) btn.textContent = saved === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode';
+            if (btn) btn.textContent = saved === 'dark' ? '☀️ Light' : '🌙 Dark';
         })();
 
         function toggleRecTheme() {
             const isDark = document.body.classList.toggle('dark-mode');
             localStorage.setItem('sit_hospital_theme', isDark ? 'dark' : 'light');
             const btn = document.getElementById('recThemeBtn');
-            if (btn) btn.textContent = isDark ? '☀️ Light Mode' : '🌙 Dark Mode';
+            if (btn) btn.textContent = isDark ? '☀️ Light' : '🌙 Dark';
         }
 
         document.addEventListener('DOMContentLoaded', () => {

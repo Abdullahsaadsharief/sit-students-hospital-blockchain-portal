@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Departments, Doctors &amp; Lab Services | SIT Students Hospital</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/home.css" />
+</head>
+<body>
+
+    <!-- TOP CAMPUS HELPLINE BAR -->
+    <div class="top-utility-bar">
+        <div class="top-utility-inner">
+            <div class="utility-left">
+                <span class="utility-pill">SIT CAMPUS HEALTH CENTER</span>
+                <span>B.H. Road, Siddaganga Institute of Technology Campus, Tumakuru - 572103</span>
+            </div>
+            <div class="utility-right">
+                <span>OPD Hours: Mon–Sat (8:30 AM – 5:30 PM)</span>
+                <span>•</span>
+                <span>24x7 Campus Casualty: +91 (0816) 2214001</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- HOSPITAL NAVBAR -->
+    <nav class="hospital-navbar">
+        <div class="nav-container">
+            <a href="/" class="brand-identity">
+                <div class="hospital-crest">SIT</div>
+                <div>
+                    <div class="brand-title">SIT Students Hospital</div>
+                    <div class="brand-subtitle">Centralized Medical Document &amp; Diagnostic Management System</div>
+                </div>
+            </a>
+
+            <ul class="nav-links">
+                <li><a href="/">Home</a></li>
+                <li><a href="/about">About Hospital</a></li>
+                <li><a href="/departments" style="color: var(--navy-primary); border-bottom-color: var(--teal-primary);">Departments &amp; Doctors</a></li>
+                <li><a href="/contact">Patient Guide &amp; Contact</a></li>
+            </ul>
+
+            <div class="nav-actions">
+                <button type="button" class="btn btn-outline" onclick="toggleSiteTheme()" id="homeThemeBtn">🌙 Dark</button>
+                <a href="/reception" class="btn btn-teal">🗂️ Reception Desk</a>
+                <a href="/portal" class="btn btn-primary">🏥 Hospital Portal</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- CLINICAL WINGS & LAB UNITS -->
+    <section class="page-section" style="padding-top: 2.75rem;">
+        <div class="section-header-block">
+            <div>
+                <div class="section-kicker">Clinical Wings &amp; Diagnostic Units</div>
+                <h1 class="section-title">Hospital Departments at SIT Students Hospital</h1>
+            </div>
+            <p class="section-desc">
+                All four departments are located within our campus hospital building and share a unified patient medical record system.
+            </p>
+        </div>
+
+        <div class="wings-grid">
+            <div class="wing-card">
+                <div class="wing-img-col">
+                    <img src="/images/metro-hospital.jpg" alt="General Medicine & Cardiology Wing" />
+                </div>
+                <div class="wing-info-col">
+                    <div>
+                        <div class="wing-badge-row">
+                            <span class="wing-floor-tag">Block A • Ground Floor</span>
+                            <span class="wing-node-code">NODE-HOSP-01</span>
+                        </div>
+                        <h3>General Medicine &amp; Cardiology Wing</h3>
+                        <p>
+                            Outpatient checkups, fever &amp; infection consultations, diabetes (HbA1c) management, blood pressure monitoring, and 12-lead ECG evaluations.
+                        </p>
+                    </div>
+                    <div class="wing-meta-footer">
+                        Lead Physician: Dr. Sarah Rao, MD • OPD Rooms 101–104
+                    </div>
+                </div>
+            </div>
+
+            <div class="wing-card">
+                <div class="wing-img-col">
+                    <img src="/images/diagnostic-lab.jpg" alt="Central Pathology & Radiology Lab" />
+                </div>
+                <div class="wing-info-col">
+                    <div>
+                        <div class="wing-badge-row">
+                            <span class="wing-floor-tag">Block A • 1st Floor</span>
+                            <span class="wing-node-code">NODE-LAB-01</span>
+                        </div>
+                        <h3>Central Pathology &amp; Radiology Lab</h3>
+                        <p>
+                            Sample collection counter, automated hematology (CBC), clinical biochemistry, thyroid assay, digital X-ray imaging, and SHA-256 report anchoring.
+                        </p>
+                    </div>
+                    <div class="wing-meta-footer">
+                        Senior Technologist: Mr. Alex Smith, DMLT • Lab Counter 1 &amp; 2
+                    </div>
+                </div>
+            </div>
+
+            <div class="wing-card">
+                <div class="wing-img-col">
+                    <img src="/images/city-clinic.jpg" alt="Pulmonology & Respiratory Care Wing" />
+                </div>
+                <div class="wing-info-col">
+                    <div>
+                        <div class="wing-badge-row">
+                            <span class="wing-floor-tag">Block B • 1st Floor</span>
+                            <span class="wing-node-code">NODE-CLINIC-01</span>
+                        </div>
+                        <h3>Pulmonology &amp; Respiratory Care Wing</h3>
+                        <p>
+                            Computerized lung spirometry, bronchial asthma care, dust &amp; pollen allergy IgE panels, and acute respiratory nebulization unit.
+                        </p>
+                    </div>
+                    <div class="wing-meta-footer">
+                        Consultant: Dr. Ananya Sen, MD • OPD Rooms 201–203
+                    </div>
+                </div>
+            </div>
+
+            <div class="wing-card">
+                <div class="wing-img-col">
+                    <img src="/images/neuro-institute.jpg" alt="Orthopedics & Neuro Wing" />
+                </div>
+                <div class="wing-info-col">
+                    <div>
+                        <div class="wing-badge-row">
+                            <span class="wing-floor-tag">Block B • 2nd Floor</span>
+                            <span class="wing-node-code">NODE-HOSP-01</span>
+                        </div>
+                        <h3>Orthopedics, Sports Injury &amp; Neuro Wing</h3>
+                        <p>
+                            Fracture &amp; sprain care, lumbar spine X-ray evaluation, physiotherapy rehabilitation, and visiting neurology consultations.
+                        </p>
+                    </div>
+                    <div class="wing-meta-footer">
+                        Consultants: Dr. Rajesh Nair, MS &amp; Dr. Vikram Mehta, DM
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- DOCTORS OPD SCHEDULE & LAB TARIFF TABLE -->
+    <div class="section-alt-wrapper">
+        <section class="page-section">
+            <div class="section-header-block">
+                <div>
+                    <div class="section-kicker">OPD Consultation Schedule &amp; Diagnostic Tariff</div>
+                    <h2 class="section-title">In-House Doctors &amp; Standard Diagnostic Tests</h2>
+                </div>
+                <div style="display: flex; gap: 0.6rem;">
+                    <a href="/reception" class="btn btn-teal">🗂️ Register Patient at Reception</a>
+                    <a href="/portal" class="btn btn-primary">🏥 Doctor &amp; Lab Login</a>
+                </div>
+            </div>
+
+            <div class="doctors-table-card" style="margin-bottom: 2.25rem;">
+                <table class="doctors-table">
+                    <thead>
+                        <tr>
+                            <th>Doctor / Staff Name</th>
+                            <th>Qualification &amp; Role</th>
+                            <th>Department Wing</th>
+                            <th>OPD Room</th>
+                            <th>Consultation Hours</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Dr. Sarah Rao</strong></td>
+                            <td>MBBS, MD (Internal Medicine)</td>
+                            <td><span class="dept-pill">Cardiology &amp; General Medicine</span></td>
+                            <td>Room 101 (Block A)</td>
+                            <td>Mon – Sat (9:00 AM – 2:00 PM)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Dr. Rajesh Nair</strong></td>
+                            <td>MBBS, MS (Orthopedics)</td>
+                            <td><span class="dept-pill">Orthopedics &amp; Trauma Wing</span></td>
+                            <td>Room 204 (Block B)</td>
+                            <td>Mon – Sat (10:00 AM – 4:00 PM)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Dr. Ananya Sen</strong></td>
+                            <td>MBBS, MD (Pulmonary Medicine)</td>
+                            <td><span class="dept-pill">Pulmonology &amp; Allergy Wing</span></td>
+                            <td>Room 201 (Block B)</td>
+                            <td>Tue, Thu, Sat (9:30 AM – 3:30 PM)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Dr. Vikram Mehta</strong></td>
+                            <td>MBBS, DM (Neurology)</td>
+                            <td><span class="dept-pill">Neurology &amp; Spine Wing</span></td>
+                            <td>Room 206 (Block B)</td>
+                            <td>Mon, Wed, Fri (11:00 AM – 4:00 PM)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Mr. Alex Smith</strong></td>
+                            <td>B.Sc MLT, Senior Lab Technologist</td>
+                            <td><span class="dept-pill">Central Pathology &amp; Radiology Lab</span></td>
+                            <td>Lab Counter 1 (Block A)</td>
+                            <td>Mon – Sat (8:00 AM – 5:30 PM)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Ms. Priya Nair</strong></td>
+                            <td>Senior OPD Receptionist</td>
+                            <td><span class="dept-pill">Reception &amp; Billing Counter</span></td>
+                            <td>Front Desk (Main Lobby)</td>
+                            <td>Mon – Sat (8:15 AM – 5:30 PM)</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Standard Diagnostic Test Tariff -->
+            <h3 style="font-size: 1.2rem; color: var(--navy-dark); margin-bottom: 0.85rem;">
+                🧪 Standard Hospital Diagnostic Lab Investigations &amp; Student Subsidized Tariff
+            </h3>
+            <div class="doctors-table-card">
+                <table class="doctors-table">
+                    <thead>
+                        <tr>
+                            <th>Test Code</th>
+                            <th>Investigation Name</th>
+                            <th>Category</th>
+                            <th>Turnaround Time</th>
+                            <th>Subsidized Fee</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>LAB-CBC-01</code></td>
+                            <td><strong>Complete Blood Count (CBC) with Differential</strong></td>
+                            <td>Hematology</td>
+                            <td>2 Hours (Same Day)</td>
+                            <td><strong>₹ 200</strong></td>
+                        </tr>
+                        <tr>
+                            <td><code>LAB-GLU-02</code></td>
+                            <td><strong>Fasting Blood Glucose (FBS) &amp; HbA1c Panel</strong></td>
+                            <td>Biochemistry</td>
+                            <td>3 Hours (Same Day)</td>
+                            <td><strong>₹ 350</strong></td>
+                        </tr>
+                        <tr>
+                            <td><code>LAB-LIP-03</code></td>
+                            <td><strong>Comprehensive Lipid Profile &amp; Cardiac Risk Panel</strong></td>
+                            <td>Cardiovascular / Biochemistry</td>
+                            <td>4 Hours (Same Day)</td>
+                            <td><strong>₹ 450</strong></td>
+                        </tr>
+                        <tr>
+                            <td><code>LAB-THY-04</code></td>
+                            <td><strong>Thyroid Profile (TSH, Free T3 &amp; Free T4)</strong></td>
+                            <td>Endocrine</td>
+                            <td>4 Hours (Same Day)</td>
+                            <td><strong>₹ 400</strong></td>
+                        </tr>
+                        <tr>
+                            <td><code>RAD-XRY-05</code></td>
+                            <td><strong>Digital Radiography X-Ray (Chest / Spine / Limb)</strong></td>
+                            <td>Radiology / Imaging</td>
+                            <td>1 Hour (Immediate)</td>
+                            <td><strong>₹ 350</strong></td>
+                        </tr>
+                        <tr>
+                            <td><code>PUL-SPI-06</code></td>
+                            <td><strong>High-Resolution Pulmonary Spirometry (PFT)</strong></td>
+                            <td>Pulmonology</td>
+                            <td>1 Hour (Immediate)</td>
+                            <td><strong>₹ 400</strong></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="site-footer">
+        <div class="footer-inner">
+            <div class="footer-col">
+                <h4>SIT Students Hospital &amp; Health Center</h4>
+                <p style="color: #94a3b8; line-height: 1.6; margin-bottom: 0.75rem;">
+                    Centralized hospital document and laboratory report management portal enabling seamless collaboration between our reception desk, diagnostic laboratory, doctors, and patients.
+                </p>
+            </div>
+            <div class="footer-col">
+                <h4>Quick Navigation</h4>
+                <ul>
+                    <li><a href="/">Hospital Home</a></li>
+                    <li><a href="/about">About SIT Students Hospital</a></li>
+                    <li><a href="/departments">Departments &amp; Doctors Schedule</a></li>
+                    <li><a href="/contact">Patient Guide &amp; Helpdesk</a></li>
+                    <li><a href="/reception">Reception &amp; Billing Desk</a></li>
+                    <li><a href="/portal">Main Hospital Portal</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Project Team (Dept. of CSE, SIT)</h4>
+                <ul>
+                    <li><strong>Abdullah Saad Sharief</strong> (1SI24CS003)</li>
+                    <li><strong>Harsh Kumar Singh</strong> (1SI24CS064)</li>
+                    <li><strong>H Abhishek</strong> (1SI25CS404)</li>
+                    <li style="margin-top: 0.5rem; color: #99f6e4;">
+                        <strong>Project Guide:</strong> Mrs. Nidhi L. G.
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <span>&copy; 2026 SIT Students Hospital Document Management System.</span>
+            <span>AES-256 Encrypted Storage • SHA-256 Document Integrity</span>
+        </div>
+    </footer>
+
+    <script>
+        (function initSiteTheme() {
+            const saved = localStorage.getItem('sit_hospital_theme') || 'light';
+            if (saved === 'dark') document.body.classList.add('dark-mode');
+            const btn = document.getElementById('homeThemeBtn');
+            if (btn) btn.textContent = saved === 'dark' ? '☀️ Light' : '🌙 Dark';
+        })();
+
+        function toggleSiteTheme() {
+            const isDark = document.body.classList.toggle('dark-mode');
+            localStorage.setItem('sit_hospital_theme', isDark ? 'dark' : 'light');
+            const btn = document.getElementById('homeThemeBtn');
+            if (btn) btn.textContent = isDark ? '☀️ Light' : '🌙 Dark';
+        }
+    </script>
+</body>
+</html>

@@ -49,6 +49,18 @@ app.get('/reception', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'reception.html'));
 });
 
+app.get('/about', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'about.html'));
+});
+
+app.get('/departments', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'departments.html'));
+});
+
+app.get('/contact', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'contact.html'));
+});
+
 // Serve frontend static assets (without auto-serving index.html at root)
 app.use(express.static(path.join(__dirname, 'public'), { index: false }));
 
