@@ -496,6 +496,9 @@
                                 <div class="rec-card-title" style="font-size: 1.05rem;">📨 Patient Helpdesk Inquiries Inbox (From Patient Guide &amp; Contact Page)</div>
                                 <div class="rec-card-sub">Inquiries submitted by students/patients on <a href="/contact.html" style="color: var(--teal-primary); font-weight: 700;">/contact.html</a> appear here for the Receptionist</div>
                             </div>
+                            <button type="button" class="btn btn-outline" style="height: 32px; font-size: 0.76rem; padding: 0 0.75rem;" onclick="resetDemoInquiries()">
+                                🔄 Reset Sample Inquiry
+                            </button>
                         </div>
                         <div style="overflow-x: auto;">
                             <table class="doctors-table">
@@ -702,9 +705,20 @@
             };
 
             try {
+                if (!receptionToken) {
+                    const authRes = await fetch('/api/auth/login', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ userId: 'usr_rec_01' })
+                    });
+                    const authData = await authRes.json();
+                    if (authData.success && authData.token) {
+                        receptionToken = authData.token;
+                        localStorage.setItem('sit_rec_token', authData.token);
+                    }
+                }
                 const headers = { 'Content-Type': 'application/json' };
                 if (receptionToken) headers['Authorization'] = 'Bearer ' + receptionToken;
-                headers['x-demo-user-id'] = (receptionUser && receptionUser.id) ? receptionUser.id : 'usr_rec_01';
 
                 const res = await fetch('/api/reception/patients', {
                     method: 'POST',
@@ -785,14 +799,41 @@
             }
         }
 
+        let loadedInquiriesCache = [];
+
         async function loadReceptionInquiries() {
             const tbody = document.getElementById('receptionInquiriesTableBody');
             if (!tbody) return;
 
+            let resolvedIds = [];
+            try {
+                resolvedIds = JSON.parse(localStorage.getItem('sit_hospital_resolved_tickets') || '[]');
+                if (!Array.isArray(resolvedIds)) resolvedIds = [];
+            } catch (e) {
+                resolvedIds = [];
+            }
+
             let list = [];
             try {
-                const localList = JSON.parse(localStorage.getItem('sit_hospital_inquiries') || '[]');
-                if (Array.isArray(localList)) list = [...localList];
+                const rawLocal = localStorage.getItem('sit_hospital_inquiries');
+                if (rawLocal) {
+                    const parsed = JSON.parse(rawLocal);
+                    if (Array.isArray(parsed)) list = [...parsed];
+                } else {
+                    // Seed initial sample inquiry into localStorage so it persists properly
+                    list = [
+                        {
+                            ticketId: 'INQ-1042',
+                            name: 'Sandeep R (1SI24CS088)',
+                            contact: '+91 98450 77889',
+                            department: 'General Medicine & Cardiology Wing',
+                            message: 'Requesting afternoon OPD checkup for fever and CBC blood test.',
+                            status: 'OPEN',
+                            createdAt: new Date().toISOString()
+                        }
+                    ];
+                    localStorage.setItem('sit_hospital_inquiries', JSON.stringify(list));
+                }
             } catch (e) {}
 
             try {
@@ -809,39 +850,38 @@
                 }
             } catch (e) {}
 
+            // Apply persisted resolved statuses
+            list.forEach((item, idx) => {
+                if (!item.ticketId) item.ticketId = 'INQ-' + (1000 + idx);
+                if (resolvedIds.includes(item.ticketId)) {
+                    item.status = 'RESOLVED';
+                }
+            });
+
+            loadedInquiriesCache = list;
+
             if (list.length === 0) {
-                list = [
-                    {
-                        ticketId: 'INQ-1042',
-                        name: 'Sandeep R (1SI24CS088)',
-                        contact: '+91 98450 77889',
-                        department: 'General Medicine & Cardiology Wing',
-                        message: 'Requesting afternoon OPD checkup for fever and CBC blood test.',
-                        status: 'OPEN'
-                    }
-                ];
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted);">No open helpdesk inquiries.</td></tr>';
+                return;
             }
 
             tbody.innerHTML = list.map((inq, idx) => {
                 const isResolved = inq.status === 'RESOLVED';
-                const safeName = (inq.name || '').replace(/'/g, "\\'");
-                const safePhone = (inq.contact || '').replace(/'/g, "\\'");
-                const safeMsg = (inq.message || '').replace(/'/g, "\\'");
                 return `
                     <tr>
-                        <td><span class="bill-tag">${inq.ticketId || ('INQ-' + (100 + idx))}</span></td>
+                        <td><span class="bill-tag">${escapeRecHtml(inq.ticketId)}</span></td>
                         <td>
-                            <strong>${inq.name}</strong><br/>
-                            <span style="font-size: 0.76rem; color: var(--text-muted);">${inq.contact || ''}</span>
+                            <strong>${escapeRecHtml(inq.name)}</strong><br/>
+                            <span style="font-size: 0.76rem; color: var(--text-muted);">${escapeRecHtml(inq.contact || '')}</span>
                         </td>
-                        <td><span class="dept-pill">${inq.department || 'OPD Helpdesk'}</span></td>
-                        <td style="font-size: 0.83rem; max-width: 240px;">${inq.message}</td>
+                        <td><span class="dept-pill">${escapeRecHtml(inq.department || 'OPD Helpdesk')}</span></td>
+                        <td style="font-size: 0.83rem; max-width: 240px;">${escapeRecHtml(inq.message)}</td>
                         <td>
                             ${isResolved
-                                ? '<span style="color: #15803d; font-weight: 700; font-size: 0.78rem;">✓ Registered / Resolved</span>'
-                                : `<div style="display: flex; gap: 0.35rem; flex-wrap: wrap;">
-                                    <button type="button" class="btn btn-primary" style="height: 30px; padding: 0 0.65rem; font-size: 0.74rem;" onclick="prefillPatientFromInquiry('${inq.ticketId}', '${safeName}', '${safePhone}', '${safeMsg}')">➕ Register Patient</button>
-                                    <button type="button" class="btn btn-outline" style="height: 30px; padding: 0 0.55rem; font-size: 0.74rem;" onclick="markInquiryResolved('${inq.ticketId}')">✓ Done</button>
+                                ? '<span style="color: #15803d; font-weight: 700; font-size: 0.8rem;">✓ Registered / Done</span>'
+                                : `<div style="display: flex; gap: 0.4rem; flex-wrap: wrap;">
+                                    <button type="button" class="btn btn-primary" style="height: 32px; padding: 0 0.75rem; font-size: 0.76rem;" onclick="handleInquiryRegisterClick(${idx})">➕ Register Patient</button>
+                                    <button type="button" class="btn btn-outline" style="height: 32px; padding: 0 0.65rem; font-size: 0.76rem;" onclick="handleInquiryDoneClick(${idx})">✓ Done</button>
                                    </div>`
                             }
                         </td>
@@ -850,21 +890,76 @@
             }).join('');
         }
 
-        function prefillPatientFromInquiry(ticketId, name, contact, message) {
+        function escapeRecHtml(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        function handleInquiryRegisterClick(idx) {
+            const inq = loadedInquiriesCache[idx];
+            if (!inq) return;
+
             const nameInput = document.getElementById('newPatName');
             const phoneInput = document.getElementById('newPatContact');
             const reasonInput = document.getElementById('newPatReason');
-            if (nameInput) nameInput.value = name.split('(')[0].trim();
-            if (phoneInput && contact) phoneInput.value = contact;
-            if (reasonInput && message) reasonInput.value = message.slice(0, 60);
-            markInquiryResolved(ticketId);
+            const docSelect = document.getElementById('newPatDoctor');
+
+            const cleanName = (inq.name || '').split('(')[0].trim();
+            if (nameInput) nameInput.value = cleanName;
+            if (phoneInput && inq.contact) phoneInput.value = inq.contact;
+            if (reasonInput && inq.message) reasonInput.value = String(inq.message).replace(/\s+/g, ' ').trim().slice(0, 75);
+
+            // Auto-match consulting doctor based on inquiry department
+            if (docSelect && inq.department) {
+                const deptLower = inq.department.toLowerCase();
+                if (deptLower.includes('ortho')) {
+                    docSelect.value = 'Dr. Rajesh Nair (Orthopedics & Trauma)';
+                } else if (deptLower.includes('pulmo') || deptLower.includes('allergy')) {
+                    docSelect.value = 'Dr. Ananya Sen (Pulmonology & Respiratory Care)';
+                } else if (deptLower.includes('neuro')) {
+                    docSelect.value = 'Dr. Vikram Mehta (Neurology & Spine Care)';
+                } else {
+                    docSelect.value = 'Dr. Sarah Rao (Cardiology & General Medicine)';
+                }
+            }
+
+            // Mark the inquiry ticket resolved
+            handleInquiryDoneClick(idx, true);
+
+            // Scroll smoothly to the Register New Patient form and highlight it
             if (nameInput) {
                 nameInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                nameInput.style.borderColor = '#16a34a';
+                nameInput.style.boxShadow = '0 0 0 3px rgba(22, 163, 74, 0.2)';
                 nameInput.focus();
+                setTimeout(() => {
+                    nameInput.style.borderColor = '';
+                    nameInput.style.boxShadow = '';
+                }, 3000);
             }
+            alert(`✓ Patient "${cleanName}" loaded into the Registration Form on the left!\n\nReview the fields and click "🧾 Register Patient & Generate Bill Number" to issue their Bill ID.`);
         }
 
-        async function markInquiryResolved(ticketId) {
+        async function handleInquiryDoneClick(idx, silent = false) {
+            const inq = loadedInquiriesCache[idx];
+            if (!inq) return;
+            const ticketId = inq.ticketId;
+
+            // 1. Save ticketId into sit_hospital_resolved_tickets in localStorage
+            try {
+                const resolvedIds = JSON.parse(localStorage.getItem('sit_hospital_resolved_tickets') || '[]');
+                if (!resolvedIds.includes(ticketId)) {
+                    resolvedIds.push(ticketId);
+                    localStorage.setItem('sit_hospital_resolved_tickets', JSON.stringify(resolvedIds));
+                }
+            } catch (e) {}
+
+            // 2. Also update status inside sit_hospital_inquiries in localStorage
             try {
                 const localList = JSON.parse(localStorage.getItem('sit_hospital_inquiries') || '[]');
                 localList.forEach(item => {
@@ -872,9 +967,18 @@
                 });
                 localStorage.setItem('sit_hospital_inquiries', JSON.stringify(localList));
             } catch (e) {}
+
+            // 3. Also notify backend API if available
             try {
                 await fetch(`/api/reception/inquiries/${encodeURIComponent(ticketId)}/resolve`, { method: 'PUT' });
             } catch (e) {}
+
+            await loadReceptionInquiries();
+        }
+
+        function resetDemoInquiries() {
+            localStorage.removeItem('sit_hospital_resolved_tickets');
+            localStorage.removeItem('sit_hospital_inquiries');
             loadReceptionInquiries();
         }
     </script>
