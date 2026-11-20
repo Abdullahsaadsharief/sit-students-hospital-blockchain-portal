@@ -61,8 +61,8 @@ app.get('/contact', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'contact.html'));
 });
 
-// Serve frontend static assets (without auto-serving index.html at root)
-app.use(express.static(path.join(__dirname, 'public'), { index: false }));
+// Serve frontend static assets (with automatic .html extension resolution)
+app.use(express.static(path.join(__dirname, 'public'), { index: false, extensions: ['html'] }));
 
 // Serve evaluation demo reports kit
 app.use('/demo-reports', express.static(path.join(__dirname, 'sample_reports_for_demo')));
