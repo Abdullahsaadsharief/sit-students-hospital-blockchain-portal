@@ -1,13 +1,16 @@
 const fs = require('fs');
 const path = require('path');
+const os = require('os');
 const QRCode = require('qrcode');
+const config = require('../config');
 const db = require('../models/db');
 const blockchain = require('../blockchain/Blockchain');
-const { computeSHA256, decryptBuffer } = require('../utils/cryptoUtils');
+const { ethereumClient } = require('../blockchain/ethereumClient');
+const { computeSHA256, decryptBuffer, TamperDetectedError } = require('../utils/cryptoUtils');
+const { canViewReport } = require('../utils/access');
 
-const UPLOADS_DIR = path.join(__dirname, '..', 'uploads');
-
-const os = require('os');
+// Non-destructive in-memory tamper simulation flags (DEMO_MODE ONLY — never modifies files on disk!)
+const simulatedTamperedReports = new Set();
 
 function getLocalNetworkIp() {
     try {
@@ -19,12 +22,12 @@ function getLocalNetworkIp() {
                 }
             }
         }
-    } catch (e) {}
+    } catch (_) {}
     return 'localhost';
 }
 
 /**
- * Feature 7.1: Get QR Code Data for a Report
+ * Authenticated QR Code retrieval for a report (F-02 / F-04)
  */
 async function getReportQRCode(req, res) {
     try {
@@ -34,24 +37,24 @@ async function getReportQRCode(req, res) {
             return res.status(404).json({ success: false, message: 'Report not found.' });
         }
 
-        // Use accessible network IP if requested or accessible on LAN for phone camera scanning
-        const port = process.env.PORT || 3000;
+        if (!canViewReport(req.user, report)) {
+            return res.status(403).json({ success: false, message: 'Access denied. You are not authorized to access this report QR.' });
+        }
+
+        const port = config.PORT;
         const lanIp = getLocalNetworkIp();
-        const lanBaseUrl = `http://${lanIp}:${port}`;
         const hostUrl = req.protocol + '://' + req.get('host');
-        
-        // Target URL for scanning: if accessed on localhost, prefer LAN IP so phones on the same Wi-Fi can scan directly
-        const scanUrl = (lanIp && lanIp !== 'localhost') ? `${lanBaseUrl}/verify.html?reportId=${reportId}` : `${hostUrl}/verify.html?reportId=${reportId}`;
-        const verificationUrl = `${hostUrl}/verify.html?reportId=${reportId}`;
+        const isLocalHostReq = req.hostname === 'localhost' || req.hostname === '127.0.0.1';
+        const scanUrl = (isLocalHostReq && lanIp && lanIp !== 'localhost')
+            ? `http://${lanIp}:${port}/verify.html?reportId=${encodeURIComponent(reportId)}`
+            : `${hostUrl}/verify.html?reportId=${encodeURIComponent(reportId)}`;
+        const verificationUrl = `${hostUrl}/verify.html?reportId=${encodeURIComponent(reportId)}`;
 
         const qrDataUrl = await QRCode.toDataURL(scanUrl, {
             errorCorrectionLevel: 'H',
             margin: 2,
             width: 320,
-            color: {
-                dark: '#080d1a',
-                light: '#ffffff'
-            }
+            color: { dark: '#080d1a', light: '#ffffff' }
         });
 
         return res.json({
@@ -60,26 +63,30 @@ async function getReportQRCode(req, res) {
             verificationUrl,
             scanUrl,
             qrCodeDataUrl: qrDataUrl,
-            qrDataUrl: qrDataUrl,
+            qrDataUrl,
             anchoredHash: report.reportHash,
             reportHash: report.reportHash,
+            sourceHash: report.sourceHash || report.reportHash,
             blockIndex: report.blockIndex,
             patientName: report.patientName,
             patientPseudonym: report.patientPseudonym,
             title: report.title,
             testDate: report.testDate,
             reportType: report.reportType,
-            status: 'ANCHORED_ON_BLOCKCHAIN'
+            onChain: report.onChain || null,
+            status: report.status || 'ANCHORED_ON_BLOCKCHAIN'
         });
     } catch (err) {
-        return res.status(500).json({ success: false, message: 'Error generating QR code.', error: err.message });
+        return res.status(500).json({ success: false, message: 'Error generating QR code.' });
     }
 }
 
 /**
- * Feature 7.1: Live Blockchain Anti-Forgery Verification Endpoint
- * Compares current file hash against blockchain-anchored hash
- * Returns MATCH or MISMATCH
+ * Live Anti-Forgery Verification Endpoint (F-02, F-03, F-05, F-09):
+ * - Anonymous callers receive ONLY minimal authenticity verdict (zero patient PII or clinical metadata!).
+ * - Authorized logged-in viewers (canViewReport) receive full clinical verification metadata.
+ * - Catches AES-256-GCM TamperDetectedError cleanly as MISMATCH.
+ * - Cross-checks Ethereum EVM smart contract when configured.
  */
 async function verifyReportIntegrity(req, res) {
     try {
@@ -89,32 +96,42 @@ async function verifyReportIntegrity(req, res) {
             return res.status(404).json({
                 success: false,
                 status: 'NOT_FOUND',
-                message: `Report ID '${reportId}' not found in the consortium records.`
+                message: `Report ID '${reportId}' not found.`
             });
         }
 
-        // Retrieve block from blockchain
         const block = blockchain.findBlockByReportId(reportId) || blockchain.chain[report.blockIndex];
-        if (!block) {
+        if (!block || !block.data) {
             return res.status(404).json({
                 success: false,
                 status: 'BLOCKCHAIN_RECORD_MISSING',
-                message: 'No corresponding block found on the blockchain ledger.'
+                message: 'No corresponding ledger anchor found for this report.'
             });
         }
 
         const anchoredHash = block.data.reportHash || report.reportHash;
+        const anchoredSourceHash = block.data.sourceHash || report.sourceHash || anchoredHash;
 
-        // Check if an external file was provided for verification (Doctor re-uploads suspected file)
-        let liveHash;
+        let liveHash = null;
         let fileSource = 'Off-Chain Encrypted Storage';
+        let isMatch = false;
+        let tamperReason = null;
 
         if (req.file && req.file.buffer) {
             liveHash = computeSHA256(req.file.buffer);
             fileSource = 'Directly Provided File Upload';
+            isMatch = (
+                liveHash.toLowerCase() === String(anchoredHash).toLowerCase() ||
+                liveHash.toLowerCase() === String(anchoredSourceHash).toLowerCase()
+            );
+        } else if (config.DEMO_MODE && simulatedTamperedReports.has(report.reportId)) {
+            // Non-destructive in-memory tamper simulation (files on disk remain 100% untouched)
+            liveHash = '0000000000000000000000000000000000000000000000000000000000tamper';
+            fileSource = 'Simulated In-Memory Tamper (Demo Mode — Disk Untouched)';
+            isMatch = false;
+            tamperReason = 'DEMO_MODE non-destructive tamper simulation active for this report.';
         } else {
-            // Read off-chain encrypted file and decrypt
-            const filePath = path.join(UPLOADS_DIR, report.storageReference);
+            const filePath = path.join(config.UPLOADS_DIR, path.basename(report.storageReference));
             if (!fs.existsSync(filePath)) {
                 return res.status(404).json({
                     success: false,
@@ -124,92 +141,124 @@ async function verifyReportIntegrity(req, res) {
             }
 
             const encryptedData = fs.readFileSync(filePath);
-            const decryptedBuffer = decryptBuffer(encryptedData);
-            liveHash = computeSHA256(decryptedBuffer);
+            try {
+                const decryptedBuffer = decryptBuffer(encryptedData);
+                liveHash = computeSHA256(decryptedBuffer);
+                isMatch = (liveHash.toLowerCase() === String(anchoredHash).toLowerCase());
+            } catch (decErr) {
+                if (decErr instanceof TamperDetectedError || decErr.isTampered) {
+                    liveHash = 'DECRYPTION_AUTH_TAG_FAILED';
+                    isMatch = false;
+                    tamperReason = 'AES-256-GCM authenticated decryption failed — stored ciphertext was modified.';
+                } else {
+                    throw decErr;
+                }
+            }
         }
 
-        const isMatch = (liveHash.toLowerCase() === anchoredHash.toLowerCase());
+        // Cross-verify against live Ethereum EVM contract if connected
+        const onChainVerification = await ethereumClient.verifyReportOnChain(
+            report.reportId,
+            liveHash && liveHash.length === 64 ? liveHash : anchoredHash
+        );
+        if (onChainVerification.checkedOnChain && !onChainVerification.onChainAuthentic) {
+            isMatch = false;
+        }
+
+        const isAuthorizedRichViewer = Boolean(req.user && canViewReport(req.user, report));
 
         db.logAudit(
             'ANTI_FORGERY_VERIFICATION',
-            req.user ? req.user.name : 'Doctor / Verification Scanner',
-            `Verification check on ${reportId}: ${isMatch ? 'MATCH (Authentic)' : 'MISMATCH (Tampered)'}`
+            req.user ? req.user.name : 'Public QR Verifier',
+            `Verification check on ${reportId}: ${isMatch ? 'MATCH' : 'MISMATCH'}`
         );
 
-        return res.json({
+        const verificationMessage = isMatch
+            ? 'MATCH: The diagnostic document matches its anchored SHA-256 cryptographic fingerprint.'
+            : (tamperReason || 'MISMATCH: Cryptographic fingerprint differs from the anchored record! Document integrity check failed.');
+
+        // Strict public minimal response (F-02): ZERO PII / clinical metadata for unauthenticated callers
+        const payload = {
             success: true,
             status: isMatch ? 'MATCH' : 'MISMATCH',
             isAuthentic: isMatch,
             reportId: report.reportId,
-            patientName: report.patientName,
-            patientPseudonym: report.patientPseudonym,
-            reportType: report.reportType,
-            testDate: report.testDate,
-            fileSource,
-            liveComputedHash: liveHash,
-            anchoredBlockchainHash: anchoredHash,
-            blockchainDetails: {
+            anchoredAt: block.timestamp,
+            blockIndex: block.index,
+            onChainVerification,
+            verificationMessage
+        };
+
+        // Include clinical details ONLY if the caller presented a valid Bearer JWT authorized to view this report
+        if (isAuthorizedRichViewer) {
+            payload.patientName = report.patientName;
+            payload.patientPseudonym = report.patientPseudonym;
+            payload.reportType = report.reportType;
+            payload.testDate = report.testDate;
+            payload.fileSource = fileSource;
+            payload.liveComputedHash = liveHash;
+            payload.anchoredBlockchainHash = anchoredHash;
+            payload.blockchainDetails = {
                 blockIndex: block.index,
                 blockHash: block.hash,
                 previousHash: block.previousHash,
                 timestamp: block.timestamp,
-                institutionNode: block.data.institutionNode
-            },
-            verificationMessage: isMatch 
-                ? 'MATCH: The diagnostic report is authentic and exactly consistent with the immutable blockchain-anchored fingerprint.'
-                : 'MISMATCH: Cryptographic fingerprint differs! The report has been tampered with or modified since anchoring on the blockchain.'
-        });
+                institutionNode: block.data.institutionNode,
+                onChain: block.data.onChain || report.onChain || null
+            };
+        }
 
+        return res.json(payload);
     } catch (err) {
         console.error('[Verification Controller Error]:', err);
-        return res.status(500).json({ success: false, message: 'Verification error.', error: err.message });
+        return res.status(500).json({ success: false, message: 'Verification error.' });
     }
 }
 
 /**
- * Live Demonstration Helper: Tamper with Off-Chain File
- * Modifies 1 byte in the encrypted storage file to show live panel how verification triggers MISMATCH
+ * DEMO_MODE ONLY: Non-destructive in-memory tamper simulation (never mutates encrypted files on disk!)
  */
-function tamperOffChainFile(req, res) {
-    try {
-        const { reportId } = req.params;
-        const report = db.findReportById(reportId);
-        if (!report) {
-            return res.status(404).json({ success: false, message: 'Report not found.' });
-        }
-
-        const filePath = path.join(UPLOADS_DIR, report.storageReference);
-        if (!fs.existsSync(filePath)) {
-            return res.status(404).json({ success: false, message: 'Off-chain file not found.' });
-        }
-
-        // Intentionally corrupt bytes to simulate unauthorized tampering
-        const data = fs.readFileSync(filePath);
-        // Flip bits in the data payload
-        data[25] = data[25] ^ 0xFF;
-        data[26] = data[26] ^ 0xAA;
-        fs.writeFileSync(filePath, data);
-
-        db.logAudit(
-            'DEMO_FILE_TAMPER_INJECTED',
-            'Evaluator / Demo Console',
-            `Injected deliberate tampering in off-chain file for ${reportId} to demonstrate blockchain mismatch detection.`
-        );
-
-        return res.json({
-            success: true,
-            tampered: true,
-            message: `Deliberate byte corruption injected into off-chain file '${report.storageReference}'. Run verification now to see blockchain detect the tampering!`,
-            reportId
-        });
-
-    } catch (err) {
-        return res.status(500).json({ success: false, message: 'Tamper simulation failed.', error: err.message });
+function simulateTamperInMemory(req, res) {
+    if (!config.DEMO_MODE) {
+        return res.status(404).json({ success: false, message: 'Not found.' });
     }
+    const { reportId } = req.params;
+    const report = db.findReportById(reportId);
+    if (!report) {
+        return res.status(404).json({ success: false, message: 'Report not found.' });
+    }
+
+    simulatedTamperedReports.add(report.reportId);
+    db.logAudit('DEMO_TAMPER_SIMULATED_IN_MEMORY', req.user.name, `Activated non-destructive in-memory tamper simulation for ${reportId} (disk file unchanged)`);
+
+    return res.json({
+        success: true,
+        tampered: true,
+        nonDestructive: true,
+        reportId: report.reportId,
+        message: `Non-destructive tamper simulation activated for ${reportId} (stored encrypted file on disk was NOT modified). Re-run verification to observe MISMATCH.`
+    });
+}
+
+function resetTamperInMemory(req, res) {
+    if (!config.DEMO_MODE) {
+        return res.status(404).json({ success: false, message: 'Not found.' });
+    }
+    const { reportId } = req.params;
+    simulatedTamperedReports.delete(reportId);
+    db.logAudit('DEMO_TAMPER_SIMULATION_RESET', req.user.name, `Cleared in-memory tamper simulation for ${reportId}`);
+
+    return res.json({
+        success: true,
+        tampered: false,
+        reportId,
+        message: `Tamper simulation cleared for ${reportId}.`
+    });
 }
 
 module.exports = {
     getReportQRCode,
     verifyReportIntegrity,
-    tamperOffChainFile
+    simulateTamperInMemory,
+    resetTamperInMemory
 };

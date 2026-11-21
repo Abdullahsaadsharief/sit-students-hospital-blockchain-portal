@@ -1,12 +1,45 @@
+# Render Deployment Blueprint — SIT Students Hospital Portal (Hardened v2.0)
+# NOTE on Persistence: Render's Free web service uses an ephemeral filesystem (resets on redeploy/sleep).
+# For durable real-world storage, attach a Render Persistent Disk (Starter plan+) mounted at /var/data
+# and set DATA_DIR=/var/data/data and UPLOADS_DIR=/var/data/uploads, OR migrate to PostgreSQL + S3/GCS.
 services:
   - type: web
     name: sit-students-hospital-portal
     env: node
     plan: free
-    buildCommand: npm install
+    buildCommand: npm ci --omit=dev
     startCommand: node server.js
+    healthCheckPath: /healthz
     envVars:
       - key: NODE_ENV
         value: production
+      - key: DEMO_MODE
+        value: "false"
+      - key: ALLOW_PUBLIC_DEMO
+        value: "false"
+      - key: TRUST_PROXY
+        value: "1"
+      - key: AI_EXTERNAL_PROCESSING
+        value: "false"
       - key: JWT_SECRET
         generateValue: true
+      - key: SHARE_JWT_SECRET
+        generateValue: true
+      - key: ENCRYPTION_KEY
+        sync: false # Set to 64 hex chars (32 random bytes) in Render Dashboard
+      - key: BOOTSTRAP_ADMIN_EMAIL
+        sync: false # e.g. admin@sithospital.org
+      - key: BOOTSTRAP_ADMIN_PASSWORD
+        sync: false # Strong >=12-char password set in Render Dashboard
+      - key: CORS_ORIGINS
+        sync: false # e.g. https://sit-students-hospital-portal.onrender.com
+      - key: BLOCKCHAIN_RPC_URL
+        sync: false # Ethereum Sepolia RPC URL (Alchemy / Infura)
+      - key: BLOCKCHAIN_PRIVATE_KEY
+        sync: false # Dedicated Sepolia deployer/hospital signer wallet private key
+      - key: BLOCKCHAIN_CONTRACT_ADDRESS
+        sync: false # Deployed SITStudentsHospitalLedger.sol address on Sepolia
+      - key: BLOCKCHAIN_NETWORK_NAME
+        value: Ethereum Sepolia Testnet
+      - key: BLOCKCHAIN_EXPLORER_URL
+        value: https://sepolia.etherscan.io

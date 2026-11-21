@@ -42,21 +42,27 @@
 
             <!-- Mode Selector Tabs -->
             <div class="login-mode-tabs">
-                <button type="button" class="login-mode-tab active" id="tabQuickLogin"
+                <button type="button" class="login-mode-tab" id="tabQuickLogin" style="display: none;"
                     onclick="switchLoginMode('quick')">
-                    ⚡ Staff &amp; Patient Quick Access
+                    ⚡ Demo Quick Access
+                </button>
+                <button type="button" class="login-mode-tab active" id="tabCredsLogin" onclick="switchLoginMode('creds')">
+                    🔑 Staff &amp; Admin Sign-In
                 </button>
                 <button type="button" class="login-mode-tab" id="tabBillLogin"
                     onclick="switchLoginMode('bill')">
-                    🧾 Patient Login (Bill Number Only)
-                </button>
-                <button type="button" class="login-mode-tab" id="tabCredsLogin" onclick="switchLoginMode('creds')">
-                    🔑 Staff Credentials Sign-In
+                    🧾 Patient Portal Sign-In (Bill + Code)
                 </button>
             </div>
 
-            <!-- Mode 1: Quick Role Login Cards -->
-            <div id="quickLoginView">
+            <!-- Mode 1: Quick Role Login Cards (Shown ONLY when DEMO_MODE=true) -->
+            <div id="quickLoginView" style="display: none;">
+                <div class="alert-box alert-info" style="margin-bottom: 1rem;">
+                    <span>🧪</span>
+                    <div>
+                        <strong>Academic DEMO_MODE Active:</strong> One-click synthetic demo accounts are enabled for presentation purposes only. No real patient data should be entered in DEMO_MODE.
+                    </div>
+                </div>
                 <div class="role-cards-grid">
                     <!-- Doctor Card -->
                     <div class="role-card-select" onclick="loginAsRole('usr_doc_01')">
@@ -74,9 +80,9 @@
                         </div>
                         <div>
                             <div class="role-card-perms">
-                                <strong>Permissions:</strong> Access all patient reports in SIT Students Hospital, add clinical remarks &amp; prescriptions.
+                                <strong>Permissions:</strong> View hospital reports, write prescriptions &amp; upload prescription documents.
                             </div>
-                            <button type="button" class="btn-login-select">Sign In as Doctor →</button>
+                            <button type="button" class="btn-login-select">Demo Sign-In as Doctor →</button>
                         </div>
                     </div>
 
@@ -96,9 +102,9 @@
                         </div>
                         <div>
                             <div class="role-card-perms">
-                                <strong>Permissions:</strong> Upload &amp; anchor patient lab reports for hospital doctors, SHA-256 duplicate check.
+                                <strong>Permissions:</strong> Upload &amp; anchor patient lab reports, SHA-256 duplicate check.
                             </div>
-                            <button type="button" class="btn-login-select">Sign In as Lab Staff →</button>
+                            <button type="button" class="btn-login-select">Demo Sign-In as Lab Staff →</button>
                         </div>
                     </div>
 
@@ -113,14 +119,14 @@
                                 </div>
                             </div>
                             <div class="role-card-desc">
-                                SIT Hospital Patient • Age: 48 • Blood Group: O+
+                                SIT Hospital Demo Patient • Age: 48 • Blood Group: O+
                             </div>
                         </div>
                         <div>
                             <div class="role-card-perms">
-                                <strong>Permissions:</strong> View own reports across all hospital doctors, download PDF with QR code.
+                                <strong>Permissions:</strong> View own reports &amp; prescriptions, manage revocable share links.
                             </div>
-                            <button type="button" class="btn-login-select">Sign In as Patient →</button>
+                            <button type="button" class="btn-login-select">Demo Sign-In as Patient →</button>
                         </div>
                     </div>
 
@@ -135,125 +141,90 @@
                                 </div>
                             </div>
                             <div class="role-card-desc">
-                                SIT Students Hospital Administration &amp; Settings
+                                SIT Students Hospital Administration &amp; Audit
                             </div>
                         </div>
                         <div>
                             <div class="role-card-perms">
-                                <strong>Permissions:</strong> Manage hospital doctors &amp; lab staff, configure Receptionist settings &amp; audit logs.
+                                <strong>Permissions:</strong> Manage staff/patients, inspect blockchain &amp; audit trail.
                             </div>
-                            <button type="button" class="btn-login-select">Sign In as Admin →</button>
+                            <button type="button" class="btn-login-select">Demo Sign-In as Admin →</button>
                         </div>
                     </div>
                 </div>
 
-                <!-- Other Doctors & Patients Inside SIT Students Hospital -->
                 <div class="theme-subbox" style="margin-top: 1.25rem; padding: 1.1rem; border-radius: var(--radius-md);">
-                    <div
-                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 0.5rem;">
-                        <span
-                            style="font-size: 0.8rem; font-weight: 700; color: var(--accent-cyan); text-transform: uppercase; letter-spacing: 0.5px;">
-                            🏥 Other Department Doctors &amp; Patients at SIT Students Hospital
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 0.5rem;">
+                        <span style="font-size: 0.8rem; font-weight: 700; color: var(--accent-cyan); text-transform: uppercase; letter-spacing: 0.5px;">
+                            🏥 Additional Synthetic Demo Accounts
                         </span>
-                        <span style="font-size: 0.72rem; color: var(--text-muted);">Sign in directly as another hospital department doctor or patient</span>
                     </div>
                     <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
-                        <button type="button" class="btn btn-secondary"
-                            style="font-size: 0.76rem; padding: 6px 12px;"
-                            onclick="loginAsRole('usr_doc_02')">👨‍⚕️ Dr. Rajesh Nair (Orthopedics Wing)</button>
-                        <button type="button" class="btn btn-secondary"
-                            style="font-size: 0.76rem; padding: 6px 12px;"
-                            onclick="loginAsRole('usr_doc_03')">👩‍⚕️ Dr. Ananya Sen (Pulmonology Wing)</button>
-                        <button type="button" class="btn btn-secondary"
-                            style="font-size: 0.76rem; padding: 6px 12px;"
-                            onclick="loginAsRole('usr_doc_04')">👨‍⚕️ Dr. Vikram Mehta (Neurology Wing)</button>
-                        <button type="button" class="btn btn-secondary"
-                            style="font-size: 0.76rem; padding: 6px 12px;"
-                            onclick="loginAsRole('usr_pat_02')">👩 Meera Patel (PT-9902)</button>
-                        <button type="button" class="btn btn-secondary"
-                            style="font-size: 0.76rem; padding: 6px 12px;"
-                            onclick="loginAsRole('usr_pat_03')">👨 Robert Chen (PT-9903)</button>
-                        <button type="button" class="btn btn-secondary"
-                            style="font-size: 0.76rem; padding: 6px 12px;"
-                            onclick="loginAsRole('usr_pat_04')">👩 Ayesha Khan (PT-9904)</button>
-                    </div>
-                </div>
-
-                <!-- Patient Passwordless Bill Number Login Bar -->
-                <div class="theme-subbox" style="margin-top: 1.15rem; padding: 1.1rem; border-radius: var(--radius-md); border-left: 4px solid var(--accent-teal);">
-                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 0.65rem;">
-                        <div>
-                            <span style="font-size: 0.82rem; font-weight: 800; color: var(--accent-teal); text-transform: uppercase;">
-                                🧾 Patient Direct Login (Bill Number / Reception ID Only — No Password Needed)
-                            </span>
-                            <div style="font-size: 0.76rem; color: var(--text-secondary);">
-                                Enter the Bill Number generated by the Receptionist at <a href="/reception" style="color: var(--accent-cyan); font-weight: 700;">/reception</a> to view your medical reports:
-                            </div>
-                        </div>
-                        <a href="/reception" class="btn btn-secondary" style="font-size: 0.76rem; padding: 6px 12px; text-decoration: none;">
-                            🗂️ Go to Receptionist Page to Add New Patient &rarr;
-                        </a>
-                    </div>
-                    <div style="display: flex; gap: 0.65rem; flex-wrap: wrap;">
-                        <input type="text" id="quickBillNumberInput" class="form-control"
-                            placeholder="Enter Reception Bill Number (e.g. BILL-2026-1001 or BILL-2026-1005)"
-                            style="flex: 1; min-width: 240px; font-family: var(--font-mono); font-weight: 700;"
-                            value="BILL-2026-1001">
-                        <button type="button" class="btn btn-primary" onclick="loginWithBillNumber(document.getElementById('quickBillNumberInput').value)">
-                            🧑 Login with Bill Number &rarr;
-                        </button>
+                        <button type="button" class="btn btn-primary" style="font-size: 0.76rem; padding: 6px 12px;" onclick="loginAsDemoReceptionist()">🗂️ Ms. Priya Nair (Receptionist Desk)</button>
+                        <button type="button" class="btn btn-secondary" style="font-size: 0.76rem; padding: 6px 12px;" onclick="loginAsRole('usr_doc_02')">👨‍⚕️ Dr. Rajesh Nair</button>
+                        <button type="button" class="btn btn-secondary" style="font-size: 0.76rem; padding: 6px 12px;" onclick="loginAsRole('usr_doc_03')">👩‍⚕️ Dr. Ananya Sen</button>
+                        <button type="button" class="btn btn-secondary" style="font-size: 0.76rem; padding: 6px 12px;" onclick="loginAsRole('usr_doc_04')">👨‍⚕️ Dr. Vikram Mehta</button>
+                        <button type="button" class="btn btn-secondary" style="font-size: 0.76rem; padding: 6px 12px;" onclick="loginAsRole('usr_pat_02')">👩 Meera Patel</button>
+                        <button type="button" class="btn btn-secondary" style="font-size: 0.76rem; padding: 6px 12px;" onclick="loginAsRole('usr_pat_03')">👨 Robert Chen</button>
+                        <button type="button" class="btn btn-secondary" style="font-size: 0.76rem; padding: 6px 12px;" onclick="loginAsRole('usr_pat_04')">👩 Ayesha Khan</button>
                     </div>
                 </div>
             </div>
 
-            <!-- Mode 1.5: Dedicated Patient Bill Number Login (No Password) -->
+            <!-- Mode 1.5: Patient Portal Login (Bill Number + 8-Char Access Code or Personal Password) -->
             <div id="billLoginView" style="display: none;">
                 <div class="login-form-box">
                     <form id="patientBillPortalForm">
                         <div class="form-group">
-                            <label class="form-label">Reception Bill Number / Customer ID *</label>
+                            <label class="form-label">Reception Bill Number / Patient UHID *</label>
                             <input type="text" id="portalBillNumberInput" class="form-control"
-                                placeholder="e.g. BILL-2026-1001 or BILL-2026-1005"
-                                style="font-family: var(--font-mono); font-size: 1.05rem; font-weight: 700;" required>
+                                placeholder="e.g. BILL-2026-1005"
+                                style="font-family: var(--font-mono); font-size: 1rem; font-weight: 700;" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">8-Character One-Time Access Code (First Login) OR Personal Password *</label>
+                            <input type="password" id="portalBillSecretInput" class="form-control"
+                                placeholder="Enter 8-char Access Code from OPD Bill Slip or your password"
+                                autocomplete="current-password" required>
                             <p style="font-size: 0.76rem; color: var(--text-muted); margin-top: 6px;">
-                                Patients do <strong>not</strong> need a username or password. Simply enter the Bill Number generated on the <a href="/reception" style="color: var(--accent-cyan);">Receptionist Page</a>.
+                                First-time patients enter the <strong>8-character One-Time Access Code</strong> issued at the <a href="/reception" style="color: var(--accent-cyan);">Reception Desk</a>, then set a personal password.
                             </p>
                         </div>
+                        <div class="form-group" style="display: flex; align-items: center; gap: 8px; font-size: 0.82rem;">
+                            <input type="checkbox" id="portalUseAccessCodeCheckbox" checked>
+                            <label for="portalUseAccessCodeCheckbox" style="cursor: pointer; color: var(--text-secondary);">
+                                Using one-time 8-character Access Code (uncheck if using your personal password)
+                            </label>
+                        </div>
                         <button type="submit" class="btn btn-primary" style="width: 100%; padding: 12px; margin-top: 0.5rem;">
-                            🧾 Access My Medical Reports (No Password Required)
+                            🔒 Verify &amp; Access My Medical Reports
                         </button>
                     </form>
-                    <div style="margin-top: 1rem; padding-top: 0.85rem; border-top: 1px solid var(--border-subtle);">
-                        <div style="font-size: 0.76rem; color: var(--text-muted); margin-bottom: 0.5rem;">Available Patient Bill Numbers:</div>
-                        <div id="portalBillChipsBox" style="display: flex; flex-wrap: wrap; gap: 0.45rem;">
-                            <button type="button" class="btn btn-secondary" style="font-size: 0.74rem; padding: 4px 10px;" onclick="loginWithBillNumber('BILL-2026-1001')">BILL-2026-1001 (John Doe)</button>
-                            <button type="button" class="btn btn-secondary" style="font-size: 0.74rem; padding: 4px 10px;" onclick="loginWithBillNumber('BILL-2026-1002')">BILL-2026-1002 (Meera Patel)</button>
-                            <button type="button" class="btn btn-secondary" style="font-size: 0.74rem; padding: 4px 10px;" onclick="loginWithBillNumber('BILL-2026-1003')">BILL-2026-1003 (Robert Chen)</button>
-                            <button type="button" class="btn btn-secondary" style="font-size: 0.74rem; padding: 4px 10px;" onclick="loginWithBillNumber('BILL-2026-1004')">BILL-2026-1004 (Ayesha Khan)</button>
-                        </div>
-                    </div>
                 </div>
             </div>
 
-            <!-- Mode 2: Standard Credentials Form -->
-            <div id="credsLoginView" style="display: none;">
+            <!-- Mode 2: Standard Staff / Admin Credentials Form (Default in Hardened Mode) -->
+            <div id="credsLoginView" style="display: block;">
                 <div class="login-form-box">
                     <form id="credentialLoginForm">
                         <div class="form-group">
-                            <label class="form-label">Email or Identity ID</label>
+                            <label class="form-label">Hospital Email / Bill ID *</label>
                             <input type="text" id="loginEmailInput" class="form-control"
-                                placeholder="e.g. dr.sarah@hospital.org or alex.lab@pathology.org" required>
+                                placeholder="e.g. admin@sithospital.org or dr.sarah@sithospital.org"
+                                autocomplete="username" required>
                         </div>
                         <div class="form-group">
-                            <label class="form-label">Password</label>
+                            <label class="form-label">Password *</label>
                             <input type="password" id="loginPasswordInput" class="form-control"
-                                placeholder="Default demo password: password123" value="password123" required>
-                            <p style="font-size: 0.74rem; color: var(--text-muted); margin-top: 4px;">Default consortium
-                                demo password: <code>password123</code></p>
+                                placeholder="Enter your account password"
+                                autocomplete="current-password" required>
+                            <p style="font-size: 0.74rem; color: var(--text-muted); margin-top: 4px;">
+                                Credentials are verified using salted scrypt hashing with brute-force lockout protection.
+                            </p>
                         </div>
                         <button type="submit" id="loginSubmitBtn" class="btn btn-primary"
                             style="width: 100%; padding: 12px; margin-top: 0.5rem;">
-                            🚀 Authenticate & Enter Consortium Portal
+                            🔒 Sign In to SIT Students Hospital Portal
                         </button>
                     </form>
                 </div>
@@ -598,6 +569,29 @@ Tab. Pantoprazole 40mg | 1-0-0 | 5 Days | Before Breakfast</textarea>
                                 🩺 Save Checkup Prescription &amp; Generate Official Slip
                             </button>
                         </form>
+
+                        <!-- F-15: Doctor Prescription Document Upload -->
+                        <div class="theme-subbox" style="margin-top: 1.5rem; padding: 1.15rem; border-radius: var(--radius-md); border-left: 4px solid var(--accent-teal);">
+                            <h4 style="font-size: 0.96rem; color: var(--accent-teal); margin-bottom: 0.35rem;">
+                                📎 Upload Signed / Scanned Prescription Document
+                            </h4>
+                            <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0.85rem;">
+                                Attach an existing prescription PDF/image/text file directly to the selected patient (encrypted with AES-256-GCM).
+                            </p>
+                            <form id="uploadPrescriptionDocForm" onsubmit="handleUploadPrescriptionDocument(event)">
+                                <div class="form-group">
+                                    <label class="form-label">Prescription File (PDF, PNG, JPG, WEBP, TXT) *</label>
+                                    <input type="file" id="rxAttachmentFileInput" class="form-control" accept=".pdf,.png,.jpg,.jpeg,.webp,.txt" required>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Clinical Note / Diagnosis Summary (Optional)</label>
+                                    <input type="text" id="rxAttachmentDiagnosisInput" class="form-control" placeholder="e.g. Scanned handwritten OPD prescription">
+                                </div>
+                                <button type="submit" id="btnUploadRxDoc" class="btn btn-secondary" style="width: 100%; padding: 10px;">
+                                    🔒 Encrypt &amp; Upload Prescription Document
+                                </button>
+                            </form>
+                        </div>
                     </div>
 
                     <!-- Right: Issued OPD Checkup & Prescription Slips List -->
@@ -833,9 +827,9 @@ Tab. Pantoprazole 40mg | 1-0-0 | 5 Days | Before Breakfast</textarea>
                             </button>
                         </div>
 
-                        <!-- Demo Test Reports Kit for Panel Evaluation -->
-                        <div class="theme-subbox"
-                            style="padding: 1.25rem; border-radius: var(--radius-md); margin-top: 1rem; border-left: 4px solid var(--accent-teal);">
+                        <!-- Demo Test Reports Kit for Panel Evaluation (Visible ONLY in DEMO_MODE) -->
+                        <div id="demoReportsKitCard" class="theme-subbox"
+                            style="display: none; padding: 1.25rem; border-radius: var(--radius-md); margin-top: 1rem; border-left: 4px solid var(--accent-teal);">
                             <h4
                                 style="font-size: 0.95rem; color: var(--text-primary); margin-bottom: 0.4rem; display: flex; align-items: center; gap: 6px;">
                                 <span>📁</span> <span>Sample PDF Reports Kit (Download &amp; Test Upload)</span>
@@ -1169,9 +1163,9 @@ Tab. Pantoprazole 40mg | 1-0-0 | 5 Days | Before Breakfast</textarea>
                                         placeholder="e.g. dr.priya@hospital.org" required>
                                 </div>
                                 <div class="form-group">
-                                    <label class="form-label">Account Password</label>
+                                    <label class="form-label">Initial Password (Optional — Auto-Generated if Empty)</label>
                                     <input type="password" id="newPasswordInput" class="form-control"
-                                        placeholder="Default: password123" value="password123">
+                                        placeholder="Min 10 chars, or leave blank for secure random temp password" autocomplete="new-password">
                                 </div>
                             </div>
 
@@ -1318,10 +1312,16 @@ Tab. Pantoprazole 40mg | 1-0-0 | 5 Days | Before Breakfast</textarea>
                         <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
                             <button class="btn btn-secondary" onclick="verifyChainIntegrity()">🔍 Audit Chain
                                 Integrity</button>
-                            <button class="btn btn-tamper" onclick="triggerTamperSimulation()">⚠️ Simulate Block
+                            <button id="btnDemoTamperChain" class="btn btn-tamper" style="display: none;" onclick="triggerTamperSimulation()">⚠️ Simulate Block
                                 Tampering</button>
-                            <button class="btn btn-secondary" onclick="restoreChain()">🔄 Restore Valid Ledger</button>
+                            <button id="btnDemoRestoreChain" class="btn btn-secondary" style="display: none;" onclick="restoreChain()">🔄 Restore Valid Ledger</button>
                         </div>
+                    </div>
+
+                    <!-- Live Ethereum EVM Blockchain Status Banner -->
+                    <div id="ethereumBlockchainStatusBar" class="alert-box alert-info" style="margin-bottom: 1.25rem;">
+                        <span>⛓️</span>
+                        <div id="ethereumBlockchainStatusText">Loading Ethereum blockchain connection status...</div>
                     </div>
 
                     <!-- SIT Students Hospital Internal Wing Nodes Strip -->
@@ -1619,13 +1619,12 @@ Tab. Pantoprazole 40mg | 1-0-0 | 5 Days | Before Breakfast</textarea>
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label">Authorized Duration Before Expiry</label>
+                    <label class="form-label">Authorized Duration Before Expiry (Max 24 Hours)</label>
                     <select id="shareDuration" class="form-control">
                         <option value="2">2 Minutes (Quick Demo for Panel Evaluation)</option>
                         <option value="15">15 Minutes</option>
                         <option value="60" selected>1 Hour (Standard Consultation)</option>
-                        <option value="1440">24 Hours (Full Day Access)</option>
-                        <option value="10080">7 Days</option>
+                        <option value="1440">24 Hours (Maximum Permitted Window)</option>
                     </select>
                 </div>
 
@@ -1636,7 +1635,7 @@ Tab. Pantoprazole 40mg | 1-0-0 | 5 Days | Before Breakfast</textarea>
                 </div>
 
                 <button type="submit" class="btn btn-share" style="width: 100%; padding: 12px; margin-top: 0.5rem;">
-                    ⏱️ Generate Signed Expiring JWT Link
+                    ⏱️ Generate Signed Revocable Share Link
                 </button>
             </form>
 
@@ -1646,15 +1645,52 @@ Tab. Pantoprazole 40mg | 1-0-0 | 5 Days | Before Breakfast</textarea>
                     Generated:</h4>
                 <input type="text" id="generatedShareUrl" class="form-control"
                     style="font-family: var(--font-mono); font-size: 0.82rem; margin-bottom: 0.75rem;" readonly>
-                <div style="display: flex; gap: 0.75rem;">
-                    <a id="openShareUrlBtn" href="#" target="_blank" class="btn btn-primary" style="flex: 1;">
+                <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+                    <a id="openShareUrlBtn" href="#" target="_blank" rel="noreferrer" class="btn btn-primary" style="flex: 1;">
                         🚀 Open Shared View
                     </a>
-                    <button class="btn btn-secondary" onclick="copyShareUrl()">
+                    <button type="button" class="btn btn-secondary" onclick="copyShareUrl()">
                         📋 Copy Link
                     </button>
                 </div>
             </div>
+
+            <!-- Active Share Links & Instant Revocation (F-13) -->
+            <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border-subtle);">
+                <h4 style="font-size: 0.88rem; color: var(--text-primary); margin-bottom: 0.65rem;">
+                    🔒 Your Issued Share Links (Instant Revocation)
+                </h4>
+                <div id="activeShareLinksContainer" style="display: flex; flex-direction: column; gap: 0.5rem; max-height: 180px; overflow-y: auto;">
+                    <div style="font-size: 0.8rem; color: var(--text-muted);">Loading active share links...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 5. Mandatory Password Setup / Change Password Modal -->
+    <div id="changePasswordModal" class="modal-overlay">
+        <div class="modal-container" style="max-width: 480px;">
+            <h3 style="font-size: 1.3rem; margin-bottom: 0.35rem;">🔐 Set Your Personal Password</h3>
+            <p id="changePasswordModalDesc" style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1.25rem;">
+                For your security, you must set a new personal password (at least 10 characters) before accessing hospital records.
+            </p>
+            <form id="changePasswordForm">
+                <div class="form-group" id="currentPasswordGroup" style="display: none;">
+                    <label class="form-label">Current Password</label>
+                    <input type="password" id="currentPasswordInput" class="form-control" autocomplete="current-password">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">New Password (Minimum 10 Characters) *</label>
+                    <input type="password" id="newPersonalPasswordInput" class="form-control" minlength="10" autocomplete="new-password" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Confirm New Password *</label>
+                    <input type="password" id="confirmPersonalPasswordInput" class="form-control" minlength="10" autocomplete="new-password" required>
+                </div>
+                <button type="submit" id="btnSubmitPasswordChange" class="btn btn-primary" style="width: 100%; padding: 12px;">
+                    ✓ Save Password &amp; Enter Portal
+                </button>
+            </form>
         </div>
     </div>
 

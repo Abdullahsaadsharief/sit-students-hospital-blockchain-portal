@@ -649,6 +649,7 @@ async function createSeedReports(uploadsDir, hostUrl = 'http://localhost:3000') 
         const pdfBuffer = await generateMedicalReportPDF(rep, hostUrl);
         const fileHash = computeSHA256(pdfBuffer);
         rep.reportHash = fileHash;
+        rep.sourceHash = fileHash;
 
         // Re-generate QR code data URL for frontend UI display
         const verificationUrl = `${hostUrl}/verify.html?reportId=${rep.reportId}`;
@@ -670,6 +671,7 @@ async function createSeedReports(uploadsDir, hostUrl = 'http://localhost:3000') 
             encryptedSize: encryptedBuffer.length,
             qrCodeDataUrl,
             verificationUrl,
+            clinicianReviewed: true,
             createdAt: new Date(rep.testDate).toISOString(),
             status: 'ANCHORED_ON_BLOCKCHAIN'
         });

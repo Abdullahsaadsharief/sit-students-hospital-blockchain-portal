@@ -33,8 +33,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const res = await fetch(`/api/share/view?token=${encodeURIComponent(token)}`);
             const data = await res.json();
 
-            if (!data.success || data.status === 'EXPIRED') {
-                showExpired(data.message || 'Access token has expired.');
+            if (!data.success || data.status === 'EXPIRED' || data.status === 'REVOKED') {
+                const heading = expiredCard.querySelector('h2');
+                if (heading && data.status === 'REVOKED') {
+                    heading.textContent = 'HTTP 403: Access Revoked';
+                }
+                showExpired(data.message || 'Access token has expired or been revoked.');
                 return;
             }
 

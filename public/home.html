@@ -458,23 +458,41 @@
                     display.style.borderColor = borderCol;
                     display.style.backgroundColor = bgCol;
 
-                    display.innerHTML = `
-                        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.75rem;">
-                            <strong style="color: ${borderCol}; font-size: 0.98rem;">${badgeText}</strong>
-                            <span style="font-family: var(--font-mono); font-size: 0.78rem; background: #ffffff; padding: 0.2rem 0.6rem; border-radius: 4px; border: 1px solid #cbd5e1;">
-                                Block #${data.blockchainDetails ? data.blockchainDetails.blockIndex : 1} • ${data.reportMetadata ? data.reportMetadata.testDate : ''}
-                            </span>
-                        </div>
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0.75rem; font-size: 0.85rem; margin-bottom: 0.75rem;">
-                            <div><strong>Investigation:</strong> ${data.reportMetadata ? data.reportMetadata.title : reportId}</div>
-                            <div><strong>Patient UHID:</strong> ${data.reportMetadata ? data.reportMetadata.patientPseudonym : 'PT-XXXX'}</div>
-                            <div><strong>Department Wing:</strong> ${data.blockchainDetails ? data.blockchainDetails.institutionNode : 'SIT Students Hospital'}</div>
-                        </div>
-                        <div style="font-family: var(--font-mono); font-size: 0.76rem; background: #ffffff; padding: 0.65rem; border-radius: 6px; border: 1px solid #cbd5e1; color: #334155; word-break: break-all;">
-                            <div><strong>Anchored Ledger SHA-256:</strong> ${data.anchoredBlockchainHash}</div>
-                            <div style="margin-top: 0.25rem;"><strong>Live File SHA-256 Check:</strong> ${data.liveComputedHash}</div>
-                        </div>
-                    `;
+                    const blockNum = data.blockchainDetails ? data.blockchainDetails.blockIndex : (data.blockIndex ?? '-');
+                    const anchoredTs = data.anchoredAt ? new Date(data.anchoredAt).toLocaleString() : '';
+                    const ethInfo = (data.onChainVerification && data.onChainVerification.checkedOnChain)
+                        ? `<div><strong>Ethereum On-Chain (${data.onChainVerification.network}):</strong> ${data.onChainVerification.onChainAuthentic ? 'CONFIRMED' : 'MISMATCH'}</div>`
+                        : '';
+
+                    display.innerHTML = '';
+                    const headerRow = document.createElement('div');
+                    headerRow.style.cssText = 'display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.65rem;';
+                    const badgeEl = document.createElement('strong');
+                    badgeEl.style.cssText = `color: ${borderCol}; font-size: 0.98rem;`;
+                    badgeEl.textContent = badgeText;
+                    const blockEl = document.createElement('span');
+                    blockEl.style.cssText = 'font-family: var(--font-mono); font-size: 0.78rem; background: #ffffff; padding: 0.2rem 0.6rem; border-radius: 4px; border: 1px solid #cbd5e1; color: #0f172a;';
+                    blockEl.textContent = `Block #${blockNum}${anchoredTs ? ' • ' + anchoredTs : ''}`;
+                    headerRow.appendChild(badgeEl);
+                    headerRow.appendChild(blockEl);
+
+                    const msgEl = document.createElement('div');
+                    msgEl.style.cssText = 'font-size: 0.86rem; color: #334155; margin-bottom: 0.5rem;';
+                    msgEl.textContent = data.verificationMessage || 'Verification completed.';
+
+                    const noteEl = document.createElement('div');
+                    noteEl.style.cssText = 'font-size: 0.78rem; color: #64748b;';
+                    noteEl.textContent = `Report Reference: ${data.reportId} • Public verification protects patient privacy by hiding personal clinical data.`;
+
+                    display.appendChild(headerRow);
+                    display.appendChild(msgEl);
+                    if (ethInfo) {
+                        const ethDiv = document.createElement('div');
+                        ethDiv.style.cssText = 'font-size: 0.82rem; color: #0f766e; margin-bottom: 0.35rem;';
+                        ethDiv.innerHTML = ethInfo;
+                        display.appendChild(ethDiv);
+                    }
+                    display.appendChild(noteEl);
                 }
             } catch (err) {
                 display.innerHTML = `<div style="color: #b91c1c;">Verification error: ${err.message}</div>`;

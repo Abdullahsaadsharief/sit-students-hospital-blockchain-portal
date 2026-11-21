@@ -1,14 +1,13 @@
 const fs = require('fs');
 const path = require('path');
-const dotenv = require('dotenv');
-dotenv.config();
+const config = require('../config');
 
 const { decryptBuffer } = require('../utils/cryptoUtils');
 const { generateMedicalReportPDF } = require('../utils/pdfGenerator');
 
 const OUTPUT_DIR = path.join(__dirname, '..', 'sample_reports_for_demo');
-const UPLOADS_DIR = path.join(__dirname, '..', 'uploads');
-const DB_PATH = path.join(__dirname, '..', 'data', 'database.json');
+const UPLOADS_DIR = config.UPLOADS_DIR;
+const DB_PATH = config.DB_FILE_PATH;
 
 async function exportDemoReports() {
     if (!fs.existsSync(OUTPUT_DIR)) {

@@ -1,4 +1,6 @@
+const config = require('../config');
 const blockchain = require('../blockchain/Blockchain');
+const { ethereumClient } = require('../blockchain/ethereumClient');
 const db = require('../models/db');
 
 function getBlockchainLedger(req, res) {
@@ -8,6 +10,7 @@ function getBlockchainLedger(req, res) {
         chainLength: blockchain.chain.length,
         isChainValid: chainValidation.isValid,
         validationDetails: chainValidation,
+        ethereum: ethereumClient.getStatus(),
         chain: blockchain.chain,
         nodes: blockchain.nodeNodes
     });
@@ -17,22 +20,29 @@ function verifyBlockchain(req, res) {
     const result = blockchain.isChainValid();
     db.logAudit(
         'BLOCKCHAIN_INTEGRITY_AUDIT',
-        req.user ? req.user.name : 'System Auditor',
-        `Full chain integrity verification: ${result.isValid ? 'VALID' : 'BROKEN'}`
+        req.user.name,
+        `Full local hash-chain integrity verification: ${result.isValid ? 'VALID' : 'BROKEN'}`
     );
     return res.json({
         success: true,
         isValid: result.isValid,
-        details: result
+        details: result,
+        ethereum: ethereumClient.getStatus()
     });
 }
 
+/**
+ * DEMO_MODE ONLY: Non-destructive in-memory block tamper simulation
+ */
 function simulateTamper(req, res) {
+    if (!config.DEMO_MODE) {
+        return res.status(404).json({ success: false, message: 'Not found.' });
+    }
     try {
-        const { blockIndex, maliciousHash } = req.body;
+        const { blockIndex, maliciousHash } = req.body || {};
         const targetIndex = parseInt(blockIndex, 10) || 1;
 
-        if (targetIndex >= blockchain.chain.length) {
+        if (targetIndex <= 0 || targetIndex >= blockchain.chain.length) {
             return res.status(400).json({ success: false, message: 'Block index does not exist in chain.' });
         }
 
@@ -41,29 +51,36 @@ function simulateTamper(req, res) {
 
         db.logAudit(
             'DEMO_BLOCK_TAMPERED',
-            req.user ? req.user.name : 'Evaluator Demo',
-            `Deliberate hash modification injected into Block #${targetIndex} to test tamper-evident consensus.`
+            req.user.name,
+            `Non-destructive tamper simulation injected into Block #${targetIndex} (disk ledger untouched).`
         );
 
         return res.json({
             success: true,
             tamperedBlockIndex: targetIndex,
-            message: `Block #${targetIndex} hash tampered with! Verification now detects broken integrity.`,
+            message: `Block #${targetIndex} hash tampered in memory! Chain verification now detects broken integrity.`,
             tamperedBlock,
             validationAfterTampering: validation
         });
     } catch (err) {
-        return res.status(500).json({ success: false, message: 'Tamper simulation failed.', error: err.message });
+        return res.status(500).json({ success: false, message: 'Tamper simulation failed.' });
     }
 }
 
+/**
+ * DEMO_MODE ONLY: Non-destructively restores only simulated-tamper blocks (NEVER calls db.seedInitialData()!)
+ */
 function restoreLedger(req, res) {
-    db.seedInitialData();
-    blockchain.loadChain();
+    if (!config.DEMO_MODE) {
+        return res.status(404).json({ success: false, message: 'Not found.' });
+    }
+    const { restoredCount, validation } = blockchain.restoreSimulatedTampering();
+    db.logAudit('DEMO_LEDGER_RESTORED', req.user.name, `Restored ${restoredCount} simulated-tamper block(s) non-destructively.`);
     return res.json({
         success: true,
-        message: 'Consortium blockchain ledger successfully restored to verified state.',
-        isValid: blockchain.isChainValid().isValid
+        restoredCount,
+        message: 'Ledger restored from pre-simulation snapshot without modifying database records.',
+        isValid: validation.isValid
     });
 }
 
@@ -89,6 +106,7 @@ function getSystemStats(req, res) {
             verifiedChecks,
             isBlockchainValid: chainValidation.isValid
         },
+        ethereum: ethereumClient.getStatus(),
         nodes: blockchain.nodeNodes
     });
 }

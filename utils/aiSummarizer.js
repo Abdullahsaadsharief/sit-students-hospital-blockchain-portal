@@ -1,8 +1,12 @@
 const { GoogleGenAI } = require('@google/genai');
+const config = require('../config');
+
+const CLINICAL_DISCLAIMER = 'Automated summary, not clinical advice; requires clinician review.';
 
 /**
- * Fallback Clinical Rule-based NLP Extractor
- * Operates 100% offline with zero dependencies or API keys.
+ * Offline Clinical Rule-based NLP Extractor
+ * Operates 100% locally without transmitting patient data externally.
+ * Strictly never fabricates normal results or certification claims (F-08).
  */
 function extractOfflineClinicalHighlights(rawText, metadata = {}) {
     const text = (rawText || '').trim();
@@ -10,15 +14,8 @@ function extractOfflineClinicalHighlights(rawText, metadata = {}) {
 
     const keyFindings = [];
     const abnormalFlags = [];
-    let diagnosticImpression = '';
-    let recommendedAction = '';
-
-    // Split text into sentences/lines
-    const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
-
     const testParameters = [];
 
-    // 1. Look for numeric lab measurements or key diagnostic observations
     const labPatterns = [
         { name: 'Fasting Blood Glucose', regex: /(?:glucose|fbs|fasting\s*sugar)[^\d]*(\d+(?:\.\d+)?)\s*(mg\/dl)?/i, normalMax: 100, normalMin: 70, unit: 'mg/dL' },
         { name: 'Post-Prandial Glucose', regex: /(?:ppbs|post\s*prandial)[^\d]*(\d+(?:\.\d+)?)\s*(mg\/dl)?/i, normalMax: 140, normalMin: 80, unit: 'mg/dL' },
@@ -34,8 +31,9 @@ function extractOfflineClinicalHighlights(rawText, metadata = {}) {
         const match = text.match(p.regex);
         if (match) {
             const valNum = parseFloat(match[1].replace(/,/g, ''));
-            const findingStr = `${p.name}: ${match[1]} ${p.unit}`;
-            keyFindings.push(findingStr);
+            if (Number.isNaN(valNum)) continue;
+
+            keyFindings.push(`${p.name}: ${match[1]} ${p.unit}`);
 
             const isHigh = valNum > p.normalMax;
             const isLow = valNum < p.normalMin;
@@ -50,138 +48,105 @@ function extractOfflineClinicalHighlights(rawText, metadata = {}) {
             });
 
             if (isHigh) {
-                abnormalFlags.push(`Elevated ${p.name} (${match[1]} ${p.unit}) - Above normal threshold (${p.normalMax} ${p.unit})`);
+                abnormalFlags.push(`Elevated ${p.name} (${match[1]} ${p.unit}) - Above reference threshold (${p.normalMax} ${p.unit})`);
             } else if (isLow) {
-                abnormalFlags.push(`Low ${p.name} (${match[1]} ${p.unit}) - Below normal threshold (${p.normalMin} ${p.unit})`);
+                abnormalFlags.push(`Low ${p.name} (${match[1]} ${p.unit}) - Below reference threshold (${p.normalMin} ${p.unit})`);
             }
         }
     }
 
-    // 2. Scan radiology / pathological descriptors
     if (textLower.includes('fracture')) {
-        abnormalFlags.push('Radiological evidence of cortical bone discontinuity / fracture identified');
-        keyFindings.push('Fracture identified on radiographic projection');
+        abnormalFlags.push('Radiological term "fracture" identified in text — requires radiologist confirmation.');
+        keyFindings.push('Text references a fracture finding');
         testParameters.push({
-            parameter: 'Cortical Bone Alignment',
-            value: 'Displaced Fracture',
-            ref: 'Intact Trabecular Pattern',
+            parameter: 'Cortical Bone Finding (Text Match)',
+            value: 'Fracture Mentioned',
+            ref: 'Verify on Source Image',
             status: 'ABNORMAL',
             isAbnormal: true
         });
     }
     if (textLower.includes('cardiomegaly')) {
-        abnormalFlags.push('Enlarged cardiac silhouette (Cardiomegaly) noted');
-        keyFindings.push('Cardiomegaly observed');
+        abnormalFlags.push('Text references "cardiomegaly" — requires clinician confirmation.');
+        keyFindings.push('Cardiomegaly noted in source text');
         testParameters.push({
-            parameter: 'Cardiothoracic Ratio',
-            value: '> 0.50 (Enlarged)',
-            ref: '< 0.50 Normal',
+            parameter: 'Cardiac Silhouette (Text Match)',
+            value: 'Cardiomegaly Mentioned',
+            ref: 'Verify on Source Image',
             status: 'ABNORMAL',
             isAbnormal: true
         });
     }
     if (textLower.includes('infiltrate') || textLower.includes('consolidation') || textLower.includes('pneumonia')) {
-        abnormalFlags.push('Pulmonary opacity / consolidation suspicious for acute respiratory infection');
-        keyFindings.push('Pulmonary parenchymal changes detected');
+        abnormalFlags.push('Pulmonary opacity / consolidation terms detected — requires clinician review.');
+        keyFindings.push('Pulmonary parenchymal terms detected in source text');
         testParameters.push({
-            parameter: 'Pulmonary Parenchyma',
-            value: 'Focal Consolidation',
-            ref: 'Clear Lung Fields',
+            parameter: 'Pulmonary Parenchyma (Text Match)',
+            value: 'Opacity / Consolidation Mentioned',
+            ref: 'Verify on Source Image',
             status: 'ABNORMAL',
             isAbnormal: true
         });
     }
 
-    // 3. Extract doctor's note or title as impression if available
-    if (metadata.title) {
-        keyFindings.unshift(`Investigation: ${metadata.title}`);
-    }
+    let diagnosticImpression;
+    let recommendedAction;
 
-    if (lines.length > 0 && keyFindings.length < 2) {
-        for (const line of lines.slice(0, 4)) {
-            if (line.length > 10 && !line.includes('Page') && !line.includes('---')) {
-                keyFindings.push(line.slice(0, 120));
-            }
-        }
-    }
-
-    // Fallback baseline parameters if no numeric measurements matched
     if (testParameters.length === 0) {
-        testParameters.push({
-            parameter: metadata.title || 'Diagnostic Assessment',
-            value: 'Completed & Certified',
-            ref: 'Diagnostic Protocol',
-            status: 'NORMAL',
-            isAbnormal: false
-        });
-        testParameters.push({
-            parameter: 'Specimen / Sample Quality',
-            value: 'Adequate for Evaluation',
-            ref: 'Optimal Clarity',
-            status: 'NORMAL',
-            isAbnormal: false
-        });
-        testParameters.push({
-            parameter: 'Physiological Baseline',
-            value: 'Within Established Limits',
-            ref: 'NABH Reference Range',
-            status: 'NORMAL',
-            isAbnormal: false
-        });
-    }
-
-    // 4. Synthesize diagnostic impression
-    if (abnormalFlags.length > 0) {
-        diagnosticImpression = `Clinical findings show ${abnormalFlags.length} significant out-of-range parameter(s). ${abnormalFlags[0]}.`;
-        recommendedAction = 'Recommend clinical correlation with attending physician and timely therapeutic intervention.';
+        // F-08: NEVER invent "Completed & Certified", "Within Established Limits", or "NABH Reference Range"
+        diagnosticImpression = 'No results could be extracted automatically; review the source document.';
+        recommendedAction = 'Clinician review of the original diagnostic document is required.';
+        keyFindings.length = 0;
+        keyFindings.push('No structured measurements could be extracted automatically; review the source document.');
+    } else if (abnormalFlags.length > 0) {
+        diagnosticImpression = `Automated parser flagged ${abnormalFlags.length} potentially out-of-range value(s). Verify against the source document.`;
+        recommendedAction = 'Clinician verification and clinical correlation required before treatment decisions.';
     } else {
-        diagnosticImpression = 'Investigated parameters appear consistent with expected clinical thresholds or baseline physiological limits.';
-        recommendedAction = 'Maintain routine clinical observation and follow-up as indicated by attending specialist.';
-    }
-
-    if (keyFindings.length === 0) {
-        keyFindings.push(metadata.title || 'Standard clinical diagnostic investigation recorded.');
-        keyFindings.push(`Specimen Category: ${metadata.reportType || 'Pathology / Diagnostic'}`);
+        diagnosticImpression = `Extracted ${testParameters.length} measurement(s) within standard text-rule intervals. Verify against the original lab reference range.`;
+        recommendedAction = 'Pending attending physician review and sign-off.';
     }
 
     return {
         testParameters: testParameters.slice(0, 5),
         keyFindings: keyFindings.slice(0, 5),
-        abnormalFlags: abnormalFlags.length > 0 ? abnormalFlags : ['No critical out-of-range anomalies flagged'],
+        abnormalFlags: abnormalFlags.length > 0
+            ? abnormalFlags
+            : (testParameters.length > 0 ? ['No automated out-of-range flags triggered (pending clinician review)'] : ['Unextracted — review original document']),
         diagnosticImpression,
         recommendedAction,
-        aiEngine: 'Local Clinical Rule Engine (Offline Verified)',
+        disclaimer: CLINICAL_DISCLAIMER,
+        clinicianReviewed: false,
+        aiEngine: 'Local Clinical Rule Engine (Offline)',
         analyzedAt: new Date().toISOString()
     };
 }
 
 /**
  * Hybrid Clinical AI Summarizer
- * Tries Google Gemini AI if API key is configured.
- * Automatically falls back to offline rule-based clinical NLP on any error or missing key.
- *
- * @param {string} rawText OCR text or clinical report content
- * @param {Object} metadata Report metadata (title, patient, type)
- * @returns {Promise<Object>} Structured clinical highlights
+ * Only invokes Google Gemini if BOTH AI_EXTERNAL_PROCESSING=true AND GEMINI_API_KEY is configured.
+ * Sends pseudonymous patient ID (never full patientName) to external AI providers.
  */
 async function generateClinicalHighlights(rawText, metadata = {}) {
     const apiKey = process.env.GEMINI_API_KEY;
+    const allowExternal = config.AI_EXTERNAL_PROCESSING === true;
 
-    if (!apiKey) {
-        console.log('[AI Summarizer] GEMINI_API_KEY not found. Running smart Offline Clinical NLP fallback.');
+    if (!allowExternal || !apiKey) {
         return extractOfflineClinicalHighlights(rawText, metadata);
     }
 
     try {
-        console.log('[AI Summarizer] Calling Google Gemini API for clinical document summarization...');
         const ai = new GoogleGenAI({ apiKey });
 
-        const prompt = `You are a certified senior clinical pathologist and medical document AI specialist.
-Analyze this medical investigation report text and extract a concise, structured diagnostic summary and test parameters.
+        // Privacy protection: pass only pseudonymous ID, never patient full name
+        const safePseudonym = metadata.patientPseudonym || 'PT-ANON';
 
-REPORT DETAILS:
+        const prompt = `You are assisting a hospital clinician by summarizing OCR/text from a diagnostic report.
+Do NOT invent or assume any test parameters or normal values that are not explicitly written in the text below.
+If no numeric or explicit clinical measurements are present, return an empty array for "testParameters" and state that no results could be extracted automatically.
+
+REPORT METADATA (DE-IDENTIFIED):
 Title: ${metadata.title || 'Diagnostic Report'}
-Patient: ${metadata.patientName || 'Patient'}
+Patient Reference: ${safePseudonym}
 Report Category: ${metadata.reportType || 'Clinical Investigation'}
 
 RAW REPORT CONTENT / OCR SCAN:
@@ -189,27 +154,25 @@ RAW REPORT CONTENT / OCR SCAN:
 ${(rawText || '').slice(0, 3500)}
 """
 
-Extract and return a valid JSON object matching this schema:
+Return a valid JSON object matching this exact schema:
 {
   "testParameters": [
     {
-      "parameter": "Parameter or investigation name (e.g. Fasting Blood Glucose, Total WBC, Cortical Bone)",
-      "value": "Observed measurement or state with unit (e.g. 118 mg/dL, 7,200 /mcL, Displaced Fracture)",
-      "ref": "Standard reference range or baseline (e.g. 70-100 mg/dL, 4,000-11,000 /mcL, Intact)",
+      "parameter": "Parameter name explicitly found in text",
+      "value": "Observed measurement with unit explicitly found in text",
+      "ref": "Reference interval if stated, else 'See source'",
       "status": "NORMAL or HIGH or LOW or ABNORMAL",
       "isAbnormal": true
     }
   ],
-  "keyFindings": ["2 to 4 concise bullet points describing key findings and observations"],
-  "abnormalFlags": ["List of out-of-range, high, low, or pathological results. If all normal, state 'No critical out-of-range anomalies flagged'"],
-  "diagnosticImpression": "1 to 2 sentence overall clinical summary conclusion",
-  "recommendedAction": "1 concise sentence recommending clinical follow-up or correlation"
-}
+  "keyFindings": ["Concise bullets grounded strictly in the provided text"],
+  "abnormalFlags": ["Only abnormal results explicitly present in the text"],
+  "diagnosticImpression": "1-2 sentence neutral summary requiring clinician confirmation",
+  "recommendedAction": "1 sentence noting clinician verification is required"
+}`;
 
-Extract 3 to 5 realistic clinical parameters from the report. Ensure valid JSON output.`;
-
-        const preferred = process.env.GEMINI_ACTIVE_MODEL || 'gemini-3-flash-preview';
-        const CANDIDATE_MODELS = [preferred, 'gemini-3-flash-preview', 'gemini-3.8-flash', 'gemini-flash-latest'].filter((v, i, a) => a.indexOf(v) === i);
+        const preferred = process.env.GEMINI_ACTIVE_MODEL || 'gemini-2.5-flash';
+        const CANDIDATE_MODELS = [preferred, 'gemini-2.5-flash', 'gemini-2.0-flash'].filter((v, i, a) => a.indexOf(v) === i);
         let response = null;
         let usedModel = null;
         let lastErr = null;
@@ -231,7 +194,6 @@ Extract 3 to 5 realistic clinical parameters from the report. Ensure valid JSON 
                 }
             } catch (mErr) {
                 lastErr = mErr;
-                console.warn(`[AI Summarizer] Model ${model} encountered error (${mErr.message}). Trying fallback model...`);
             }
         }
 
@@ -245,43 +207,40 @@ Extract 3 to 5 realistic clinical parameters from the report. Ensure valid JSON 
         if (jsonMatch) {
             try {
                 parsed = JSON.parse(jsonMatch[0]);
-            } catch (jsonErr) {
-                console.warn('[AI Summarizer] Regex JSON parse error:', jsonErr.message);
-            }
+            } catch (_) {}
         }
         if (!parsed) {
             parsed = JSON.parse(responseText.replace(/```json/gi, '').replace(/```/g, '').trim());
         }
 
-        // Sanitize test parameters
         let testParameters = [];
         if (Array.isArray(parsed.testParameters) && parsed.testParameters.length > 0) {
             testParameters = parsed.testParameters.slice(0, 5).map(p => ({
-                parameter: String(p.parameter || 'Investigation').slice(0, 45),
-                value: String(p.value || 'Observed').slice(0, 25),
-                ref: String(p.ref || 'Normal').slice(0, 25),
-                status: String(p.status || (p.isAbnormal ? 'ABNORMAL' : 'NORMAL')).toUpperCase().slice(0, 15),
+                parameter: String(p.parameter || 'Measurement').slice(0, 45),
+                value: String(p.value || 'See source').slice(0, 25),
+                ref: String(p.ref || 'See source').slice(0, 25),
+                status: String(p.status || (p.isAbnormal ? 'ABNORMAL' : 'OBSERVED')).toUpperCase().slice(0, 15),
                 isAbnormal: Boolean(p.isAbnormal)
             }));
         }
 
-        // If Gemini didn't return parameters, run offline parameter extractor to guarantee tabular display
-        if (testParameters.length === 0) {
-            const offline = extractOfflineClinicalHighlights(rawText, metadata);
-            testParameters = offline.testParameters || [];
-        }
-
         return {
             testParameters,
-            keyFindings: Array.isArray(parsed.keyFindings) ? parsed.keyFindings : [String(parsed.keyFindings)],
-            abnormalFlags: Array.isArray(parsed.abnormalFlags) ? parsed.abnormalFlags : [String(parsed.abnormalFlags)],
-            diagnosticImpression: parsed.diagnosticImpression || 'Clinical findings reviewed.',
-            recommendedAction: parsed.recommendedAction || 'Correlate clinically with attending physician.',
-            aiEngine: `Google Gemini (${usedModel || 'gemini-3-flash-preview'})`,
+            keyFindings: Array.isArray(parsed.keyFindings) && parsed.keyFindings.length > 0
+                ? parsed.keyFindings.map(String)
+                : ['No structured findings extracted automatically; review source document.'],
+            abnormalFlags: Array.isArray(parsed.abnormalFlags) && parsed.abnormalFlags.length > 0
+                ? parsed.abnormalFlags.map(String)
+                : ['Pending clinician verification against original document.'],
+            diagnosticImpression: parsed.diagnosticImpression || 'Automated summary pending clinician review.',
+            recommendedAction: parsed.recommendedAction || 'Clinician review of the original document is required.',
+            disclaimer: CLINICAL_DISCLAIMER,
+            clinicianReviewed: false,
+            aiEngine: `Google Gemini (${usedModel}) — De-identified External Summary`,
             analyzedAt: new Date().toISOString()
         };
     } catch (err) {
-        console.warn('[AI Summarizer] Gemini API call error or timeout. Falling back to Offline Clinical NLP:', err.message);
+        console.warn('[AI Summarizer] External AI unavailable, using offline rule parser:', err.message);
         const fallback = extractOfflineClinicalHighlights(rawText, metadata);
         fallback.aiEngine = 'Local Clinical Rule Engine (Offline Fallback)';
         return fallback;
@@ -295,7 +254,6 @@ async function testGeminiApiKey(apiKey) {
     const cleanKey = apiKey.trim();
     const ai = new GoogleGenAI({ apiKey: cleanKey });
 
-    // Step 1: Query Google's ModelService to verify the key and discover enabled models
     let availableModels = [];
     try {
         const pager = await ai.models.list({ config: { pageSize: 50 } });
@@ -306,46 +264,24 @@ async function testGeminiApiKey(apiKey) {
     } catch (listErr) {
         const msg = String(listErr.message || '');
         if (msg.includes('API_KEY_INVALID') || msg.includes('API key not valid') || msg.includes('PERMISSION_DENIED') || msg.includes('INVALID_ARGUMENT')) {
-            throw new Error('Google Gemini API key was rejected as invalid by Google AI Studio. Please verify the key.');
-        }
-        console.warn('[AI Gateway] models.list call failed:', listErr.message);
-    }
-
-    console.log('[AI Gateway] Available models discovered from Google:', availableModels.slice(0, 8));
-
-    // Models required by Google's API environment
-    const PREFERRED_MODELS = [
-        'gemini-3.8-flash',
-        'gemini-3-flash-preview',
-        'gemini-3.8-flash-lite',
-        'gemini-2.5-flash',
-        'gemini-2.0-flash'
-    ];
-
-    let candidates = [];
-    if (availableModels.length > 0) {
-        for (const pref of PREFERRED_MODELS) {
-            if (availableModels.includes(pref)) candidates.push(pref);
-        }
-        for (const m of availableModels) {
-            if (m.includes('flash') && !candidates.includes(m)) candidates.push(m);
+            throw new Error('Google Gemini API key was rejected as invalid by Google AI Studio.');
         }
     }
 
-    if (candidates.length === 0) {
-        candidates = ['gemini-3.8-flash', 'gemini-3-flash-preview', 'gemini-3.8-flash-lite'];
-    }
+    const PREFERRED_MODELS = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-flash-latest'];
+    const candidates = availableModels.length > 0
+        ? PREFERRED_MODELS.filter(m => availableModels.includes(m)).concat(availableModels.filter(m => m.includes('flash') && !PREFERRED_MODELS.includes(m)))
+        : PREFERRED_MODELS;
 
-    let activeModel = candidates[0];
+    let activeModel = candidates[0] || 'gemini-2.5-flash';
     let testSuccess = false;
     let lastError = null;
 
-    // Step 2: Test ping on top candidate models
     for (const model of candidates.slice(0, 3)) {
         try {
             const response = await ai.models.generateContent({
                 model,
-                contents: 'HealthChain Consortium Connection Check: Reply with OK',
+                contents: 'Connection check: reply OK',
                 config: { maxOutputTokens: 5 }
             });
             if (response) {
@@ -356,7 +292,6 @@ async function testGeminiApiKey(apiKey) {
         } catch (genErr) {
             lastError = genErr;
             const errMsg = String(genErr.message || '');
-            console.warn(`[AI Gateway Test] Model ${model} returned error (${errMsg}). Trying next candidate...`);
             if (errMsg.includes('API_KEY_INVALID') || errMsg.includes('PERMISSION_DENIED')) {
                 throw new Error('Google Gemini API key was rejected as invalid by Google AI Studio.');
             }
@@ -365,23 +300,21 @@ async function testGeminiApiKey(apiKey) {
 
     process.env.GEMINI_ACTIVE_MODEL = activeModel;
 
-    // Step 3: Handle outcome
     if (testSuccess) {
         return {
             success: true,
             activeModel,
-            message: `Cloud connection to Google Gemini (${activeModel}) confirmed! Real-time clinical AI inference is active.`
+            message: `Cloud connection to Google Gemini (${activeModel}) confirmed.`
         };
     }
 
     const lastMsg = lastError ? String(lastError.message || '') : '';
-    // If models.list succeeded or error was 503 (high demand) or 429, key is 100% verified by Google!
-    if (availableModels.length > 0 || lastMsg.includes('503') || lastMsg.includes('high demand') || lastMsg.includes('UNAVAILABLE') || lastMsg.includes('429')) {
+    if (availableModels.length > 0 || lastMsg.includes('503') || lastMsg.includes('429')) {
         return {
             success: true,
             activeModel,
-            warning: `Google authenticated your API key! Google Gemini (${activeModel}) cloud servers are currently experiencing temporary peak demand (503), but your key has been successfully activated. The gateway will attempt live Gemini cloud inference for report uploads and automatically use the offline clinical NLP fallback if Google servers are busy.`,
-            message: `API Key authenticated & activated with Google Gemini (${activeModel})!`
+            warning: 'API key authenticated, though cloud endpoints are currently busy; offline fallback remains available.',
+            message: `API Key verified for Google Gemini (${activeModel}).`
         };
     }
 
@@ -391,6 +324,6 @@ async function testGeminiApiKey(apiKey) {
 module.exports = {
     generateClinicalHighlights,
     extractOfflineClinicalHighlights,
-    testGeminiApiKey
+    testGeminiApiKey,
+    CLINICAL_DISCLAIMER
 };
-

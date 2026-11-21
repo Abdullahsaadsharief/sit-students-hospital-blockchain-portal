@@ -8,6 +8,8 @@ let selectedDoctorPatientId = null;
 let activeTagFilter = '';
 let currentVerificationUrl = '';
 let currentShareUrl = '';
+let currentModalPdfBlobUrl = null;
+let serverPublicConfig = { demoMode: false, blockchain: null };
 
 // Registered role definitions for quick demo switching
 const USERS_MAP = {
@@ -90,42 +92,85 @@ const USERS_MAP = {
 // ==========================================================================
 // 1. INITIALIZATION & SESSION RESTORATION
 // ==========================================================================
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     initPortalTheme();
     initTabs();
     initUploadDropzone();
     initSearch();
     initFormListeners();
 
+    await loadPublicServerConfig();
+
     // Check if session exists in localStorage
     const savedUserStr = localStorage.getItem('hc_current_user');
     if (authToken && savedUserStr) {
         try {
-            const savedUser = JSON.parse(savedUserStr);
-            applySession(authToken, savedUser);
+            const res = await fetch('/api/auth/me', { headers: getAuthHeaders() });
+            if (res.ok) {
+                const meData = await res.json();
+                applySession(authToken, meData.user);
+            } else {
+                showLoginScreen();
+            }
         } catch (e) {
-            console.warn('Session parse error, requiring login:', e);
-            logout();
+            showLoginScreen();
         }
     } else {
-        // Enforce mandatory login gate: show login screen, hide portal
         showLoginScreen();
     }
 
-    // Default test date to today
     const dateInput = document.getElementById('uploadDate');
     if (dateInput) {
         dateInput.value = new Date().toISOString().split('T')[0];
     }
 });
 
+async function loadPublicServerConfig() {
+    try {
+        const res = await fetch('/api/config/public');
+        if (res.ok) {
+            const data = await res.json();
+            serverPublicConfig = data;
+            const isDemo = Boolean(data.demoMode);
+            const tabQuick = document.getElementById('tabQuickLogin');
+            const demoKit = document.getElementById('demoReportsKitCard');
+            const btnTamper = document.getElementById('btnDemoTamperChain');
+            const btnRestore = document.getElementById('btnDemoRestoreChain');
+
+            if (tabQuick) tabQuick.style.display = isDemo ? 'inline-flex' : 'none';
+            if (demoKit) demoKit.style.display = isDemo ? 'block' : 'none';
+            if (btnTamper) btnTamper.style.display = isDemo ? 'inline-flex' : 'none';
+            if (btnRestore) btnRestore.style.display = isDemo ? 'inline-flex' : 'none';
+
+            if (isDemo) {
+                switchLoginMode('quick');
+            } else {
+                switchLoginMode('creds');
+            }
+            updateEthereumStatusBanner(data.blockchain);
+        }
+    } catch (e) {
+        switchLoginMode('creds');
+    }
+}
+
+function updateEthereumStatusBanner(eth) {
+    const textEl = document.getElementById('ethereumBlockchainStatusText');
+    if (!textEl || !eth) return;
+    if (eth.onChainEnabled) {
+        const link = eth.contractExplorerLink
+            ? ` • <a href="${escapeHtml(eth.contractExplorerLink)}" target="_blank" rel="noreferrer" style="color: var(--accent-cyan); font-weight: 700;">View Smart Contract on Explorer ↗</a>`
+            : '';
+        textEl.innerHTML = `<strong>Live Ethereum EVM Connected:</strong> ${escapeHtml(eth.mode)} • Contract: <code>${escapeHtml(eth.contractAddress)}</code>${link}`;
+    } else {
+        textEl.innerHTML = `<strong>Local Tamper-Evident Hash-Chain Mode:</strong> Live Ethereum Sepolia RPC/Contract not yet configured in <code>.env</code>. Run <code>npm run deploy:blockchain</code> to anchor reports on-chain.`;
+    }
+}
+
 function getAuthHeaders() {
     const headers = {};
     if (authToken) {
         headers['Authorization'] = `Bearer ${authToken}`;
-    }
-    if (currentUser && currentUser.id) {
-        headers['x-demo-user-id'] = currentUser.id;
     }
     return headers;
 }
@@ -141,6 +186,10 @@ function switchLoginMode(mode) {
     const billView = document.getElementById('billLoginView');
     const credsView = document.getElementById('credsLoginView');
 
+    if (mode === 'quick' && !serverPublicConfig.demoMode) {
+        mode = 'creds';
+    }
+
     if (quickTab) quickTab.classList.toggle('active', mode === 'quick');
     if (billTab) billTab.classList.toggle('active', mode === 'bill');
     if (credsTab) credsTab.classList.toggle('active', mode === 'creds');
@@ -150,32 +199,65 @@ function switchLoginMode(mode) {
     if (credsView) credsView.style.display = mode === 'creds' ? 'block' : 'none';
 }
 
-async function loginWithBillNumber(billNumber) {
+async function loginWithBillAndSecret(billNumber, secret, isAccessCode = true) {
     const cleanBill = (billNumber || '').trim();
-    if (!cleanBill) {
-        alert('Please enter your Reception Bill Number / Customer ID (e.g. BILL-2026-1001)');
+    const cleanSecret = (secret || '').trim();
+    if (!cleanBill || !cleanSecret) {
+        alert('Please enter both your Reception Bill Number and your 8-character Access Code (or personal password).');
         return;
     }
     try {
+        const body = isAccessCode
+            ? { billNumber: cleanBill, accessCode: cleanSecret }
+            : { billNumber: cleanBill, password: cleanSecret };
+
         const res = await fetch('/api/auth/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ billNumber: cleanBill })
+            body: JSON.stringify(body)
         });
         const data = await res.json();
         if (!res.ok || !data.success) {
-            alert(data.message || 'No patient found with that Bill Number.');
+            alert(data.message || 'Invalid Bill Number or Access Code.');
             return;
         }
         applySession(data.token, data.user);
     } catch (err) {
-        alert('Patient Bill login error: ' + err.message);
+        alert('Patient login error: ' + err.message);
+    }
+}
+
+async function loginAsDemoReceptionist() {
+    if (!serverPublicConfig.demoMode) {
+        alert('One-click demo sign-in is disabled in hardened mode.');
+        return;
+    }
+    try {
+        const res = await fetch('/api/auth/demo-login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId: 'usr_rec_01' })
+        });
+        const data = await res.json();
+        if (!res.ok || !data.success) {
+            alert(data.message || 'Demo Receptionist sign-in failed.');
+            return;
+        }
+        localStorage.setItem('sit_rec_token', data.token);
+        localStorage.setItem('sit_rec_user', JSON.stringify(data.user));
+        window.location.href = '/reception';
+    } catch (err) {
+        alert('Login error: ' + err.message);
     }
 }
 
 async function loginAsRole(userId) {
+    if (!serverPublicConfig.demoMode) {
+        alert('One-click demo sign-in is disabled in hardened mode. Please sign in with credentials.');
+        return;
+    }
     try {
-        const res = await fetch('/api/auth/login', {
+        const res = await fetch('/api/auth/demo-login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ userId })
@@ -183,7 +265,7 @@ async function loginAsRole(userId) {
 
         const data = await res.json();
         if (!res.ok || !data.success) {
-            alert('Authentication failed: ' + (data.message || 'Unknown error'));
+            alert('Demo authentication failed: ' + (data.message || 'Unknown error'));
             return;
         }
 
@@ -198,7 +280,7 @@ async function loginWithCredentials(emailOrId, password) {
         const res = await fetch('/api/auth/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email: emailOrId, password })
+            body: JSON.stringify({ identifier: emailOrId, password })
         });
 
         const data = await res.json();
@@ -213,6 +295,19 @@ async function loginWithCredentials(emailOrId, password) {
     }
 }
 
+function openChangePasswordModal(forced = false) {
+    const modal = document.getElementById('changePasswordModal');
+    const curGroup = document.getElementById('currentPasswordGroup');
+    const desc = document.getElementById('changePasswordModalDesc');
+    if (curGroup) curGroup.style.display = forced ? 'none' : 'block';
+    if (desc) {
+        desc.textContent = forced
+            ? 'First-time or reset sign-in detected. Please set a private password (minimum 10 characters) to unlock your hospital portal.'
+            : 'Update your account password (minimum 10 characters).';
+    }
+    if (modal) modal.classList.add('active');
+}
+
 function applySession(token, user) {
     authToken = token;
     currentUser = user;
@@ -220,21 +315,27 @@ function applySession(token, user) {
     localStorage.setItem('hc_auth_token', token);
     localStorage.setItem('hc_current_user', JSON.stringify(user));
 
-    // Hide Login Screen and Reveal Application
     document.getElementById('loginScreen').style.display = 'none';
     document.getElementById('appScreen').style.display = 'block';
 
-    // Update Banner & Header Identifiers
     updateUserDisplay(user);
-
-    // Enforce Role Permissions across Navigation & Views
     applyRolePermissions(user.role);
 
-    // Load initial data according to role permissions
-    loadStats();
-    refreshConsortiumUsers();
+    if (user.mustChangePassword) {
+        openChangePasswordModal(true);
+        return;
+    }
+
+    if (user.role !== 'Patient') {
+        loadStats();
+        refreshConsortiumUsers();
+    }
     if (user.role === 'Lab Staff') {
         loadLabRequestsQueue();
+    } else if (user.role === 'Patient') {
+        loadReports();
+        loadTimeline();
+        loadPrescriptions();
     } else {
         loadReports();
         loadTimeline();
@@ -623,7 +724,7 @@ function renderReports(reports) {
     }
 
     const isDoctorOrAdmin = currentUser && (currentUser.role === 'Doctor' || currentUser.role === 'Admin');
-    const canDelete = currentUser && (currentUser.role === 'Lab Staff' || currentUser.role === 'Admin' || currentUser.role === 'Doctor');
+    const canDelete = currentUser && currentUser.role === 'Admin';
 
     filtered.forEach(r => {
         const card = document.createElement('div');
@@ -1371,16 +1472,56 @@ function initFormListeners() {
         });
     }
 
-    // 1b. Patient Bill Number Login Form (Passwordless)
+    // 1b. Patient Portal Login Form (Bill Number + 8-Char Access Code or Password)
     const billForm = document.getElementById('patientBillPortalForm');
     if (billForm) {
         billForm.addEventListener('submit', (e) => {
             e.preventDefault();
             const billNo = document.getElementById('portalBillNumberInput').value;
-            loginWithBillNumber(billNo);
+            const secret = document.getElementById('portalBillSecretInput').value;
+            const useCode = document.getElementById('portalUseAccessCodeCheckbox')?.checked !== false;
+            loginWithBillAndSecret(billNo, secret, useCode);
         });
     }
-    refreshConsortiumUsers();
+
+    // 1c. Mandatory / Voluntary Change Password Form
+    const changePwForm = document.getElementById('changePasswordForm');
+    if (changePwForm) {
+        changePwForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const currentPassword = document.getElementById('currentPasswordInput')?.value || '';
+            const newPassword = document.getElementById('newPersonalPasswordInput').value;
+            const confirmPassword = document.getElementById('confirmPersonalPasswordInput').value;
+
+            if (newPassword !== confirmPassword) {
+                alert('New password and confirmation do not match.');
+                return;
+            }
+            if (newPassword.length < 10) {
+                alert('Password must be at least 10 characters long.');
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/auth/change-password', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
+                    body: JSON.stringify({ currentPassword, newPassword })
+                });
+                const data = await res.json();
+                if (!res.ok || !data.success) {
+                    alert(data.message || 'Password update failed.');
+                    return;
+                }
+                closeModal('changePasswordModal');
+                changePwForm.reset();
+                showToast('✓ Personal password saved! Session refreshed.', 'success');
+                applySession(data.token, data.user);
+            } catch (err) {
+                alert('Error changing password: ' + err.message);
+            }
+        });
+    }
 
     // 2. Doctor Edit Report Form
     const editForm = document.getElementById('editReportForm');
@@ -1451,7 +1592,10 @@ function initFormListeners() {
 
                 const data = await res.json();
                 if (data.success) {
-                    alert(`✓ SUCCESS: ${role} account created for ${name} (${email})!\nDefault password: ${password || 'password123'}`);
+                    const credMsg = data.oneTimeAccessCode
+                        ? `\nOne-Time Patient Access Code (72h): ${data.oneTimeAccessCode}\nTemporary Password: ${data.temporaryPassword}`
+                        : `\nOne-Time Temporary Password: ${data.temporaryPassword}`;
+                    alert(`✓ SUCCESS: ${role} account created for ${name} (${email})!${credMsg}\n\nShare this credential securely — password reset is required on first login.`);
                     adminUserForm.reset();
                     updateRoleSpecificFields();
                     loadAdminUsers();
@@ -1486,6 +1630,7 @@ function initFormListeners() {
                     document.getElementById('generatedShareUrl').value = data.shareUrl;
                     document.getElementById('openShareUrlBtn').href = data.shareUrl;
                     document.getElementById('shareResultBox').style.display = 'block';
+                    loadActiveShareLinks();
                 } else {
                     alert('Share failed: ' + data.message);
                 }
@@ -1508,11 +1653,16 @@ async function loadBlockchain() {
 
         stream.innerHTML = '';
         if (!data.success || !data.chain) return;
+        if (data.ethereum) updateEthereumStatusBanner(data.ethereum);
 
         data.chain.forEach(block => {
             const card = document.createElement('div');
             const isGenesis = (block.index === 0);
             const isTampered = (block.data && block.data.tampered);
+            const onChain = block.data && block.data.onChain;
+            const onChainHtml = onChain && onChain.txHash
+                ? `<div class="hash-row"><span class="hash-label">Ethereum TX:</span><a href="${escapeHtml(onChain.explorerTxUrl || '#')}" target="_blank" rel="noreferrer" style="color: var(--accent-success); font-weight: 700;">${escapeHtml(onChain.txHash)} (Block #${escapeHtml(String(onChain.ethBlockNumber || ''))}) ↗</a></div>`
+                : '';
 
             card.className = `block-card ${isGenesis ? 'genesis' : ''} ${isTampered ? 'tampered' : ''}`;
 
@@ -1521,7 +1671,7 @@ async function loadBlockchain() {
                     <div>
                         <span class="block-index-tag">${isGenesis ? '⭐ GENESIS BLOCK #0' : `BLOCK #${block.index}`}</span>
                         <strong style="margin-left: 10px; font-size: 0.95rem;">
-                            ${isGenesis ? 'Consortium Genesis Anchor' : (block.data.reportType || 'Medical Report Block')}
+                            ${isGenesis ? 'Hospital Hash-Chain Genesis' : escapeHtml(block.data.reportType || 'Medical Report Block')}
                         </strong>
                     </div>
                     <span style="font-size: 0.78rem; color: var(--text-muted);">
@@ -1537,6 +1687,7 @@ async function loadBlockchain() {
                     <span class="hash-label">Prev Hash:</span>
                     <span style="color: #94a3b8;">${escapeHtml(block.previousHash)}</span>
                 </div>
+                ${onChainHtml}
 
                 <div style="background: rgba(0,0,0,0.3); border-radius: var(--radius-sm); padding: 0.75rem 1rem; margin-top: 0.75rem; font-size: 0.82rem;">
                     <strong>Block Payload Data:</strong>
@@ -1714,8 +1865,8 @@ async function openReportModal(reportId) {
         editBtn.style.display = 'none';
     }
 
-    // Delete button inside modal
-    const canDelete = currentUser && (currentUser.role === 'Lab Staff' || currentUser.role === 'Admin' || currentUser.role === 'Doctor');
+    // Soft-delete button inside modal (Admin ONLY — F-04)
+    const canDelete = currentUser && currentUser.role === 'Admin';
     if (deleteBtn) {
         if (canDelete) {
             deleteBtn.style.display = 'inline-flex';
@@ -1817,20 +1968,25 @@ async function openReportModal(reportId) {
 
             content.innerHTML = bodyHtml || '<div style="color: var(--text-muted);">Decrypted diagnostic investigation archived on blockchain.</div>';
 
-            // Configure live PDF URL
-            let livePdfUrl = `/api/reports/${encodeURIComponent(r.reportId)}/download?inline=true`;
-            if (authToken) {
-                livePdfUrl += `&token=${encodeURIComponent(authToken)}`;
-            } else if (currentUser && currentUser.id) {
-                livePdfUrl += `&demoUserId=${encodeURIComponent(currentUser.id)}`;
+            // Fetch authenticated PDF via Authorization header -> Blob URL (NEVER ?token= in URL!)
+            if (currentModalPdfBlobUrl) {
+                URL.revokeObjectURL(currentModalPdfBlobUrl);
+                currentModalPdfBlobUrl = null;
             }
-
-            if (pdfFrame) {
-                pdfFrame.src = livePdfUrl;
-            }
+            if (pdfFrame) pdfFrame.src = 'about:blank';
             if (openPdfTabBtn) {
-                openPdfTabBtn.href = livePdfUrl;
+                openPdfTabBtn.href = '#';
+                openPdfTabBtn.onclick = async (e) => {
+                    e.preventDefault();
+                    if (currentModalPdfBlobUrl) {
+                        window.open(currentModalPdfBlobUrl, '_blank', 'noopener,noreferrer');
+                    } else {
+                        await loadModalPdfPreview(r.reportId, pdfFrame);
+                        if (currentModalPdfBlobUrl) window.open(currentModalPdfBlobUrl, '_blank', 'noopener,noreferrer');
+                    }
+                };
             }
+            loadModalPdfPreview(r.reportId, pdfFrame);
 
             // Wire up secure download button
             const safeDownloadName = r.fileName || `${r.reportId}.pdf`;
@@ -1881,19 +2037,25 @@ async function openReportModal(reportId) {
     }
 }
 
+async function loadModalPdfPreview(reportId, pdfFrame) {
+    try {
+        const pdfRes = await fetch(`/api/reports/${encodeURIComponent(reportId)}/download?inline=true`, {
+            headers: getAuthHeaders()
+        });
+        if (!pdfRes.ok) return;
+        const blob = await pdfRes.blob();
+        currentModalPdfBlobUrl = URL.createObjectURL(blob);
+        if (pdfFrame) pdfFrame.src = currentModalPdfBlobUrl;
+    } catch (_) {}
+}
+
 /**
- * Downloads a decrypted medical report with live blockchain verification
+ * Downloads a decrypted medical report with live blockchain verification (Bearer header only)
  */
 async function downloadReportFile(reportId, preferredFileName) {
     try {
-        showToast('🔓 Decrypting report with AES-256 and validating SHA-256 against blockchain...', 'info');
-        let url = `/api/reports/${encodeURIComponent(reportId)}/download`;
-        if (authToken) {
-            url += `?token=${encodeURIComponent(authToken)}`;
-        } else if (currentUser && currentUser.id) {
-            url += `?demoUserId=${encodeURIComponent(currentUser.id)}`;
-        }
-
+        showToast('🔓 Decrypting report with AES-256-GCM and validating SHA-256...', 'info');
+        const url = `/api/reports/${encodeURIComponent(reportId)}/download`;
         const res = await fetch(url, { headers: getAuthHeaders() });
         if (!res.ok) {
             let errMsg = 'Failed to download report.';
@@ -1917,34 +2079,38 @@ async function downloadReportFile(reportId, preferredFileName) {
             window.URL.revokeObjectURL(blobUrl);
             document.body.removeChild(a);
         }, 150);
-        showToast('✅ Authentic PDF decrypted & downloaded successfully! (Anti-forgery QR verified)', 'success');
+        showToast('✅ Authentic PDF decrypted & downloaded successfully!', 'success');
     } catch (err) {
         showToast(`❌ Download error: ${err.message}`, 'error');
     }
 }
 
 /**
- * Delete a test report with confirmation prompt
+ * Admin-only Soft-Delete with documented reason (retains encrypted file & ledger anchor)
  */
 async function confirmDeleteReport(reportId, reportTitle, closeCurrentModal = false) {
     const titleText = reportTitle || reportId;
-    if (!confirm(`Are you sure you want to delete report "${titleText}" (${reportId})?\n\nThis will remove the off-chain encrypted file and unlist it from the active registry.`)) {
+    const reason = prompt(`Soft-delete report "${titleText}" (${reportId}) from active views?\n\nEncrypted archive & blockchain anchor are retained for audit.\nEnter mandatory administrative reason (min 3 chars):`);
+    if (reason === null) return;
+    if (reason.trim().length < 3) {
+        alert('A documented reason (at least 3 characters) is required.');
         return;
     }
 
     try {
-        showToast(`🗑️ Deleting report ${reportId}...`, 'info');
+        showToast(`🗑️ Soft-deleting report ${reportId}...`, 'info');
         const res = await fetch(`/api/reports/${encodeURIComponent(reportId)}`, {
             method: 'DELETE',
-            headers: getAuthHeaders()
+            headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
+            body: JSON.stringify({ reason: reason.trim() })
         });
 
         const data = await res.json();
         if (!res.ok || !data.success) {
-            throw new Error(data.message || 'Failed to delete report');
+            throw new Error(data.message || 'Failed to soft-delete report');
         }
 
-        showToast(`✓ ${data.message || 'Report deleted successfully'}`, 'success');
+        showToast(`✓ ${data.message || 'Report soft-deleted'}`, 'success');
         if (closeCurrentModal) {
             closeModal('viewReportModal');
         }
@@ -1953,8 +2119,8 @@ async function confirmDeleteReport(reportId, reportTitle, closeCurrentModal = fa
         await loadStats();
         await loadBlockchain();
     } catch (err) {
-        alert('Delete failed: ' + err.message);
-        showToast('❌ Delete failed: ' + err.message, 'error');
+        alert('Soft-delete failed: ' + err.message);
+        showToast('❌ Soft-delete failed: ' + err.message, 'error');
     }
 }
 
@@ -1987,7 +2153,7 @@ async function openQrModal(reportId) {
     modal.classList.add('active');
 
     try {
-        const res = await fetch(`/api/qr/${encodeURIComponent(reportId)}`);
+        const res = await fetch(`/api/qr/${encodeURIComponent(reportId)}`, { headers: getAuthHeaders() });
         const data = await res.json();
         if (data.success) {
             const qrUrl = data.qrCodeDataUrl || data.qrDataUrl;
@@ -2024,7 +2190,7 @@ async function runLiveModalVerification() {
     btn.innerHTML = '⏳ Computing Live SHA-256...';
 
     try {
-        const res = await fetch(`/api/verify/${encodeURIComponent(currentActiveQrReportId)}`);
+        const res = await fetch(`/api/verify/${encodeURIComponent(currentActiveQrReportId)}`, { headers: getAuthHeaders() });
         const data = await res.json();
 
         liveResultBox.style.display = 'block';
@@ -2073,6 +2239,59 @@ function openShareModal(reportId, reportTitle) {
     document.getElementById('shareReportTitle').value = `${reportId} - ${reportTitle}`;
     document.getElementById('shareResultBox').style.display = 'none';
     modal.classList.add('active');
+    loadActiveShareLinks();
+}
+
+async function loadActiveShareLinks() {
+    const box = document.getElementById('activeShareLinksContainer');
+    if (!box) return;
+    try {
+        const res = await fetch('/api/share', { headers: getAuthHeaders() });
+        const data = await res.json();
+        if (!data.success || !Array.isArray(data.links) || data.links.length === 0) {
+            box.innerHTML = '<div style="font-size: 0.8rem; color: var(--text-muted);">No share links issued yet.</div>';
+            return;
+        }
+        box.innerHTML = data.links.slice(0, 10).map(l => {
+            const isRevoked = Boolean(l.revokedAt);
+            const isExpired = new Date(l.expiresAt).getTime() <= Date.now();
+            const statusText = isRevoked ? 'REVOKED' : isExpired ? 'EXPIRED' : 'ACTIVE';
+            const statusColor = isRevoked ? '#ef4444' : isExpired ? '#94a3b8' : '#10b981';
+            return `
+                <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; padding: 6px 10px; border: 1px solid var(--border-subtle); border-radius: 6px; font-size: 0.78rem;">
+                    <div>
+                        <strong>${escapeHtml(l.reportId)}</strong> → ${escapeHtml(l.recipientDoctor || 'Specialist')}
+                        <div style="font-size: 0.72rem; color: var(--text-muted);">Expires: ${new Date(l.expiresAt).toLocaleString()} • <strong style="color: ${statusColor};">${statusText}</strong></div>
+                    </div>
+                    ${(!isRevoked && !isExpired)
+                        ? `<button type="button" class="btn btn-secondary" style="padding: 3px 8px; font-size: 0.72rem; color: var(--accent-danger);" onclick="revokeIssuedShareLink('${escapeHtml(l.jti)}')">🚫 Revoke</button>`
+                        : ''
+                    }
+                </div>
+            `;
+        }).join('');
+    } catch (e) {
+        box.innerHTML = '<div style="font-size: 0.8rem; color: var(--text-muted);">Could not load share links.</div>';
+    }
+}
+
+async function revokeIssuedShareLink(jti) {
+    if (!confirm('Immediately revoke this share link? Any external viewer holding it will lose access instantly.')) return;
+    try {
+        const res = await fetch(`/api/share/${encodeURIComponent(jti)}/revoke`, {
+            method: 'POST',
+            headers: getAuthHeaders()
+        });
+        const data = await res.json();
+        if (data.success) {
+            showToast('🚫 Share link revoked immediately.', 'success');
+            loadActiveShareLinks();
+        } else {
+            alert(data.message || 'Revocation failed.');
+        }
+    } catch (err) {
+        alert('Error revoking share link: ' + err.message);
+    }
 }
 
 function copyVerificationUrl() {
@@ -2168,9 +2387,16 @@ async function loadPrescriptions() {
                                 Attending Doctor: <strong>${escapeHtml(rx.doctorName)}</strong> (${escapeHtml(rx.department || 'General Medicine')})
                             </div>
                         </div>
-                        <a href="/api/prescriptions/${encodeURIComponent(rx.prescriptionId)}/pdf?token=${encodeURIComponent(authToken || '')}" target="_blank" class="btn btn-primary" style="font-size: 0.78rem; padding: 6px 12px; text-decoration: none;">
-                            📄 Download Prescription PDF
-                        </a>
+                        <div style="display: flex; gap: 0.45rem; flex-wrap: wrap;">
+                            <button type="button" class="btn btn-primary" style="font-size: 0.78rem; padding: 6px 12px;" onclick="downloadPrescriptionPdf('${escapeHtml(rx.prescriptionId)}')">
+                                📄 Download Prescription PDF
+                            </button>
+                            ${rx.attachment ? `
+                                <button type="button" class="btn btn-secondary" style="font-size: 0.78rem; padding: 6px 12px;" onclick="downloadPrescriptionAttachment('${escapeHtml(rx.prescriptionId)}', '${escapeHtml(rx.attachment.fileName || 'prescription_attachment')}')">
+                                    📎 Download Attached File (${escapeHtml(rx.attachment.fileName || 'Document')})
+                                </button>
+                            ` : ''}
+                        </div>
                     </div>
 
                     <div class="card" style="font-size: 0.82rem; padding: 0.6rem 0.8rem; border-radius: 6px; margin-bottom: 0.65rem;">
@@ -2333,7 +2559,109 @@ function updateThemeToggleLabels() {
     });
 }
 
+async function downloadPrescriptionPdf(prescriptionId) {
+    try {
+        const res = await fetch(`/api/prescriptions/${encodeURIComponent(prescriptionId)}/pdf`, {
+            headers: getAuthHeaders()
+        });
+        if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            alert(err.message || 'Failed to download prescription PDF.');
+            return;
+        }
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `SIT_Hospital_Prescription_${prescriptionId}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 150);
+    } catch (err) {
+        alert('Error downloading prescription PDF: ' + err.message);
+    }
+}
+
+async function downloadPrescriptionAttachment(prescriptionId, fileName) {
+    try {
+        const res = await fetch(`/api/prescriptions/${encodeURIComponent(prescriptionId)}/attachment`, {
+            headers: getAuthHeaders()
+        });
+        if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            alert(err.message || 'Failed to download attached prescription document.');
+            return;
+        }
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileName || `${prescriptionId}_attachment`;
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 150);
+    } catch (err) {
+        alert('Error downloading attachment: ' + err.message);
+    }
+}
+
+async function handleUploadPrescriptionDocument(e) {
+    e.preventDefault();
+    const fileInput = document.getElementById('rxAttachmentFileInput');
+    const patSelect = document.getElementById('rxPatientSelect');
+    const diagInput = document.getElementById('rxAttachmentDiagnosisInput');
+    const btn = document.getElementById('btnUploadRxDoc');
+
+    if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
+        alert('Please choose a prescription file to upload.');
+        return;
+    }
+
+    if (btn) {
+        btn.disabled = true;
+        btn.textContent = '🔒 Encrypting & Uploading...';
+    }
+
+    try {
+        const formData = new FormData();
+        formData.append('prescriptionFile', fileInput.files[0]);
+        formData.append('patientId', patSelect ? patSelect.value : '');
+        if (diagInput && diagInput.value.trim()) {
+            formData.append('diagnosis', diagInput.value.trim());
+        }
+
+        const res = await fetch('/api/prescriptions/upload', {
+            method: 'POST',
+            headers: getAuthHeaders(),
+            body: formData
+        });
+        const data = await res.json();
+        if (!res.ok || !data.success) {
+            alert(data.message || 'Failed to upload prescription document.');
+            return;
+        }
+
+        showToast(`✓ ${data.message}`, 'success');
+        fileInput.value = '';
+        if (diagInput) diagInput.value = '';
+        await loadPrescriptions();
+    } catch (err) {
+        alert('Prescription document upload error: ' + err.message);
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.textContent = '🔒 Encrypt & Upload Prescription Document';
+        }
+    }
+}
+
 window.togglePortalTheme = togglePortalTheme;
+window.downloadPrescriptionPdf = downloadPrescriptionPdf;
+window.downloadPrescriptionAttachment = downloadPrescriptionAttachment;
+window.handleUploadPrescriptionDocument = handleUploadPrescriptionDocument;
+window.revokeIssuedShareLink = revokeIssuedShareLink;
+window.loginWithBillAndSecret = loginWithBillAndSecret;
+window.loginAsDemoReceptionist = loginAsDemoReceptionist;
 window.selectDoctorPatient = selectDoctorPatient;
 window.clearDoctorSelectedPatient = clearDoctorSelectedPatient;
 window.renderDoctorPatientDirectory = renderDoctorPatientDirectory;
@@ -2344,7 +2672,7 @@ window.loadLabRequestsQueue = loadLabRequestsQueue;
 window.selectLabRequestForUpload = selectLabRequestForUpload;
 window.saveHospitalReceptionSettings = saveHospitalReceptionSettings;
 window.resetHospitalReceptionSettings = resetHospitalReceptionSettings;
-window.loginWithBillNumber = loginWithBillNumber;
+window.loginWithBillNumber = loginWithBillAndSecret;
 window.openReportModal = openReportModal;
 window.downloadReportFile = downloadReportFile;
 window.switchModalView = switchModalView;

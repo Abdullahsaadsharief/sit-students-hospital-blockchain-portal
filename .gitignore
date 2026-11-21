@@ -1,6 +1,5 @@
 # Node modules & dependencies
 node_modules/
-package-lock.json
 
 # Environment variables
 .env
@@ -31,7 +30,10 @@ yarn-error.log*
 logs/
 *.log
 
-# Runtime data & temp files
+# Runtime data, backups & temp files
 .agents/
 .gemini/
 scratch/
+*.bak.*
+*.tmp
+contracts/*.compiled.json

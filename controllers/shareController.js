@@ -1,123 +1,192 @@
-const jwt = require('jsonwebtoken');
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
+const jwt = require('jsonwebtoken');
+const config = require('../config');
 const db = require('../models/db');
-const { computeSHA256, decryptBuffer } = require('../utils/cryptoUtils');
+const { computeSHA256, decryptBuffer, TamperDetectedError } = require('../utils/cryptoUtils');
+const { canShareReport } = require('../utils/access');
+const { sanitizeDownloadFilename } = require('../utils/fileValidation');
 
-const SHARE_JWT_SECRET = process.env.SHARE_JWT_SECRET || 'med-blockchain-share-link-secret-key-2026';
-const UPLOADS_DIR = path.join(__dirname, '..', 'uploads');
+const MIN_SHARE_MINUTES = 1;
+const MAX_SHARE_MINUTES = 1440; // 24 hours max
 
 /**
- * Feature 7.2: Patient creates a time-expiring signed access link
+ * Create a time-expiring, revocable share link (Patient own report, Doctor, or Admin ONLY).
+ * Receptionist & Lab Staff are rejected with 403 (F-04 / TC-09).
  */
 function createExpiringShareLink(req, res) {
     try {
         const user = req.user;
-        const { reportId, durationMinutes, doctorNotes, recipientDoctor } = req.body;
-        const report = db.findReportById(reportId);
+        const { reportId, durationMinutes, recipientDoctor } = req.body || {};
 
+        const report = db.findReportById(reportId);
         if (!report) {
             return res.status(404).json({ success: false, message: 'Report not found.' });
         }
 
-        if (user && user.role === 'Lab Staff') {
+        if (!canShareReport(user, report)) {
+            db.logAudit('UNAUTHORIZED_SHARE_BLOCKED', user.name, `Blocked ${user.role} (${user.id}) from creating share link for report ${reportId}`);
             return res.status(403).json({
                 success: false,
-                message: 'Access denied. Lab Staff cannot generate external share links for patient reports.'
+                message: 'Access denied. You are not authorized to share this medical report.'
             });
         }
 
-        if (user && user.role === 'Patient' && report.patientId !== user.id) {
-            db.logAudit('UNAUTHORIZED_SHARE_BLOCKED', user.name, `Blocked Patient ${user.id} from creating share link for another patient's report (${reportId})`);
-            return res.status(403).json({
+        // Strict duration bounds validation: 1..1440 minutes
+        const parsedDuration = Number(durationMinutes !== undefined ? durationMinutes : 60);
+        if (!Number.isInteger(parsedDuration) || parsedDuration < MIN_SHARE_MINUTES || parsedDuration > MAX_SHARE_MINUTES) {
+            return res.status(400).json({
                 success: false,
-                message: 'Access denied. You can only share your own medical reports.'
+                message: `durationMinutes must be an integer between ${MIN_SHARE_MINUTES} and ${MAX_SHARE_MINUTES} (24 hours max).`
             });
         }
 
-        // Default: 60 minutes. Supports short 2-minute demo for evaluation panel!
-        const duration = parseInt(durationMinutes, 10) || 60;
-        const expiresInSeconds = duration * 60;
+        const expiresInSeconds = parsedDuration * 60;
+        const jti = `shr_${crypto.randomBytes(12).toString('hex')}`;
 
-        const payload = {
-            reportId: report.reportId,
-            patientId: report.patientId,
-            patientName: report.patientName,
-            accessContext: 'doctor_consultation_time_limited',
-            recipientDoctor: recipientDoctor || 'Consulting Physician',
-            notes: doctorNotes || '',
-            createdAt: Math.floor(Date.now() / 1000)
-        };
-
-        const token = jwt.sign(payload, SHARE_JWT_SECRET, {
-            expiresIn: expiresInSeconds
-        });
+        // Minimal JWT payload: NO patientName, NO notes, NO PII inside the token
+        const token = jwt.sign(
+            {
+                jti,
+                reportId: report.reportId
+            },
+            config.SHARE_JWT_SECRET,
+            {
+                algorithm: 'HS256',
+                expiresIn: expiresInSeconds
+            }
+        );
 
         const expiresAt = new Date(Date.now() + expiresInSeconds * 1000).toISOString();
         const hostUrl = req.protocol + '://' + req.get('host');
-        const shareUrl = `${hostUrl}/shared.html?token=${token}`;
+        const shareUrl = `${hostUrl}/shared.html?token=${encodeURIComponent(token)}`;
 
-        const sharedRecord = {
-            token,
+        const cleanRecipient = typeof recipientDoctor === 'string' && recipientDoctor.trim()
+            ? recipientDoctor.trim().slice(0, 120)
+            : 'Consulting Specialist';
+
+        // Store ONLY revocable metadata keyed by jti (NEVER store raw JWT token!)
+        db.addSharedLink({
+            jti,
             reportId: report.reportId,
             patientId: report.patientId,
-            patientName: report.patientName,
             reportTitle: report.title,
-            recipientDoctor: recipientDoctor || 'External Doctor',
-            durationMinutes: duration,
+            recipientDoctor: cleanRecipient,
+            createdBy: user.id,
+            createdByName: user.name,
+            durationMinutes: parsedDuration,
             expiresAt,
+            revokedAt: null,
+            revokedBy: null,
             createdAt: new Date().toISOString()
-        };
-
-        db.addSharedLink(sharedRecord);
+        });
 
         db.logAudit(
             'TIME_EXPIRING_LINK_CREATED',
-            req.user ? req.user.name : report.patientName,
-            `Created temporary share link for ${report.reportId} valid for ${duration} min(s) (Expires: ${expiresAt})`
+            user.name,
+            `Created revocable share link (${jti}) for ${report.reportId} valid for ${parsedDuration} min(s) (Expires: ${expiresAt})`
         );
 
         return res.status(201).json({
             success: true,
-            message: `Time-expiring link generated successfully (Valid for ${duration} minutes).`,
+            message: `Time-expiring share link generated (Valid for ${parsedDuration} minutes).`,
+            jti,
             token,
             shareUrl,
             expiresAt,
-            durationMinutes: duration,
+            durationMinutes: parsedDuration,
             expiresInSeconds
         });
-
     } catch (err) {
         console.error('[Share Link Error]:', err);
-        return res.status(500).json({ success: false, message: 'Failed to create share link.', error: err.message });
+        return res.status(500).json({ success: false, message: 'Failed to create share link.' });
     }
 }
 
 /**
- * Feature 7.2: Doctor accesses shared link
- * Verifies JWT signature and real-time expiration
+ * List share links visible to the authenticated caller (for revocation management UI)
  */
+function listShareLinks(req, res) {
+    const links = db.getSharedLinksForUser(req.user);
+    return res.json({
+        success: true,
+        count: links.length,
+        links
+    });
+}
+
+/**
+ * Immediately revoke a share link by jti (F-13)
+ */
+function revokeShareLink(req, res) {
+    const user = req.user;
+    const { jti } = req.params;
+
+    const link = db.findSharedLinkByJti(jti);
+    if (!link) {
+        return res.status(404).json({ success: false, message: 'Share link record not found.' });
+    }
+
+    const canRevoke = (
+        user.role === 'Admin' ||
+        link.createdBy === user.id ||
+        (user.role === 'Patient' && link.patientId === user.id)
+    );
+    if (!canRevoke) {
+        return res.status(403).json({ success: false, message: 'Access denied. You cannot revoke this share link.' });
+    }
+
+    const updated = db.revokeSharedLink(jti, user.name);
+    db.logAudit('SHARED_LINK_REVOKED', user.name, `Revoked share link ${jti} for report ${link.reportId}`);
+
+    return res.json({
+        success: true,
+        message: 'Share link immediately revoked.',
+        link: updated
+    });
+}
+
+function _verifyShareTokenAndRecord(token) {
+    const decoded = jwt.verify(token, config.SHARE_JWT_SECRET, { algorithms: ['HS256'] });
+    const link = db.findSharedLinkByJti(decoded.jti);
+    if (!link) {
+        return { errorStatus: 403, status: 'REVOKED', message: 'SECURITY ACCESS DENIED: Share link record is no longer active.' };
+    }
+    if (link.revokedAt) {
+        return { errorStatus: 403, status: 'REVOKED', message: 'SECURITY ACCESS DENIED: This secure sharing link has been revoked by the patient or hospital.' };
+    }
+    const report = db.findReportById(decoded.reportId);
+    if (!report) {
+        return { errorStatus: 404, status: 'NOT_FOUND', message: 'Referenced medical report is no longer available.' };
+    }
+    return { decoded, link, report };
+}
+
 function getSharedReport(req, res) {
     const { token } = req.query;
-    if (!token) {
+    if (!token || typeof token !== 'string') {
         return res.status(400).json({ success: false, message: 'No access token provided.' });
     }
 
     try {
-        const decoded = jwt.verify(token, SHARE_JWT_SECRET);
-        const report = db.findReportById(decoded.reportId);
-
-        if (!report) {
-            return res.status(404).json({ success: false, message: 'Referenced medical report no longer exists.' });
+        const result = _verifyShareTokenAndRecord(token);
+        if (result.errorStatus) {
+            return res.status(result.errorStatus).json({
+                success: false,
+                status: result.status,
+                message: result.message
+            });
         }
 
+        const { decoded, link, report } = result;
         const nowSeconds = Math.floor(Date.now() / 1000);
-        const remainingSeconds = decoded.exp - nowSeconds;
+        const remainingSeconds = Math.max(0, decoded.exp - nowSeconds);
 
         db.logAudit(
             'SHARED_LINK_ACCESSED',
-            'Consulting Doctor (via Shared Link)',
-            `Accessed shared report ${report.reportId} with token. Time remaining: ${remainingSeconds}s`
+            `External Viewer (${link.recipientDoctor})`,
+            `Accessed shared report ${report.reportId} via link ${link.jti}. Time remaining: ${remainingSeconds}s`
         );
 
         return res.json({
@@ -142,23 +211,17 @@ function getSharedReport(req, res) {
                 rawSnippet: report.rawSnippet
             },
             context: {
-                recipientDoctor: decoded.recipientDoctor,
-                accessContext: decoded.accessContext
+                recipientDoctor: link.recipientDoctor,
+                accessContext: 'doctor_consultation_time_limited'
             }
         });
-
     } catch (err) {
         if (err.name === 'TokenExpiredError') {
-            db.logAudit(
-                'EXPIRED_LINK_ACCESS_REJECTED',
-                'Unauthorized Visitor',
-                `Attempted access using expired token (Expired at: ${err.expiredAt})`
-            );
-
+            db.logAudit('EXPIRED_LINK_ACCESS_REJECTED', 'External Visitor', `Expired share token rejected (Expired at: ${err.expiredAt})`);
             return res.status(403).json({
                 success: false,
                 status: 'EXPIRED',
-                message: 'SECURITY ACCESS DENIED: This secure sharing link has expired. The patient must grant a new temporary permission token.',
+                message: 'SECURITY ACCESS DENIED: This secure sharing link has expired.',
                 expiredAt: err.expiredAt
             });
         }
@@ -166,44 +229,59 @@ function getSharedReport(req, res) {
         return res.status(401).json({
             success: false,
             status: 'INVALID_TOKEN',
-            message: 'SECURITY ACCESS DENIED: Invalid or tampered access token signature.',
-            error: err.message
+            message: 'SECURITY ACCESS DENIED: Invalid or tampered access token signature.'
         });
     }
 }
 
-/**
- * Stream decrypted content for valid shared token
- */
 function downloadSharedReportFile(req, res) {
     const { token } = req.query;
-    if (!token) {
-        return res.status(400).send('Missing token');
+    if (!token || typeof token !== 'string') {
+        return res.status(400).json({ success: false, message: 'Missing token.' });
     }
 
     try {
-        const decoded = jwt.verify(token, SHARE_JWT_SECRET);
-        const report = db.findReportById(decoded.reportId);
-        if (!report) return res.status(404).send('Report not found');
+        const result = _verifyShareTokenAndRecord(token);
+        if (result.errorStatus) {
+            return res.status(result.errorStatus).json({ success: false, status: result.status, message: result.message });
+        }
 
-        const filePath = path.join(UPLOADS_DIR, report.storageReference);
-        if (!fs.existsSync(filePath)) return res.status(404).send('Storage file not found');
+        const { report } = result;
+        const filePath = path.join(config.UPLOADS_DIR, path.basename(report.storageReference));
+        if (!fs.existsSync(filePath)) {
+            return res.status(404).json({ success: false, message: 'Storage file not found.' });
+        }
 
         const encryptedData = fs.readFileSync(filePath);
-        const decryptedBuffer = decryptBuffer(encryptedData);
+        let decryptedBuffer;
+        try {
+            decryptedBuffer = decryptBuffer(encryptedData);
+        } catch (decErr) {
+            if (decErr instanceof TamperDetectedError || decErr.isTampered) {
+                return res.status(400).json({ success: false, tampered: true, message: 'SECURITY ALERT: Encrypted document failed authentication check.' });
+            }
+            throw decErr;
+        }
 
+        const liveHash = computeSHA256(decryptedBuffer);
+        if (liveHash !== report.reportHash) {
+            return res.status(400).json({ success: false, tampered: true, message: 'SECURITY ALERT: File hash mismatch.' });
+        }
+
+        const safeFileName = sanitizeDownloadFilename(report.fileName, `${report.reportId}.pdf`);
         res.setHeader('Content-Type', report.mimeType || 'application/pdf');
-        res.setHeader('Content-Disposition', `attachment; filename="${report.fileName || 'report.pdf'}"`);
+        res.setHeader('Content-Disposition', `attachment; filename="${safeFileName}"`);
         res.setHeader('Content-Length', decryptedBuffer.length);
         return res.send(decryptedBuffer);
-
     } catch (err) {
-        return res.status(403).send('Access Denied: Expired or invalid token');
+        return res.status(403).json({ success: false, message: 'Access Denied: Expired or invalid token.' });
     }
 }
 
 module.exports = {
     createExpiringShareLink,
+    listShareLinks,
+    revokeShareLink,
     getSharedReport,
     downloadSharedReportFile
 };

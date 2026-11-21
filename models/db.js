@@ -1,10 +1,13 @@
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
+const config = require('../config');
 const { SAMPLE_USERS, createSeedReports } = require('../utils/seedData');
 const blockchain = require('../blockchain/Blockchain');
+const { hashPassword, isScryptHash } = require('../utils/passwords');
+const { atomicWriteJsonSync } = require('../utils/atomicWrite');
 
-const DB_FILE_PATH = path.join(__dirname, '..', 'data', 'database.json');
-const UPLOADS_DIR = path.join(__dirname, '..', 'uploads');
+const SEEDED_DEMO_IDS = new Set(SAMPLE_USERS.map(u => u.id));
 
 class Database {
     constructor() {
@@ -18,217 +21,201 @@ class Database {
         this.init();
     }
 
+    get dbFilePath() {
+        return config.DB_FILE_PATH;
+    }
+
+    get uploadsDir() {
+        return config.UPLOADS_DIR;
+    }
+
     init() {
-        const dataDir = path.dirname(DB_FILE_PATH);
+        const dataDir = path.dirname(this.dbFilePath);
         if (!fs.existsSync(dataDir)) {
             fs.mkdirSync(dataDir, { recursive: true });
         }
-        if (!fs.existsSync(UPLOADS_DIR)) {
-            fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+        if (!fs.existsSync(this.uploadsDir)) {
+            fs.mkdirSync(this.uploadsDir, { recursive: true });
         }
 
-        if (fs.existsSync(DB_FILE_PATH)) {
+        if (fs.existsSync(this.dbFilePath)) {
+            let data = null;
             try {
-                const data = JSON.parse(fs.readFileSync(DB_FILE_PATH, 'utf8'));
-                this.users = (data.users || []).map(u => ({ password: 'password123', ...u }));
-                this.reports = data.reports || [];
-                this.sharedLinks = data.sharedLinks || [];
-                this.auditLogs = data.auditLogs || [];
-                this.prescriptions = data.prescriptions || [];
-                this.labRequests = data.labRequests || [];
-                this.inquiries = data.inquiries || [];
-
-                // Ensure Receptionist account and patient billNumbers exist in loaded DB
-                let dbUpdated = false;
-                const defaultBills = {
-                    'PT-9901': { billNumber: 'BILL-2026-1001', assignedDoctor: 'Dr. Sarah Rao (Cardiology & General Medicine)', visitReason: 'Glycemic Profile, Spine X-Ray & CBC Follow-up', billAmount: '₹ 450' },
-                    'PT-9902': { billNumber: 'BILL-2026-1002', assignedDoctor: 'Dr. Sarah Rao (Cardiology & General Medicine)', visitReason: 'Lipid Profile & Thyroid TSH Screening', billAmount: '₹ 600' },
-                    'PT-9903': { billNumber: 'BILL-2026-1003', assignedDoctor: 'Dr. Sarah Rao (Cardiology & General Medicine)', visitReason: '12-Lead ECG, Troponin-I & Stress Echo', billAmount: '₹ 850' },
-                    'PT-9904': { billNumber: 'BILL-2026-1004', assignedDoctor: 'Dr. Ananya Sen (Pulmonology & Respiratory Care)', visitReason: 'Pulmonary Spirometry & IgE Allergen Screen', billAmount: '₹ 500' }
-                };
-                this.users.forEach((u, idx) => {
-                    if (u.role === 'Patient' && !u.billNumber) {
-                        const def = defaultBills[u.patientId] || {
-                            billNumber: `BILL-2026-${1001 + idx}`,
-                            assignedDoctor: 'Dr. Sarah Rao (Cardiology & General Medicine)',
-                            visitReason: 'General OPD Consultation & Diagnostics',
-                            billAmount: '₹ 350'
-                        };
-                        u.billNumber = def.billNumber;
-                        u.receptionId = def.billNumber;
-                        u.assignedDoctor = u.assignedDoctor || def.assignedDoctor;
-                        u.visitReason = u.visitReason || def.visitReason;
-                        u.billAmount = u.billAmount || def.billAmount;
-                        dbUpdated = true;
-                    }
-                });
-                if (!this.users.some(u => u.role === 'Receptionist')) {
-                    const recSeed = SAMPLE_USERS.find(u => u.role === 'Receptionist') || {
-                        id: 'usr_rec_01',
-                        name: 'Priya Nair',
-                        email: 'reception@sithospital.org',
-                        password: 'password123',
-                        role: 'Receptionist',
-                        designation: 'Senior OPD Receptionist & Billing Executive',
-                        department: 'Front Desk & Patient Registration (Counter 1)',
-                        hospital: 'SIT Students Hospital',
-                        nodeId: 'NODE-PHARM-01'
-                    };
-                    this.users.push({ password: 'password123', ...recSeed });
-                    dbUpdated = true;
-                }
-
-                // Ensure multi-doctor sharedDoctorNotes array exists on reports
-                this.reports.forEach(r => {
-                    if (!Array.isArray(r.sharedDoctorNotes) || r.sharedDoctorNotes.length === 0) {
-                        const baseDoc = r.doctorRemarks || {
-                            doctorName: 'Dr. Sarah Rao, MD',
-                            doctorId: 'usr_doc_01',
-                            department: 'Cardiology & General Medicine',
-                            updatedAt: r.testDate || '2026-09-15'
-                        };
-                        r.sharedDoctorNotes = [
-                            {
-                                noteId: 'note_init_1',
-                                doctorName: baseDoc.doctorName,
-                                doctorId: baseDoc.doctorId || 'usr_doc_01',
-                                department: baseDoc.department || 'General Medicine',
-                                status: r.diagnosisStatus || baseDoc.status || 'Reviewed & Authenticated',
-                                notes: r.clinicalImpression || r.notes || 'Reviewed clinical findings.',
-                                prescription: r.prescription || 'Continue prescribed outpatient therapy.',
-                                updatedAt: baseDoc.updatedAt || r.createdAt || new Date().toISOString()
-                            }
-                        ];
-                        // Add a second collaborating doctor note on John Doe's first report to showcase Multi-Doctor Shared View
-                        if (r.reportId === 'REP-7A91F2C4') {
-                            r.sharedDoctorNotes.push({
-                                noteId: 'note_init_2',
-                                doctorName: 'Dr. Rajesh Nair, MS',
-                                doctorId: 'usr_doc_02',
-                                department: 'Orthopedics & Trauma Wing',
-                                status: 'Cross-Department Clearance',
-                                notes: 'Reviewed glycemic profile (HbA1c 7.4%) prior to lumbar physical therapy. Cleared for supervised physiotherapy.',
-                                prescription: 'Tab. Metformin 500mg BD + Calcium & Vitamin D3 supplementation.',
-                                updatedAt: '2026-09-03T11:20:00Z'
-                            });
-                        }
-                        dbUpdated = true;
-                    }
-                });
-
-                // Seed initial Doctor OPD Checkup Prescriptions if empty
-                if (!this.prescriptions || this.prescriptions.length === 0) {
-                    this.prescriptions = [
-                        {
-                            prescriptionId: 'RX-2026-101',
-                            patientId: 'usr_pat_01',
-                            patientName: 'John Doe',
-                            patientUhid: 'PT-9901',
-                            billNumber: 'BILL-2026-1001',
-                            doctorId: 'usr_doc_01',
-                            doctorName: 'Dr. Sarah Rao, MD',
-                            department: 'Cardiology & General Medicine',
-                            vitals: 'BP: 132/84 mmHg | Pulse: 78 bpm | Temp: 98.4 °F | Weight: 74 kg',
-                            symptoms: 'Mild fatigue, increased thirst (polydipsia), and lower back stiffness.',
-                            diagnosis: 'Stage-2 Type 2 Diabetes Mellitus with Mild Lumbar Spondylosis',
-                            medicines: [
-                                { name: 'Tab. Metformin Sustained Release 500mg', dosage: '1 - 0 - 1', duration: '30 Days', instructions: 'After Meals' },
-                                { name: 'Tab.Shelcal-500 (Calcium + Vit D3)', dosage: '0 - 1 - 0', duration: '30 Days', instructions: 'After Lunch' },
-                                { name: 'Gel Volini / Diclofenac Topical', dosage: 'Apply BD', duration: '7 Days', instructions: 'Lower Back' }
-                            ],
-                            advice: 'Avoid refined sugar and deep-fried foods. 30 minutes brisk morning walk daily.',
-                            labTestOrdered: 'Fasting & Postprandial Blood Glucose Follow-up',
-                            followUpDate: '2026-12-05',
-                            createdAt: '2026-10-12T10:30:00.000Z'
-                        },
-                        {
-                            prescriptionId: 'RX-2026-102',
-                            patientId: 'usr_pat_04',
-                            patientName: 'Ayesha Khan',
-                            patientUhid: 'PT-9904',
-                            billNumber: 'BILL-2026-1004',
-                            doctorId: 'usr_doc_03',
-                            doctorName: 'Dr. Ananya Sen, MD',
-                            department: 'Pulmonology & Respiratory Care',
-                            vitals: 'BP: 116/74 mmHg | SpO2: 98% | Pulse: 82 bpm | Temp: 98.2 °F',
-                            symptoms: 'Dry nocturnal cough and wheezing after exposure to classroom dust.',
-                            diagnosis: 'Mild Persistent Allergic Bronchial Asthma',
-                            medicines: [
-                                { name: 'Inhaler Budesonide + Formoterol 200/6 mcg', dosage: '1 Puff - 0 - 1 Puff', duration: '30 Days', instructions: 'Rinse Mouth After Use' },
-                                { name: 'Tab. Montelukast + Levocetirizine 10/5mg', dosage: '0 - 0 - 1', duration: '10 Days', instructions: 'At Bedtime' }
-                            ],
-                            advice: 'Use warm water for drinking; avoid cold beverages and dusty environments.',
-                            labTestOrdered: 'Complete Blood Count (CBC) & Eosinophil Count',
-                            followUpDate: '2026-11-28',
-                            createdAt: '2026-10-15T14:15:00.000Z'
-                        }
-                    ];
-                    dbUpdated = true;
-                }
-
-                // Seed initial Pending Lab Requests for Lab Staff queue if empty
-                if (!this.labRequests || this.labRequests.length === 0) {
-                    this.labRequests = [
-                        {
-                            requestId: 'LABREQ-201',
-                            patientId: 'usr_pat_01',
-                            patientName: 'John Doe',
-                            patientUhid: 'PT-9901',
-                            billNumber: 'BILL-2026-1001',
-                            requestedBy: 'Dr. Sarah Rao (Cardiology & General Medicine)',
-                            testTitle: 'Fasting & Postprandial Blood Glucose Follow-up',
-                            reportType: 'Pathology / Biochemistry',
-                            priority: 'Routine OPD',
-                            status: 'PENDING_UPLOAD',
-                            createdAt: '2026-10-12T10:35:00.000Z'
-                        },
-                        {
-                            requestId: 'LABREQ-202',
-                            patientId: 'usr_pat_04',
-                            patientName: 'Ayesha Khan',
-                            patientUhid: 'PT-9904',
-                            billNumber: 'BILL-2026-1004',
-                            requestedBy: 'Dr. Ananya Sen (Pulmonology Wing)',
-                            testTitle: 'Complete Blood Count (CBC) & Absolute Eosinophil Count',
-                            reportType: 'Hematology',
-                            priority: 'Priority OPD',
-                            status: 'PENDING_UPLOAD',
-                            createdAt: '2026-10-15T14:20:00.000Z'
-                        }
-                    ];
-                    dbUpdated = true;
-                }
-
-                if (dbUpdated) {
-                    this.persist();
-                }
+                data = JSON.parse(fs.readFileSync(this.dbFilePath, 'utf8'));
             } catch (err) {
-                console.warn('[Database] Read error, resetting db:', err.message);
-                this.seedInitialData();
+                console.error('[Database] Primary database.json unreadable:', err.message);
+                // Attempt backup recovery before failing — never silently overwrite existing data with demo seeds
+                for (let i = 1; i <= 5; i++) {
+                    const bakPath = `${this.dbFilePath}.bak.${i}`;
+                    if (fs.existsSync(bakPath)) {
+                        try {
+                            data = JSON.parse(fs.readFileSync(bakPath, 'utf8'));
+                            console.warn(`[Database] Recovered database from ${path.basename(bakPath)}.`);
+                            break;
+                        } catch (_) {}
+                    }
+                }
+                if (!data) {
+                    throw new Error(`[Database] Fatal: ${this.dbFilePath} is corrupted and no readable backup exists (${err.message})`);
+                }
+            }
+
+            this.users = Array.isArray(data.users) ? data.users : [];
+            this.reports = Array.isArray(data.reports) ? data.reports : [];
+            this.sharedLinks = Array.isArray(data.sharedLinks) ? data.sharedLinks : [];
+            this.auditLogs = Array.isArray(data.auditLogs) ? data.auditLogs : [];
+            this.prescriptions = Array.isArray(data.prescriptions) ? data.prescriptions : [];
+            this.labRequests = Array.isArray(data.labRequests) ? data.labRequests : [];
+            this.inquiries = Array.isArray(data.inquiries) ? data.inquiries : [];
+
+            let dbUpdated = false;
+
+            // Phase 1.2: Migrate any legacy plain-text passwords to scrypt passwordHash and strip plain-text field
+            for (const u of this.users) {
+                if (typeof u.password === 'string' && u.password.length > 0) {
+                    if (!isScryptHash(u.passwordHash)) {
+                        u.passwordHash = hashPassword(u.password);
+                    }
+                    delete u.password;
+                    dbUpdated = true;
+                }
+                if (typeof u.isDemoAccount !== 'boolean' && SEEDED_DEMO_IDS.has(u.id)) {
+                    u.isDemoAccount = true;
+                    dbUpdated = true;
+                }
+                if (typeof u.tokenVersion !== 'number') {
+                    u.tokenVersion = 0;
+                    dbUpdated = true;
+                }
+                if (typeof u.mustChangePassword !== 'boolean') {
+                    u.mustChangePassword = false;
+                    dbUpdated = true;
+                }
+                if (typeof u.disabled !== 'boolean') {
+                    u.disabled = false;
+                    dbUpdated = true;
+                }
+            }
+
+            // Ensure every existing report has sourceHash populated (fallback to reportHash for pre-existing seed PDFs)
+            for (const r of this.reports) {
+                if (!r.sourceHash && r.reportHash) {
+                    r.sourceHash = r.reportHash;
+                    dbUpdated = true;
+                }
+            }
+
+            // Strip any raw JWT tokens from legacy sharedLinks records
+            for (const link of this.sharedLinks) {
+                if (link.token) {
+                    delete link.token;
+                    dbUpdated = true;
+                }
+                if (!link.jti) {
+                    link.jti = 'legacy_' + crypto.randomBytes(6).toString('hex');
+                    dbUpdated = true;
+                }
+            }
+
+            if (this._ensureBootstrapAdmin()) {
+                dbUpdated = true;
+            }
+
+            if (dbUpdated) {
+                this.persist();
             }
         } else {
-            this.seedInitialData();
-        }
-
-        // If reports were empty, seed them
-        if (this.reports.length === 0) {
-            this.seedInitialData();
+            // Fresh empty data directory
+            if (config.DEMO_MODE) {
+                this.seedInitialData();
+            } else {
+                this._ensureBootstrapAdmin();
+                this.persist();
+            }
         }
     }
 
-    async seedInitialData() {
-        console.log('[Database] Seeding initial users and clinical records with authentic PDFs...');
-        this.users = [...SAMPLE_USERS];
-        const seedReports = await createSeedReports(UPLOADS_DIR);
+    /**
+     * Ensures a non-demo Hospital Admin exists when BOOTSTRAP_ADMIN_EMAIL & BOOTSTRAP_ADMIN_PASSWORD are configured.
+     * In production with DEMO_MODE=false, refuses to run without at least one active non-demo Admin.
+     */
+    _ensureBootstrapAdmin() {
+        let updated = false;
+        const email = config.BOOTSTRAP_ADMIN_EMAIL;
+        const password = config.BOOTSTRAP_ADMIN_PASSWORD;
 
-        // Reset blockchain ledger to ensure 100% cryptographic consensus with the new PDF hashes
+        if (email && password) {
+            if (password.length < 12) {
+                console.error('[FATAL CONFIG] BOOTSTRAP_ADMIN_PASSWORD must be at least 12 characters long.');
+                process.exit(1);
+            }
+            const existing = this.users.find(u => u.email && u.email.toLowerCase() === email);
+            if (existing) {
+                if (existing.isDemoAccount || existing.role !== 'Admin') {
+                    existing.role = 'Admin';
+                    existing.isDemoAccount = false;
+                    existing.disabled = false;
+                    existing.mustChangePassword = false;
+                    existing.passwordHash = hashPassword(password);
+                    delete existing.password;
+                    updated = true;
+                }
+            } else {
+                this.users.push({
+                    id: 'usr_adm_bootstrap',
+                    name: 'Hospital IT Admin',
+                    email,
+                    passwordHash: hashPassword(password),
+                    role: 'Admin',
+                    institution: 'SIT Students Hospital Administration',
+                    hospital: 'SIT Students Hospital',
+                    isDemoAccount: false,
+                    mustChangePassword: false,
+                    disabled: false,
+                    tokenVersion: 0,
+                    createdAt: new Date().toISOString()
+                });
+                updated = true;
+            }
+        }
+
+        const hasNonDemoAdmin = this.users.some(u => u.role === 'Admin' && !u.isDemoAccount && !u.disabled);
+        if (!config.DEMO_MODE && !hasNonDemoAdmin) {
+            if (config.NODE_ENV === 'production') {
+                console.error('[FATAL CONFIG] Production mode with DEMO_MODE=false requires a non-demo Admin account.');
+                console.error('Set BOOTSTRAP_ADMIN_EMAIL and BOOTSTRAP_ADMIN_PASSWORD (>=12 chars) in environment variables.');
+                process.exit(1);
+            } else {
+                console.warn('[SECURITY NOTICE] Running with DEMO_MODE=false and no non-demo Admin account. Set BOOTSTRAP_ADMIN_EMAIL & BOOTSTRAP_ADMIN_PASSWORD in .env to enable Admin login.');
+            }
+        }
+
+        return updated;
+    }
+
+    async seedInitialData() {
+        console.log('[Database] Seeding synthetic demo users and clinical records...');
+        const defaultDemoPassHash = hashPassword('Demo@SIT2026!');
+
+        this.users = SAMPLE_USERS.map(u => ({
+            ...u,
+            passwordHash: u.passwordHash || defaultDemoPassHash,
+            isDemoAccount: true,
+            mustChangePassword: false,
+            disabled: false,
+            tokenVersion: 0,
+            createdAt: u.createdAt || new Date().toISOString()
+        }));
+
+        const seedReports = await createSeedReports(this.uploadsDir);
+
         blockchain.chain = [blockchain.createGenesisBlock()];
         blockchain.chain[0].mineBlock(blockchain.difficulty);
 
-        // Anchor seed reports to the blockchain ledger
         for (const rep of seedReports) {
             const block = blockchain.addReportBlock({
                 reportId: rep.reportId,
+                sourceHash: rep.sourceHash || rep.reportHash,
                 reportHash: rep.reportHash,
                 storageReference: rep.storageReference,
                 reportType: rep.reportType,
@@ -242,35 +229,113 @@ class Database {
         }
 
         this.reports = seedReports;
+
+        if (!this.prescriptions || this.prescriptions.length === 0) {
+            this.prescriptions = [
+                {
+                    prescriptionId: 'RX-2026-101',
+                    patientId: 'usr_pat_01',
+                    patientName: 'John Doe',
+                    patientUhid: 'PT-9901',
+                    billNumber: 'BILL-2026-1001',
+                    doctorId: 'usr_doc_01',
+                    doctorName: 'Dr. Sarah Rao, MD',
+                    department: 'Cardiology & General Medicine',
+                    vitals: 'BP: 132/84 mmHg | Pulse: 78 bpm | Temp: 98.4 F | Weight: 74 kg',
+                    symptoms: 'Mild fatigue, increased thirst (polydipsia), and lower back stiffness.',
+                    diagnosis: 'Stage-2 Type 2 Diabetes Mellitus with Mild Lumbar Spondylosis',
+                    medicines: [
+                        { name: 'Tab. Metformin Sustained Release 500mg', dosage: '1 - 0 - 1', duration: '30 Days', instructions: 'After Meals' },
+                        { name: 'Tab. Shelcal-500 (Calcium + Vit D3)', dosage: '0 - 1 - 0', duration: '30 Days', instructions: 'After Lunch' },
+                        { name: 'Gel Volini / Diclofenac Topical', dosage: 'Apply BD', duration: '7 Days', instructions: 'Lower Back' }
+                    ],
+                    advice: 'Avoid refined sugar and deep-fried foods. 30 minutes brisk morning walk daily.',
+                    labTestOrdered: 'Fasting & Postprandial Blood Glucose Follow-up',
+                    followUpDate: '2026-12-05',
+                    createdAt: '2026-10-12T10:30:00.000Z'
+                },
+                {
+                    prescriptionId: 'RX-2026-102',
+                    patientId: 'usr_pat_04',
+                    patientName: 'Ayesha Khan',
+                    patientUhid: 'PT-9904',
+                    billNumber: 'BILL-2026-1004',
+                    doctorId: 'usr_doc_03',
+                    doctorName: 'Dr. Ananya Sen, MD',
+                    department: 'Pulmonology & Respiratory Care',
+                    vitals: 'BP: 116/74 mmHg | SpO2: 98% | Pulse: 82 bpm | Temp: 98.2 F',
+                    symptoms: 'Dry nocturnal cough and wheezing after exposure to classroom dust.',
+                    diagnosis: 'Mild Persistent Allergic Bronchial Asthma',
+                    medicines: [
+                        { name: 'Inhaler Budesonide + Formoterol 200/6 mcg', dosage: '1 Puff - 0 - 1 Puff', duration: '30 Days', instructions: 'Rinse Mouth After Use' },
+                        { name: 'Tab. Montelukast + Levocetirizine 10/5mg', dosage: '0 - 0 - 1', duration: '10 Days', instructions: 'At Bedtime' }
+                    ],
+                    advice: 'Use warm water for drinking; avoid cold beverages and dusty environments.',
+                    labTestOrdered: 'Complete Blood Count (CBC) & Eosinophil Count',
+                    followUpDate: '2026-11-28',
+                    createdAt: '2026-10-15T14:15:00.000Z'
+                }
+            ];
+        }
+
+        if (!this.labRequests || this.labRequests.length === 0) {
+            this.labRequests = [
+                {
+                    requestId: 'LABREQ-201',
+                    patientId: 'usr_pat_01',
+                    patientName: 'John Doe',
+                    patientUhid: 'PT-9901',
+                    billNumber: 'BILL-2026-1001',
+                    requestedBy: 'Dr. Sarah Rao (Cardiology & General Medicine)',
+                    testTitle: 'Fasting & Postprandial Blood Glucose Follow-up',
+                    reportType: 'Pathology / Biochemistry',
+                    priority: 'Routine OPD',
+                    status: 'PENDING_UPLOAD',
+                    createdAt: '2026-10-12T10:35:00.000Z'
+                },
+                {
+                    requestId: 'LABREQ-202',
+                    patientId: 'usr_pat_04',
+                    patientName: 'Ayesha Khan',
+                    patientUhid: 'PT-9904',
+                    billNumber: 'BILL-2026-1004',
+                    requestedBy: 'Dr. Ananya Sen (Pulmonology Wing)',
+                    testTitle: 'Complete Blood Count (CBC) & Absolute Eosinophil Count',
+                    reportType: 'Hematology',
+                    priority: 'Priority OPD',
+                    status: 'PENDING_UPLOAD',
+                    createdAt: '2026-10-15T14:20:00.000Z'
+                }
+            ];
+        }
+
         this.auditLogs = [
             {
                 id: 'log_01',
                 action: 'SYSTEM_INITIALIZATION',
-                details: 'Healthcare Consortium Blockchain Ledger and Database Initialized with Authentic Diagnostic Reports',
+                details: 'SIT Students Hospital Demo Database and Hash-Chain Initialized (Synthetic Data)',
                 timestamp: new Date().toISOString(),
-                actor: 'Consortium SuperAdmin'
+                actor: 'System Initializer'
             }
         ];
+
+        this._ensureBootstrapAdmin();
         this.persist();
-        console.log(`[Database] Seeded ${this.reports.length} authentic PDF reports anchored on blockchain!`);
+        console.log(`[Database] Seeded ${this.reports.length} synthetic PDF reports.`);
         return this.reports;
     }
 
     persist() {
-        try {
-            const payload = {
-                users: this.users,
-                reports: this.reports,
-                sharedLinks: this.sharedLinks,
-                auditLogs: this.auditLogs,
-                prescriptions: this.prescriptions,
-                labRequests: this.labRequests,
-                inquiries: this.inquiries
-            };
-            fs.writeFileSync(DB_FILE_PATH, JSON.stringify(payload, null, 2), 'utf8');
-        } catch (e) {
-            console.error('[Database] Failed to persist:', e.message);
-        }
+        const payload = {
+            users: this.users,
+            reports: this.reports,
+            sharedLinks: this.sharedLinks,
+            auditLogs: this.auditLogs,
+            prescriptions: this.prescriptions,
+            labRequests: this.labRequests,
+            inquiries: this.inquiries
+        };
+        atomicWriteJsonSync(this.dbFilePath, payload, { maxBackups: 5 });
     }
 
     // --- Users ---
@@ -279,23 +344,53 @@ class Database {
     }
 
     findUserByEmail(email) {
-        return this.users.find(u => u.email.toLowerCase() === email.toLowerCase());
+        if (!email) return undefined;
+        const clean = String(email).trim().toLowerCase();
+        return this.users.find(u => u.email && u.email.toLowerCase() === clean);
     }
 
     addUser(userData) {
-        if (!userData.id) {
-            const prefix = userData.role === 'Doctor' ? 'usr_doc' : userData.role === 'Patient' ? 'usr_pat' : userData.role === 'Lab Staff' ? 'usr_lab' : 'usr_adm';
-            userData.id = `${prefix}_${Date.now().toString(36)}`;
+        const record = { ...userData };
+        if (!record.id) {
+            const prefix = record.role === 'Doctor' ? 'usr_doc'
+                : record.role === 'Patient' ? 'usr_pat'
+                : record.role === 'Lab Staff' ? 'usr_lab'
+                : record.role === 'Receptionist' ? 'usr_rec'
+                : 'usr_adm';
+            record.id = `${prefix}_${Date.now().toString(36)}_${crypto.randomBytes(2).toString('hex')}`;
         }
-        if (!userData.password) {
-            userData.password = 'password123';
+        if (record.password && !record.passwordHash) {
+            record.passwordHash = hashPassword(record.password);
         }
-        if (!userData.createdAt) {
-            userData.createdAt = new Date().toISOString();
-        }
-        this.users.push(userData);
+        delete record.password;
+
+        if (typeof record.tokenVersion !== 'number') record.tokenVersion = 0;
+        if (typeof record.mustChangePassword !== 'boolean') record.mustChangePassword = false;
+        if (typeof record.disabled !== 'boolean') record.disabled = false;
+        if (typeof record.isDemoAccount !== 'boolean') record.isDemoAccount = false;
+        if (!record.createdAt) record.createdAt = new Date().toISOString();
+
+        this.users.push(record);
         this.persist();
-        return userData;
+        return record;
+    }
+
+    updateUser(userId, updates) {
+        const idx = this.users.findIndex(u => u.id === userId);
+        if (idx === -1) return null;
+        const next = { ...this.users[idx], ...updates };
+        delete next.password;
+        this.users[idx] = next;
+        this.persist();
+        return next;
+    }
+
+    bumpTokenVersion(userId) {
+        const user = this.findUserById(userId);
+        if (!user) return null;
+        user.tokenVersion = (Number(user.tokenVersion) || 0) + 1;
+        this.persist();
+        return user;
     }
 
     deleteUser(userId) {
@@ -313,43 +408,69 @@ class Database {
     }
 
     // --- Reports ---
-    getAllReports() {
-        return this.reports;
+    getAllReports({ includeDeleted = false } = {}) {
+        if (includeDeleted) return this.reports;
+        return this.reports.filter(r => !r.deletedAt);
     }
 
-    findReportById(id) {
-        return this.reports.find(r => r.reportId === id || r.id === id);
+    findReportById(id, { includeDeleted = false } = {}) {
+        const found = this.reports.find(r => r.reportId === id || r.id === id);
+        if (!found) return null;
+        if (!includeDeleted && found.deletedAt) return null;
+        return found;
     }
 
-    findReportByHash(hash) {
-        return this.reports.find(r => r.reportHash === hash);
+    findReportByHash(hash, { includeDeleted = false } = {}) {
+        if (!hash) return null;
+        const target = String(hash).toLowerCase();
+        return this.reports.find(r => {
+            if (!includeDeleted && r.deletedAt) return false;
+            return (
+                (r.reportHash && String(r.reportHash).toLowerCase() === target) ||
+                (r.sourceHash && String(r.sourceHash).toLowerCase() === target)
+            );
+        }) || null;
+    }
+
+    findReportBySourceHash(hash, { includeDeleted = false } = {}) {
+        if (!hash) return null;
+        const target = String(hash).toLowerCase();
+        return this.reports.find(r => {
+            if (!includeDeleted && r.deletedAt) return false;
+            return r.sourceHash && String(r.sourceHash).toLowerCase() === target;
+        }) || null;
+    }
+
+    findReportByAnyHash(hash, opts = {}) {
+        return this.findReportByHash(hash, opts);
     }
 
     getReportsForPatient(patientId) {
-        return this.reports.filter(r => r.patientId === patientId || r.patientPseudonym === patientId);
+        return this.reports.filter(r =>
+            !r.deletedAt && (r.patientId === patientId || r.patientPseudonym === patientId)
+        );
     }
 
-    /**
-     * Chronological Timeline: returns reports sorted by testDate ascending/descending
-     */
     getPatientTimeline(patientId, sortOrder = 'asc') {
         const patientReports = this.getReportsForPatient(patientId);
-        return patientReports.sort((a, b) => {
+        return [...patientReports].sort((a, b) => {
             const dateA = new Date(a.testDate || a.createdAt);
             const dateB = new Date(b.testDate || b.createdAt);
             return sortOrder === 'asc' ? dateA - dateB : dateB - dateA;
         });
     }
 
-    /**
-     * Search reports by keyword / clinical tag / text query
-     */
     searchReports(query, role = 'Doctor', patientId = null) {
+        if (role === 'Receptionist' || role === 'Lab Staff') {
+            return [];
+        }
         const q = (query || '').toLowerCase().trim();
-        let list = this.reports;
+        let list = this.getAllReports();
 
         if (role === 'Patient' && patientId) {
             list = list.filter(r => r.patientId === patientId);
+        } else if (patientId) {
+            list = list.filter(r => r.patientId === patientId || r.patientPseudonym === patientId);
         }
 
         if (!q) return list;
@@ -372,7 +493,7 @@ class Database {
     }
 
     updateReport(reportId, updates) {
-        const idx = this.reports.findIndex(r => r.reportId === reportId);
+        const idx = this.reports.findIndex(r => r.reportId === reportId && !r.deletedAt);
         if (idx !== -1) {
             this.reports[idx] = { ...this.reports[idx], ...updates };
             this.persist();
@@ -381,39 +502,68 @@ class Database {
         return null;
     }
 
-    deleteReport(reportId) {
-        const index = this.reports.findIndex(r => r.reportId === reportId || r.id === reportId);
-        if (index !== -1) {
-            const removed = this.reports.splice(index, 1)[0];
-            this.persist();
-            return removed;
-        }
-        return null;
-    }
-
-    // --- Time-Expiring Shared Access Links ---
-    addSharedLink(linkData) {
-        this.sharedLinks.push(linkData);
+    /**
+     * Soft-deletes a report while preserving encrypted storage file and immutable blockchain block (F-04)
+     */
+    softDeleteReport(reportId, { deletedBy, deleteReason }) {
+        const idx = this.reports.findIndex(r => (r.reportId === reportId || r.id === reportId) && !r.deletedAt);
+        if (idx === -1) return null;
+        this.reports[idx] = {
+            ...this.reports[idx],
+            deletedAt: new Date().toISOString(),
+            deletedBy,
+            deleteReason
+        };
         this.persist();
-        return linkData;
+        return this.reports[idx];
     }
 
-    findSharedLinkByToken(token) {
-        return this.sharedLinks.find(l => l.token === token);
+    // --- Time-Expiring Shared Access Links (keyed by jti, never storing raw JWT) ---
+    addSharedLink(linkData) {
+        const { token, ...safeRecord } = linkData;
+        this.sharedLinks.unshift(safeRecord);
+        this.persist();
+        return safeRecord;
+    }
+
+    findSharedLinkByJti(jti) {
+        if (!jti) return null;
+        return this.sharedLinks.find(l => l.jti === jti) || null;
+    }
+
+    revokeSharedLink(jti, revokedBy) {
+        const link = this.findSharedLinkByJti(jti);
+        if (!link) return null;
+        link.revokedAt = new Date().toISOString();
+        link.revokedBy = revokedBy;
+        this.persist();
+        return link;
+    }
+
+    getSharedLinksForUser(user) {
+        if (!user) return [];
+        if (user.role === 'Admin') return this.sharedLinks;
+        if (user.role === 'Patient') {
+            return this.sharedLinks.filter(l => l.patientId === user.id || l.createdBy === user.id);
+        }
+        if (user.role === 'Doctor') {
+            return this.sharedLinks.filter(l => l.createdBy === user.id);
+        }
+        return [];
     }
 
     // --- Audit Logs ---
     logAudit(action, actor, details) {
         const entry = {
-            id: 'log_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+            id: 'log_' + Date.now() + '_' + crypto.randomBytes(2).toString('hex'),
             action,
             actor,
             details,
             timestamp: new Date().toISOString()
         };
         this.auditLogs.unshift(entry);
-        if (this.auditLogs.length > 200) {
-            this.auditLogs.pop();
+        if (this.auditLogs.length > 500) {
+            this.auditLogs.length = 500;
         }
         this.persist();
         return entry;
@@ -432,7 +582,7 @@ class Database {
     }
 
     findPrescriptionById(prescriptionId) {
-        return this.prescriptions.find(p => p.prescriptionId === prescriptionId);
+        return this.prescriptions.find(p => p.prescriptionId === prescriptionId) || null;
     }
 
     addPrescription(rxData) {
@@ -441,9 +591,21 @@ class Database {
         return rxData;
     }
 
-    // --- Lab Test Requests Queue (Doctor / Reception -> Lab Staff) ---
+    updatePrescription(prescriptionId, updates) {
+        const idx = this.prescriptions.findIndex(p => p.prescriptionId === prescriptionId);
+        if (idx === -1) return null;
+        this.prescriptions[idx] = { ...this.prescriptions[idx], ...updates };
+        this.persist();
+        return this.prescriptions[idx];
+    }
+
+    // --- Lab Test Requests Queue ---
     getLabRequests() {
         return this.labRequests;
+    }
+
+    findLabRequestById(requestId) {
+        return this.labRequests.find(r => r.requestId === requestId) || null;
     }
 
     addLabRequest(reqData) {
@@ -463,7 +625,7 @@ class Database {
         return item;
     }
 
-    // --- Patient Helpdesk Inquiries (From /contact.html -> Reception Desk) ---
+    // --- Patient Helpdesk Inquiries ---
     getInquiries() {
         return this.inquiries;
     }
@@ -474,10 +636,12 @@ class Database {
         return inqData;
     }
 
-    resolveInquiry(ticketId) {
+    resolveInquiry(ticketId, resolvedBy = 'Receptionist') {
         const item = this.inquiries.find(i => i.ticketId === ticketId);
         if (item) {
             item.status = 'RESOLVED';
+            item.resolvedAt = new Date().toISOString();
+            item.resolvedBy = resolvedBy;
             this.persist();
         }
         return item;

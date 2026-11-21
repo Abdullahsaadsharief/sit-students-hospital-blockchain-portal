@@ -200,10 +200,10 @@
             <div class="section-header-block" style="margin-bottom: 1.5rem;">
                 <div>
                     <div class="section-kicker">Front-Desk &amp; Patient Access</div>
-                    <h1 class="section-title">Receptionist Login &amp; Patient Bill Number Access</h1>
+                    <h1 class="section-title">Receptionist Login &amp; Patient Portal Access</h1>
                 </div>
                 <p class="section-desc">
-                    Receptionists sign in on the left to register new patients and generate a <strong>Bill / Reception ID</strong>. Patients can log in directly on the right using <strong>only their Bill Number</strong> (no password needed).
+                    Receptionists sign in on the left to register new patients and issue a <strong>Bill Number + 8-Character One-Time Access Code</strong>. Patients sign in on the right using their Bill Number and Access Code (or personal password).
                 </p>
             </div>
 
@@ -213,35 +213,35 @@
                     <div class="rec-card-header">
                         <div>
                             <div class="rec-card-title">🗂️ Receptionist Staff Sign-In</div>
-                            <div class="rec-card-sub">Log in to register new patients, assign doctors &amp; generate Bill IDs</div>
+                            <div class="rec-card-sub">Log in with Receptionist credentials to register patients &amp; generate Bill IDs</div>
                         </div>
                         <span class="dept-pill">OPD Counter 1</span>
                     </div>
 
-                    <!-- Quick One-Click Receptionist Login for Evaluation Demo -->
-                    <div style="background: var(--bg-soft); border: 1px solid var(--border-color); border-radius: 8px; padding: 1rem; margin-bottom: 1.25rem;">
+                    <!-- Quick One-Click Receptionist Login (Shown ONLY when DEMO_MODE=true) -->
+                    <div id="demoQuickReceptionBox" style="display: none; background: var(--bg-soft); border: 1px solid var(--border-color); border-radius: 8px; padding: 1rem; margin-bottom: 1.25rem;">
                         <div style="font-size: 0.78rem; font-weight: 800; color: var(--navy-primary); text-transform: uppercase; margin-bottom: 0.4rem;">
-                            ⚡ Instant Demo Sign-In (Receptionist)
+                            ⚡ DEMO_MODE Quick Sign-In (Synthetic Receptionist)
                         </div>
                         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
                             <div>
                                 <div style="font-weight: 700; color: var(--navy-dark);">Ms. Priya Nair</div>
-                                <div style="font-size: 0.8rem; color: var(--text-secondary);">Senior OPD Receptionist • SIT Students Hospital</div>
+                                <div style="font-size: 0.8rem; color: var(--text-secondary);">Senior OPD Receptionist • Synthetic Demo Account</div>
                             </div>
                             <button type="button" class="btn btn-primary" onclick="quickReceptionistLogin()">
-                                Sign In as Receptionist &rarr;
+                                Demo Sign-In &rarr;
                             </button>
                         </div>
                     </div>
 
                     <form id="receptionLoginForm" onsubmit="handleReceptionFormLogin(event)">
                         <div class="rec-form-group">
-                            <label class="rec-label">Receptionist Email / Staff ID</label>
-                            <input type="text" id="recEmailInput" class="rec-input" value="reception@sithospital.org" required />
+                            <label class="rec-label">Receptionist / Admin Email *</label>
+                            <input type="email" id="recEmailInput" class="rec-input" placeholder="e.g. reception@sithospital.org" autocomplete="username" required />
                         </div>
                         <div class="rec-form-group">
-                            <label class="rec-label">Staff Password</label>
-                            <input type="password" id="recPasswordInput" class="rec-input" value="password123" required />
+                            <label class="rec-label">Staff Password *</label>
+                            <input type="password" id="recPasswordInput" class="rec-input" placeholder="Enter your password" autocomplete="current-password" required />
                         </div>
                         <button type="submit" class="btn btn-primary" style="width: 100%;">
                             🔐 Login to Receptionist Desk
@@ -249,46 +249,59 @@
                     </form>
                 </div>
 
-                <!-- RIGHT CARD: PATIENT LOGIN VIA BILL NUMBER ONLY (NO PASSWORD) -->
+                <!-- RIGHT CARD: PATIENT LOGIN (BILL NUMBER + 8-CHAR ACCESS CODE OR PASSWORD) -->
                 <div class="rec-card" style="border-top: 4px solid var(--teal-primary);">
                     <div class="rec-card-header">
                         <div>
-                            <div class="rec-card-title">🧾 Patient Login (Bill Number Only)</div>
-                            <div class="rec-card-sub">Patients do not need a username or password — just enter the Bill / Reception ID</div>
+                            <div class="rec-card-title">🧾 Patient Portal Login (Bill + Access Code)</div>
+                            <div class="rec-card-sub">Enter your Bill Number plus your 8-character One-Time Access Code or personal password</div>
                         </div>
-                        <span class="dept-pill">Passwordless Access</span>
+                        <span class="dept-pill">Verified Access</span>
                     </div>
 
                     <form id="patientBillLoginForm" onsubmit="handlePatientBillLogin(event)">
                         <div class="rec-form-group">
-                            <label class="rec-label">Enter Your Reception Bill Number / Customer ID</label>
+                            <label class="rec-label">Reception Bill Number / Patient UHID *</label>
                             <input
                                 type="text"
                                 id="patientBillInput"
                                 class="rec-input rec-mono-input"
-                                placeholder="e.g. BILL-2026-1001 or BILL-2026-1005"
-                                style="font-size: 1.05rem; padding: 0.8rem 1rem;"
+                                placeholder="e.g. BILL-2026-1005"
+                                style="font-size: 1rem; padding: 0.75rem 1rem;"
                                 required
                             />
-                            <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 0.35rem;">
-                                Printed on the top-right corner of your SIT Students Hospital OPD Receipt / Bill.
+                        </div>
+                        <div class="rec-form-group">
+                            <label class="rec-label">8-Character One-Time Access Code OR Personal Password *</label>
+                            <input
+                                type="password"
+                                id="patientAccessSecretInput"
+                                class="rec-input"
+                                placeholder="Enter 8-char code printed on OPD Bill Slip or your password"
+                                autocomplete="current-password"
+                                required
+                            />
+                            <div style="margin-top: 0.45rem; font-size: 0.78rem; color: var(--text-secondary); display: flex; align-items: center; gap: 6px;">
+                                <input type="checkbox" id="recUseAccessCode" checked />
+                                <label for="recUseAccessCode" style="cursor: pointer;">Using one-time 8-char Access Code (uncheck if using your personal password)</label>
                             </div>
                         </div>
 
                         <button type="submit" class="btn btn-teal" style="width: 100%; padding: 0.78rem;">
-                            🧑 Open My Patient Medical Reports &rarr;
+                            🔒 Verify &amp; Open My Medical Reports &rarr;
                         </button>
                     </form>
 
-                    <div style="margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid var(--border-color);">
-                        <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 0.5rem;">
-                            Click an existing Patient Bill Number to test instant login:
+                    <!-- Shown ONLY when DEMO_MODE=true for quick presentation walkthroughs -->
+                    <div id="demoQuickPatientsBox" style="display: none; margin-top: 1.15rem; padding-top: 0.9rem; border-top: 1px solid var(--border-color);">
+                        <div style="font-size: 0.78rem; font-weight: 800; color: var(--teal-primary); text-transform: uppercase; margin-bottom: 0.5rem;">
+                            ⚡ DEMO_MODE Quick Sign-In (Synthetic Patients)
                         </div>
-                        <div id="quickBillChipsContainer" style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
-                            <button type="button" class="chip-btn" onclick="fillAndLoginBill('BILL-2026-1001')">BILL-2026-1001 (John Doe)</button>
-                            <button type="button" class="chip-btn" onclick="fillAndLoginBill('BILL-2026-1002')">BILL-2026-1002 (Meera Patel)</button>
-                            <button type="button" class="chip-btn" onclick="fillAndLoginBill('BILL-2026-1003')">BILL-2026-1003 (Robert Chen)</button>
-                            <button type="button" class="chip-btn" onclick="fillAndLoginBill('BILL-2026-1004')">BILL-2026-1004 (Ayesha Khan)</button>
+                        <div style="display: flex; flex-wrap: wrap; gap: 0.45rem;">
+                            <button type="button" class="chip-btn" onclick="quickDemoPatientLogin('usr_pat_01')">👤 John Doe (BILL-2026-1001)</button>
+                            <button type="button" class="chip-btn" onclick="quickDemoPatientLogin('usr_pat_02')">👩 Meera Patel (BILL-2026-1002)</button>
+                            <button type="button" class="chip-btn" onclick="quickDemoPatientLogin('usr_pat_03')">👨 Robert Chen (BILL-2026-1003)</button>
+                            <button type="button" class="chip-btn" onclick="quickDemoPatientLogin('usr_pat_04')">👩 Ayesha Khan (BILL-2026-1004)</button>
                         </div>
                     </div>
                 </div>
@@ -335,25 +348,25 @@
 
                     <div style="text-align: right;">
                         <div style="font-size: 0.76rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 0.25rem;">
-                            PATIENT LOGIN BILL NUMBER (NO PASSWORD REQUIRED):
+                            BILL ID &amp; ONE-TIME 8-CHAR ACCESS CODE (SHOWN ONCE — VALID 72H):
                         </div>
-                        <div id="slipBillNumber" class="bill-code-badge">BILL-2026-1005</div>
+                        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; justify-content: flex-end;">
+                            <div id="slipBillNumber" class="bill-code-badge">BILL-2026-1005</div>
+                            <div id="slipAccessCode" class="bill-code-badge" style="border-color: #d97706; color: #92400e; background: #fffbeb;">CODE: --------</div>
+                        </div>
                     </div>
                 </div>
 
                 <div style="margin-top: 1rem; padding-top: 0.85rem; border-top: 1px solid #bbf7d0; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
                     <span style="font-size: 0.83rem; color: #166534;">
-                        Share this <strong>Bill Number</strong> with the patient. They can log in using only this number to view their reports, and Lab Staff can now upload reports for this patient.
+                        Give the patient their <strong>Bill Number</strong> and <strong>8-Character One-Time Access Code</strong> (valid 72h, single-use). They will set a personal password on first sign-in.
                     </span>
                     <div style="display: flex; gap: 0.6rem; flex-wrap: wrap;">
-                        <a id="btnDownloadNewBillPdf" href="#" target="_blank" class="btn btn-teal" style="font-size: 0.82rem; padding: 0.45rem 0.95rem; text-decoration: none;">
+                        <button type="button" id="btnDownloadNewBillPdf" class="btn btn-teal" style="font-size: 0.82rem; padding: 0.45rem 0.95rem;">
                             📄 Download OPD Bill PDF (Hospital Header)
-                        </a>
-                        <button type="button" class="btn btn-outline" id="btnCopyNewBill" style="font-size: 0.82rem; padding: 0.45rem 0.9rem;">
-                            📋 Copy Bill Number
                         </button>
-                        <button type="button" class="btn btn-primary" id="btnLoginAsNewPatient" style="font-size: 0.82rem; padding: 0.45rem 1rem;">
-                            🧑 Login as This Patient Now &rarr;
+                        <button type="button" class="btn btn-outline" id="btnCopyNewBill" style="font-size: 0.82rem; padding: 0.45rem 0.9rem;">
+                            📋 Copy Bill + Access Code
                         </button>
                     </div>
                 </div>
@@ -496,8 +509,8 @@
                                 <div class="rec-card-title" style="font-size: 1.05rem;">📨 Patient Helpdesk Inquiries Inbox (From Patient Guide &amp; Contact Page)</div>
                                 <div class="rec-card-sub">Inquiries submitted by students/patients on <a href="/contact.html" style="color: var(--teal-primary); font-weight: 700;">/contact.html</a> appear here for the Receptionist</div>
                             </div>
-                            <button type="button" class="btn btn-outline" style="height: 32px; font-size: 0.76rem; padding: 0 0.75rem;" onclick="resetDemoInquiries()">
-                                🔄 Reset Sample Inquiry
+                            <button type="button" class="btn btn-outline" style="height: 32px; font-size: 0.76rem; padding: 0 0.75rem;" onclick="loadReceptionInquiries()">
+                                🔄 Refresh Inbox
                             </button>
                         </div>
                         <div style="overflow-x: auto;">
@@ -528,6 +541,8 @@
     <script>
         let receptionToken = localStorage.getItem('sit_rec_token') || null;
         let receptionUser = null;
+        let recDemoMode = false;
+        let loadedInquiriesCache = [];
 
         (function initRecTheme() {
             const saved = localStorage.getItem('sit_hospital_theme') || 'light';
@@ -543,30 +558,53 @@
             if (btn) btn.textContent = isDark ? '☀️ Light' : '🌙 Dark';
         }
 
-        document.addEventListener('DOMContentLoaded', () => {
-            loadReceptionDirectory();
+        function getRecAuthHeaders() {
+            return receptionToken ? { 'Authorization': 'Bearer ' + receptionToken } : {};
+        }
 
-            const savedRecUser = localStorage.getItem('sit_rec_user');
-            if (receptionToken && savedRecUser) {
-                try {
-                    receptionUser = JSON.parse(savedRecUser);
-                    showReceptionWorkspace(receptionUser);
-                } catch (e) {
-                    logoutReceptionist();
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const cfgRes = await fetch('/api/config/public');
+                if (cfgRes.ok) {
+                    const cfg = await cfgRes.json();
+                    recDemoMode = Boolean(cfg.demoMode);
+                    const demoBox = document.getElementById('demoQuickReceptionBox');
+                    const demoPatBox = document.getElementById('demoQuickPatientsBox');
+                    if (demoBox) demoBox.style.display = recDemoMode ? 'block' : 'none';
+                    if (demoPatBox) demoPatBox.style.display = recDemoMode ? 'block' : 'none';
                 }
+            } catch (_) {}
+
+            if (receptionToken) {
+                try {
+                    const meRes = await fetch('/api/auth/me', { headers: getRecAuthHeaders() });
+                    if (meRes.ok) {
+                        const meData = await meRes.json();
+                        if (meData.user && (meData.user.role === 'Receptionist' || meData.user.role === 'Admin')) {
+                            receptionUser = meData.user;
+                            showReceptionWorkspace(receptionUser);
+                            return;
+                        }
+                    }
+                } catch (_) {}
+                logoutReceptionist();
             }
         });
 
         async function quickReceptionistLogin() {
+            if (!recDemoMode) {
+                alert('Demo quick login is disabled in hardened mode. Please sign in with credentials.');
+                return;
+            }
             try {
-                const res = await fetch('/api/auth/login', {
+                const res = await fetch('/api/auth/demo-login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ userId: 'usr_rec_01' })
                 });
                 const data = await res.json();
                 if (!res.ok || !data.success) {
-                    alert(data.message || 'Receptionist login failed');
+                    alert(data.message || 'Demo login failed');
                     return;
                 }
                 receptionToken = data.token;
@@ -588,11 +626,15 @@
                 const res = await fetch('/api/auth/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, password })
+                    body: JSON.stringify({ identifier: email, password })
                 });
                 const data = await res.json();
                 if (!res.ok || !data.success) {
-                    alert(data.message || 'Invalid receptionist credentials');
+                    alert(data.message || 'Invalid credentials');
+                    return;
+                }
+                if (data.user.role !== 'Receptionist' && data.user.role !== 'Admin') {
+                    alert('Access denied: Only Receptionist or Hospital Admin accounts can open the Reception Desk.');
                     return;
                 }
                 receptionToken = data.token;
@@ -626,52 +668,45 @@
         }
 
         async function loadReceptionDirectory() {
+            if (!receptionToken) return;
             try {
-                const res = await fetch('/api/reception/patients');
+                const res = await fetch('/api/reception/patients', { headers: getRecAuthHeaders() });
+                if (res.status === 401 || res.status === 403) {
+                    logoutReceptionist();
+                    return;
+                }
                 const data = await res.json();
                 if (!data.success) return;
 
-                // Update next suggested Bill Number and UHID in form
                 const billInput = document.getElementById('newPatBillNumber');
                 const uhidInput = document.getElementById('newPatUhid');
                 if (billInput && data.suggestedBillNumber) billInput.value = data.suggestedBillNumber;
                 if (uhidInput && data.suggestedPatientId) uhidInput.value = data.suggestedPatientId;
 
-                // Update quick chips on login card
-                const chipsBox = document.getElementById('quickBillChipsContainer');
-                if (chipsBox && Array.isArray(data.patients)) {
-                    chipsBox.innerHTML = data.patients.map(p => `
-                        <button type="button" class="chip-btn" onclick="fillAndLoginBill('${p.billNumber || p.patientId}')">
-                            ${p.billNumber || p.patientId} (${p.name})
-                        </button>
-                    `).join('');
-                }
-
-                // Render table rows
                 const tbody = document.getElementById('receptionPatientsTableBody');
                 if (tbody && Array.isArray(data.patients)) {
                     tbody.innerHTML = data.patients.slice().reverse().map(p => {
-                        const billNo = p.billNumber || p.patientId;
+                        const billNo = p.billNumber || p.patientId || 'N/A';
                         return `
                             <tr>
-                                <td><span class="bill-tag">${billNo}</span></td>
+                                <td><span class="bill-tag">${escapeRecHtml(billNo)}</span></td>
                                 <td>
-                                    <strong>${p.name}</strong><br/>
-                                    <span style="font-size: 0.76rem; color: var(--text-muted); font-family: var(--font-mono);">UHID: ${p.patientId}</span>
+                                    <strong>${escapeRecHtml(p.name)}</strong><br/>
+                                    <span style="font-size: 0.76rem; color: var(--text-muted); font-family: var(--font-mono);">UHID: ${escapeRecHtml(p.patientId || p.id)}</span>
                                 </td>
-                                <td>${p.age || '-'} Y / ${p.gender || '-'} (${p.bloodGroup || 'O+'})</td>
+                                <td>${escapeRecHtml(String(p.age ?? '-'))} Y / ${escapeRecHtml(p.gender || '-')} (${escapeRecHtml(p.bloodGroup || '-')})</td>
                                 <td>
-                                    <div style="font-weight: 600; font-size: 0.84rem;">${p.assignedDoctor || 'Dr. Sarah Rao (General Medicine)'}</div>
-                                    <div style="font-size: 0.76rem; color: var(--text-muted);">${p.visitReason || 'OPD Consultation'}</div>
+                                    <div style="font-weight: 600; font-size: 0.84rem;">${escapeRecHtml(p.assignedDoctor || 'Not assigned')}</div>
+                                    <div style="font-size: 0.76rem; color: var(--text-muted);">${escapeRecHtml(p.visitReason || 'OPD Consultation')}</div>
                                 </td>
-                                <td><strong>${p.billAmount || '₹ 350'}</strong></td>
+                                <td><strong>${escapeRecHtml(p.billAmount || 'Rs. 350')}</strong></td>
                                 <td>
                                     <div style="display: flex; gap: 0.4rem; flex-wrap: wrap;">
-                                        <a href="/api/reception/patients/${encodeURIComponent(p.id)}/bill-pdf" target="_blank" class="btn btn-outline" style="padding: 0.32rem 0.65rem; font-size: 0.75rem; text-decoration: none;" title="Download Official OPD Bill Receipt PDF with SIT Students Hospital Header">
+                                        <button type="button" class="btn btn-outline" style="padding: 0.32rem 0.65rem; font-size: 0.75rem;" onclick="downloadPatientBillPdf('${escapeRecHtml(p.id)}', '${escapeRecHtml(billNo)}')">
                                             📄 Bill PDF
-                                        </a>
-                                        <button type="button" class="btn btn-teal" style="padding: 0.32rem 0.65rem; font-size: 0.75rem;" onclick="loginPatientByBillNumber('${billNo}')">
-                                            🧑 Patient Login &rarr;
+                                        </button>
+                                        <button type="button" class="btn btn-teal" style="padding: 0.32rem 0.65rem; font-size: 0.75rem;" onclick="resetPatientCode('${escapeRecHtml(p.id)}', '${escapeRecHtml(p.name)}')">
+                                            🔑 Reset Access Code
                                         </button>
                                     </div>
                                 </td>
@@ -684,8 +719,53 @@
             }
         }
 
+        async function downloadPatientBillPdf(patientId, billNo) {
+            try {
+                const res = await fetch(`/api/reception/patients/${encodeURIComponent(patientId)}/bill-pdf`, {
+                    headers: getRecAuthHeaders()
+                });
+                if (!res.ok) {
+                    const err = await res.json().catch(() => ({}));
+                    alert(err.message || 'Could not download Bill PDF.');
+                    return;
+                }
+                const blob = await res.blob();
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `SIT_Hospital_OPD_Bill_${billNo || patientId}.pdf`;
+                document.body.appendChild(a);
+                a.click();
+                setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 150);
+            } catch (err) {
+                alert('Download error: ' + err.message);
+            }
+        }
+
+        async function resetPatientCode(patientId, patientName) {
+            if (!confirm(`Generate a new 8-character One-Time Access Code for ${patientName}?\nThis immediately revokes any active sessions for this patient.`)) return;
+            try {
+                const res = await fetch(`/api/reception/patients/${encodeURIComponent(patientId)}/reset-access-code`, {
+                    method: 'POST',
+                    headers: getRecAuthHeaders()
+                });
+                const data = await res.json();
+                if (!res.ok || !data.success) {
+                    alert(data.message || 'Failed to reset access code.');
+                    return;
+                }
+                alert(`✓ New One-Time Access Code Issued (Shown Once, Valid 72h)\n\nPatient: ${patientName}\nBill Number: ${data.billNumber}\nOne-Time Access Code: ${data.oneTimeAccessCode}`);
+            } catch (err) {
+                alert('Reset error: ' + err.message);
+            }
+        }
+
         async function handleRegisterNewPatient(e) {
             e.preventDefault();
+            if (!receptionToken) {
+                alert('Please sign in as Receptionist first.');
+                return;
+            }
             const btn = document.getElementById('btnCreatePatient');
             btn.disabled = true;
             btn.textContent = 'Registering Patient & Generating Bill...';
@@ -705,24 +785,9 @@
             };
 
             try {
-                if (!receptionToken) {
-                    const authRes = await fetch('/api/auth/login', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ userId: 'usr_rec_01' })
-                    });
-                    const authData = await authRes.json();
-                    if (authData.success && authData.token) {
-                        receptionToken = authData.token;
-                        localStorage.setItem('sit_rec_token', authData.token);
-                    }
-                }
-                const headers = { 'Content-Type': 'application/json' };
-                if (receptionToken) headers['Authorization'] = 'Bearer ' + receptionToken;
-
                 const res = await fetch('/api/reception/patients', {
                     method: 'POST',
-                    headers,
+                    headers: { 'Content-Type': 'application/json', ...getRecAuthHeaders() },
                     body: JSON.stringify(payload)
                 });
                 const data = await res.json();
@@ -733,28 +798,25 @@
                 }
 
                 const pat = data.patient;
-                // Show generated Bill Slip banner
+                const accessCode = data.oneTimeAccessCode || 'N/A';
                 const slip = document.getElementById('newBillSlipBanner');
-                document.getElementById('slipPatientName').textContent = `${pat.name} (${pat.age}Y / ${pat.gender})`;
+                document.getElementById('slipPatientName').textContent = `${pat.name} (${pat.age ?? '-'}Y / ${pat.gender || '-'})`;
                 document.getElementById('slipPatientMeta').textContent = `UHID: ${pat.patientId} • Assigned to: ${pat.assignedDoctor} • Bill: ${pat.billAmount}`;
                 document.getElementById('slipBillNumber').textContent = pat.billNumber;
+                document.getElementById('slipAccessCode').textContent = `CODE: ${accessCode}`;
 
                 const pdfBtn = document.getElementById('btnDownloadNewBillPdf');
                 if (pdfBtn) {
-                    pdfBtn.href = `/api/reception/patients/${encodeURIComponent(pat.id)}/bill-pdf`;
+                    pdfBtn.onclick = () => downloadPatientBillPdf(pat.id, pat.billNumber);
                 }
 
                 document.getElementById('btnCopyNewBill').onclick = () => {
-                    navigator.clipboard.writeText(pat.billNumber);
-                    alert(`Copied Patient Bill Number: ${pat.billNumber}`);
-                };
-                document.getElementById('btnLoginAsNewPatient').onclick = () => {
-                    loginPatientByBillNumber(pat.billNumber);
+                    navigator.clipboard.writeText(`Bill Number: ${pat.billNumber} | One-Time Access Code: ${accessCode}`);
+                    alert(`Copied Patient Credentials:\nBill Number: ${pat.billNumber}\nOne-Time Access Code: ${accessCode}`);
                 };
 
                 slip.classList.add('active');
                 document.getElementById('newPatName').value = '';
-
                 await loadReceptionDirectory();
             } catch (err) {
                 alert('Error registering patient: ' + err.message);
@@ -764,33 +826,51 @@
             }
         }
 
-        function fillAndLoginBill(billNo) {
-            const input = document.getElementById('patientBillInput');
-            if (input) input.value = billNo;
-            loginPatientByBillNumber(billNo);
+        async function quickDemoPatientLogin(userId) {
+            if (!recDemoMode) {
+                alert('Demo quick login is disabled in hardened mode.');
+                return;
+            }
+            try {
+                const res = await fetch('/api/auth/demo-login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId })
+                });
+                const data = await res.json();
+                if (!res.ok || !data.success) {
+                    alert(data.message || 'Demo patient login failed.');
+                    return;
+                }
+                localStorage.setItem('hc_auth_token', data.token);
+                localStorage.setItem('hc_current_user', JSON.stringify(data.user));
+                window.location.href = '/portal';
+            } catch (err) {
+                alert('Demo login error: ' + err.message);
+            }
         }
 
         async function handlePatientBillLogin(e) {
             e.preventDefault();
             const billNo = document.getElementById('patientBillInput').value.trim();
-            if (!billNo) return;
-            await loginPatientByBillNumber(billNo);
-        }
+            const secret = document.getElementById('patientAccessSecretInput').value.trim();
+            const useCode = document.getElementById('recUseAccessCode')?.checked !== false;
+            if (!billNo || !secret) return;
 
-        async function loginPatientByBillNumber(billNumber) {
             try {
+                const body = useCode
+                    ? { billNumber: billNo, accessCode: secret }
+                    : { billNumber: billNo, password: secret };
                 const res = await fetch('/api/auth/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ billNumber })
+                    body: JSON.stringify(body)
                 });
                 const data = await res.json();
                 if (!res.ok || !data.success) {
-                    alert(data.message || 'No patient found with that Bill Number.');
+                    alert(data.message || 'Invalid Bill Number or Access Code.');
                     return;
                 }
-
-                // Store session in localStorage used by /portal and redirect to /portal
                 localStorage.setItem('hc_auth_token', data.token);
                 localStorage.setItem('hc_current_user', JSON.stringify(data.user));
                 window.location.href = '/portal';
@@ -799,95 +879,51 @@
             }
         }
 
-        let loadedInquiriesCache = [];
-
         async function loadReceptionInquiries() {
             const tbody = document.getElementById('receptionInquiriesTableBody');
-            if (!tbody) return;
+            if (!tbody || !receptionToken) return;
 
-            let resolvedIds = [];
             try {
-                resolvedIds = JSON.parse(localStorage.getItem('sit_hospital_resolved_tickets') || '[]');
-                if (!Array.isArray(resolvedIds)) resolvedIds = [];
+                const res = await fetch('/api/reception/inquiries', { headers: getRecAuthHeaders() });
+                if (!res.ok) {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted);">Sign in as Receptionist to view helpdesk inquiries.</td></tr>';
+                    return;
+                }
+                const data = await res.json();
+                const list = (data.success && Array.isArray(data.inquiries)) ? data.inquiries : [];
+                loadedInquiriesCache = list;
+
+                if (list.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted);">No open helpdesk inquiries.</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = list.map((inq, idx) => {
+                    const isResolved = inq.status === 'RESOLVED';
+                    return `
+                        <tr>
+                            <td><span class="bill-tag">${escapeRecHtml(inq.ticketId)}</span></td>
+                            <td>
+                                <strong>${escapeRecHtml(inq.name)}</strong><br/>
+                                <span style="font-size: 0.76rem; color: var(--text-muted);">${escapeRecHtml(inq.contact || '')}</span>
+                            </td>
+                            <td><span class="dept-pill">${escapeRecHtml(inq.department || 'General OPD')}</span></td>
+                            <td style="font-size: 0.83rem; max-width: 240px;">${escapeRecHtml(inq.message)}</td>
+                            <td>
+                                ${isResolved
+                                    ? '<span style="color: #15803d; font-weight: 700; font-size: 0.8rem;">✓ Resolved</span>'
+                                    : `<div style="display: flex; gap: 0.4rem; flex-wrap: wrap;">
+                                        <button type="button" class="btn btn-primary" style="height: 32px; padding: 0 0.75rem; font-size: 0.76rem;" onclick="handleInquiryRegisterClick(${idx})">➕ Register Patient</button>
+                                        <button type="button" class="btn btn-outline" style="height: 32px; padding: 0 0.65rem; font-size: 0.76rem;" onclick="handleInquiryDoneClick(${idx})">✓ Done</button>
+                                       </div>`
+                                }
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
             } catch (e) {
-                resolvedIds = [];
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted);">Failed to load inquiries.</td></tr>';
             }
-
-            let list = [];
-            try {
-                const rawLocal = localStorage.getItem('sit_hospital_inquiries');
-                if (rawLocal) {
-                    const parsed = JSON.parse(rawLocal);
-                    if (Array.isArray(parsed)) list = [...parsed];
-                } else {
-                    // Seed initial sample inquiry into localStorage so it persists properly
-                    list = [
-                        {
-                            ticketId: 'INQ-1042',
-                            name: 'Sandeep R (1SI24CS088)',
-                            contact: '+91 98450 77889',
-                            department: 'General Medicine & Cardiology Wing',
-                            message: 'Requesting afternoon OPD checkup for fever and CBC blood test.',
-                            status: 'OPEN',
-                            createdAt: new Date().toISOString()
-                        }
-                    ];
-                    localStorage.setItem('sit_hospital_inquiries', JSON.stringify(list));
-                }
-            } catch (e) {}
-
-            try {
-                const res = await fetch('/api/reception/inquiries');
-                if (res.ok) {
-                    const data = await res.json();
-                    if (data.success && Array.isArray(data.inquiries)) {
-                        data.inquiries.forEach(apiItem => {
-                            if (!list.some(l => l.ticketId === apiItem.ticketId)) {
-                                list.push(apiItem);
-                            }
-                        });
-                    }
-                }
-            } catch (e) {}
-
-            // Apply persisted resolved statuses
-            list.forEach((item, idx) => {
-                if (!item.ticketId) item.ticketId = 'INQ-' + (1000 + idx);
-                if (resolvedIds.includes(item.ticketId)) {
-                    item.status = 'RESOLVED';
-                }
-            });
-
-            loadedInquiriesCache = list;
-
-            if (list.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted);">No open helpdesk inquiries.</td></tr>';
-                return;
-            }
-
-            tbody.innerHTML = list.map((inq, idx) => {
-                const isResolved = inq.status === 'RESOLVED';
-                return `
-                    <tr>
-                        <td><span class="bill-tag">${escapeRecHtml(inq.ticketId)}</span></td>
-                        <td>
-                            <strong>${escapeRecHtml(inq.name)}</strong><br/>
-                            <span style="font-size: 0.76rem; color: var(--text-muted);">${escapeRecHtml(inq.contact || '')}</span>
-                        </td>
-                        <td><span class="dept-pill">${escapeRecHtml(inq.department || 'OPD Helpdesk')}</span></td>
-                        <td style="font-size: 0.83rem; max-width: 240px;">${escapeRecHtml(inq.message)}</td>
-                        <td>
-                            ${isResolved
-                                ? '<span style="color: #15803d; font-weight: 700; font-size: 0.8rem;">✓ Registered / Done</span>'
-                                : `<div style="display: flex; gap: 0.4rem; flex-wrap: wrap;">
-                                    <button type="button" class="btn btn-primary" style="height: 32px; padding: 0 0.75rem; font-size: 0.76rem;" onclick="handleInquiryRegisterClick(${idx})">➕ Register Patient</button>
-                                    <button type="button" class="btn btn-outline" style="height: 32px; padding: 0 0.65rem; font-size: 0.76rem;" onclick="handleInquiryDoneClick(${idx})">✓ Done</button>
-                                   </div>`
-                            }
-                        </td>
-                    </tr>
-                `;
-            }).join('');
         }
 
         function escapeRecHtml(str) {
@@ -914,72 +950,38 @@
             if (phoneInput && inq.contact) phoneInput.value = inq.contact;
             if (reasonInput && inq.message) reasonInput.value = String(inq.message).replace(/\s+/g, ' ').trim().slice(0, 75);
 
-            // Auto-match consulting doctor based on inquiry department
             if (docSelect && inq.department) {
                 const deptLower = inq.department.toLowerCase();
-                if (deptLower.includes('ortho')) {
-                    docSelect.value = 'Dr. Rajesh Nair (Orthopedics & Trauma)';
-                } else if (deptLower.includes('pulmo') || deptLower.includes('allergy')) {
-                    docSelect.value = 'Dr. Ananya Sen (Pulmonology & Respiratory Care)';
-                } else if (deptLower.includes('neuro')) {
-                    docSelect.value = 'Dr. Vikram Mehta (Neurology & Spine Care)';
-                } else {
-                    docSelect.value = 'Dr. Sarah Rao (Cardiology & General Medicine)';
-                }
+                if (deptLower.includes('ortho')) docSelect.value = 'Dr. Rajesh Nair (Orthopedics & Trauma)';
+                else if (deptLower.includes('pulmo')) docSelect.value = 'Dr. Ananya Sen (Pulmonology & Respiratory Care)';
+                else if (deptLower.includes('neuro')) docSelect.value = 'Dr. Vikram Mehta (Neurology & Spine Care)';
+                else docSelect.value = 'Dr. Sarah Rao (Cardiology & General Medicine)';
             }
 
-            // Mark the inquiry ticket resolved
-            handleInquiryDoneClick(idx, true);
-
-            // Scroll smoothly to the Register New Patient form and highlight it
+            handleInquiryDoneClick(idx);
             if (nameInput) {
                 nameInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                nameInput.style.borderColor = '#16a34a';
-                nameInput.style.boxShadow = '0 0 0 3px rgba(22, 163, 74, 0.2)';
                 nameInput.focus();
-                setTimeout(() => {
-                    nameInput.style.borderColor = '';
-                    nameInput.style.boxShadow = '';
-                }, 3000);
             }
-            alert(`✓ Patient "${cleanName}" loaded into the Registration Form on the left!\n\nReview the fields and click "🧾 Register Patient & Generate Bill Number" to issue their Bill ID.`);
         }
 
-        async function handleInquiryDoneClick(idx, silent = false) {
+        async function handleInquiryDoneClick(idx) {
             const inq = loadedInquiriesCache[idx];
-            if (!inq) return;
-            const ticketId = inq.ticketId;
-
-            // 1. Save ticketId into sit_hospital_resolved_tickets in localStorage
+            if (!inq || !receptionToken) return;
             try {
-                const resolvedIds = JSON.parse(localStorage.getItem('sit_hospital_resolved_tickets') || '[]');
-                if (!resolvedIds.includes(ticketId)) {
-                    resolvedIds.push(ticketId);
-                    localStorage.setItem('sit_hospital_resolved_tickets', JSON.stringify(resolvedIds));
-                }
-            } catch (e) {}
-
-            // 2. Also update status inside sit_hospital_inquiries in localStorage
-            try {
-                const localList = JSON.parse(localStorage.getItem('sit_hospital_inquiries') || '[]');
-                localList.forEach(item => {
-                    if (item.ticketId === ticketId) item.status = 'RESOLVED';
+                const res = await fetch(`/api/reception/inquiries/${encodeURIComponent(inq.ticketId)}/resolve`, {
+                    method: 'PUT',
+                    headers: getRecAuthHeaders()
                 });
-                localStorage.setItem('sit_hospital_inquiries', JSON.stringify(localList));
-            } catch (e) {}
-
-            // 3. Also notify backend API if available
-            try {
-                await fetch(`/api/reception/inquiries/${encodeURIComponent(ticketId)}/resolve`, { method: 'PUT' });
-            } catch (e) {}
-
-            await loadReceptionInquiries();
-        }
-
-        function resetDemoInquiries() {
-            localStorage.removeItem('sit_hospital_resolved_tickets');
-            localStorage.removeItem('sit_hospital_inquiries');
-            loadReceptionInquiries();
+                if (!res.ok) {
+                    const err = await res.json().catch(() => ({}));
+                    alert(err.message || 'Could not resolve inquiry.');
+                    return;
+                }
+                await loadReceptionInquiries();
+            } catch (e) {
+                alert('Resolve error: ' + e.message);
+            }
         }
     </script>
 </body>

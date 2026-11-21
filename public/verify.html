@@ -108,14 +108,12 @@
                 </button>
             </div>
 
-            <div style="margin-top: 1.25rem; display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center;">
-                <span style="font-size: 0.8rem; color: var(--text-muted);">Quick Demo Reports:</span>
-                <button class="filter-tag-chip" onclick="setQuickReport('REP-7A91F2C4')">John Doe - Glucose</button>
-                <button class="filter-tag-chip" onclick="setQuickReport('REP-8D44B190')">John Doe - Spine X-Ray</button>
-                <button class="filter-tag-chip" onclick="setQuickReport('REP-9E11C83F')">John Doe - CBC</button>
-                <button class="filter-tag-chip" onclick="setQuickReport('REP-3C55A701')">Meera Patel - Lipid</button>
-                <button class="filter-tag-chip" onclick="setQuickReport('REP-6A18D902')">Robert Chen - ECG & Troponin</button>
-                <button class="filter-tag-chip" onclick="setQuickReport('REP-2D44C119')">Ayesha Khan - Spirometry</button>
+            <div id="verifyDemoChipsRow" style="display: none; margin-top: 1.25rem; gap: 0.75rem; flex-wrap: wrap; align-items: center;">
+                <span style="font-size: 0.8rem; color: var(--text-muted);">Quick Demo Reports (DEMO_MODE):</span>
+                <button class="filter-tag-chip" onclick="setQuickReport('REP-7A91F2C4')">REP-7A91F2C4</button>
+                <button class="filter-tag-chip" onclick="setQuickReport('REP-8D44B190')">REP-8D44B190</button>
+                <button class="filter-tag-chip" onclick="setQuickReport('REP-9E11C83F')">REP-9E11C83F</button>
+                <button class="filter-tag-chip" onclick="setQuickReport('REP-3C55A701')">REP-3C55A701</button>
             </div>
         </div>
 
@@ -161,15 +159,15 @@
                 </div>
             </div>
 
-            <!-- Live Panel Demonstration Actions -->
-            <div style="margin-top: 2rem; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+            <!-- Live Panel Demonstration Actions (Visible ONLY in DEMO_MODE) -->
+            <div id="verifyDemoActionsSection" style="display: none; margin-top: 2rem; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 1.5rem; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
                 <div>
-                    <h5 style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 4px;">Evaluation Panel Live Demonstration:</h5>
-                    <p style="font-size: 0.78rem; color: var(--text-muted);">Simulate malicious alteration in off-chain file to test blockchain detection.</p>
+                    <h5 style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 4px;">DEMO_MODE Non-Destructive Tamper Simulation (Admin Required):</h5>
+                    <p style="font-size: 0.78rem; color: var(--text-muted);">Simulates tampering in memory without altering stored files on disk.</p>
                 </div>
                 <div style="display: flex; gap: 0.75rem;">
-                    <button id="tamperFileBtn" class="btn btn-tamper">⚠️ Simulate File Tampering</button>
-                    <button id="repairFileBtn" class="btn btn-secondary">🔄 Reset / Restore Valid File</button>
+                    <button id="tamperFileBtn" class="btn btn-tamper">⚠️ Simulate Tamper (In-Memory)</button>
+                    <button id="repairFileBtn" class="btn btn-secondary">🔄 Reset Simulation</button>
                 </div>
             </div>
         </div>

@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     const reportIdInput = document.getElementById('reportIdInput');
     const runVerifyBtn = document.getElementById('runVerifyBtn');
     const resultCard = document.getElementById('resultCard');
@@ -18,7 +18,25 @@ document.addEventListener('DOMContentLoaded', () => {
     const tamperFileBtn = document.getElementById('tamperFileBtn');
     const repairFileBtn = document.getElementById('repairFileBtn');
 
-    // Parse URL params for ?reportId=
+    function getOptionalAuthHeaders() {
+        const token = localStorage.getItem('hc_auth_token');
+        return token ? { 'Authorization': `Bearer ${token}` } : {};
+    }
+
+    // Show DEMO_MODE controls only when server explicitly reports DEMO_MODE=true
+    try {
+        const cfgRes = await fetch('/api/config/public');
+        if (cfgRes.ok) {
+            const cfg = await cfgRes.json();
+            if (cfg.demoMode) {
+                const chips = document.getElementById('verifyDemoChipsRow');
+                const actions = document.getElementById('verifyDemoActionsSection');
+                if (chips) chips.style.display = 'flex';
+                if (actions) actions.style.display = 'flex';
+            }
+        }
+    } catch (_) {}
+
     const urlParams = new URLSearchParams(window.location.search);
     const initialReportId = urlParams.get('reportId');
     if (initialReportId) {
@@ -26,7 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
         verifyReport(initialReportId);
     }
 
-    window.setQuickReport = function(id) {
+    window.setQuickReport = function (id) {
         reportIdInput.value = id;
         verifyReport(id);
     };
@@ -42,85 +60,100 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function verifyReport(reportId) {
         runVerifyBtn.disabled = true;
-        runVerifyBtn.innerHTML = '⏳ Computing SHA-256 & Checking Ledger...';
+        runVerifyBtn.textContent = '⏳ Checking Cryptographic Integrity...';
 
         try {
-            const res = await fetch(`/api/verify/${encodeURIComponent(reportId)}`);
+            const res = await fetch(`/api/verify/${encodeURIComponent(reportId)}`, {
+                headers: getOptionalAuthHeaders()
+            });
             const data = await res.json();
 
             resultCard.style.display = 'block';
 
-            if (!data.success && data.status === 'NOT_FOUND') {
+            if (!data.success) {
                 statusBadge.className = 'status-badge-big status-badge-mismatch';
                 statusIcon.textContent = '✕';
-                statusText.textContent = 'REPORT NOT FOUND';
-                statusDesc.textContent = data.message || 'No record exists for this ID on the ledger.';
+                statusText.textContent = data.status === 'NOT_FOUND' ? 'REPORT NOT FOUND' : 'VERIFICATION ERROR';
+                statusDesc.textContent = data.message || 'No matching record exists.';
                 liveHashDisplay.textContent = 'N/A';
                 anchoredHashDisplay.textContent = 'N/A';
-                matchSummary.innerHTML = '<span style="color: #f87171;">Record missing from consortium database.</span>';
+                matchSummary.textContent = data.message || 'Verification unavailable.';
                 return;
             }
 
+            const bDetails = data.blockchainDetails || {};
             resReportId.textContent = data.reportId;
-            resPatient.textContent = data.patientName || data.patientPseudonym;
-            resBlockIndex.textContent = `Block #${data.blockchainDetails.blockIndex}`;
-            resNode.textContent = data.blockchainDetails.institutionNode || 'Consortium Node';
-            resBlockHash.textContent = data.blockchainDetails.blockHash;
-            resTimestamp.textContent = new Date(data.blockchainDetails.timestamp).toLocaleString();
+            resPatient.textContent = data.patientName
+                ? `${data.patientName} (${data.patientPseudonym || ''})`
+                : 'Protected (Public privacy mode — sign in to view clinical identity)';
+            resBlockIndex.textContent = `Block #${bDetails.blockIndex ?? data.blockIndex ?? '-'}`;
+            resNode.textContent = bDetails.institutionNode || 'SIT Students Hospital';
+            resBlockHash.textContent = bDetails.blockHash || 'Visible to authorized logged-in viewers';
+            const ts = bDetails.timestamp || data.anchoredAt;
+            resTimestamp.textContent = ts ? new Date(ts).toLocaleString() : 'N/A';
 
-            liveHashDisplay.textContent = data.liveComputedHash;
-            anchoredHashDisplay.textContent = data.anchoredBlockchainHash;
+            liveHashDisplay.textContent = data.liveComputedHash || 'Verified server-side (sign in as authorized user to inspect full digest)';
+            anchoredHashDisplay.textContent = data.anchoredBlockchainHash || 'Verified server-side against anchored digest';
+
+            const ethNote = (data.onChainVerification && data.onChainVerification.checkedOnChain)
+                ? ` • Ethereum On-Chain (${data.onChainVerification.network}): ${data.onChainVerification.onChainAuthentic ? 'CONFIRMED' : 'MISMATCH'}`
+                : '';
 
             if (data.isAuthentic) {
                 statusBadge.className = 'status-badge-big status-badge-match';
                 statusIcon.textContent = '✓';
                 statusText.textContent = 'MATCH: REPORT AUTHENTIC';
-                statusDesc.textContent = data.verificationMessage;
-                matchSummary.innerHTML = '<span style="color: #34d399;">✓ Cryptographic integrity 100% verified. Document is unchanged since anchoring.</span>';
+                statusDesc.textContent = (data.verificationMessage || 'Authentic report.') + ethNote;
+                matchSummary.innerHTML = `<span style="color: #34d399;">✓ Cryptographic integrity verified.${ethNote}</span>`;
             } else {
                 statusBadge.className = 'status-badge-big status-badge-mismatch';
                 statusIcon.textContent = '⚠️';
                 statusText.textContent = 'MISMATCH: TAMPERING DETECTED';
-                statusDesc.textContent = data.verificationMessage;
-                matchSummary.innerHTML = '<span style="color: #f87171;">⚠️ ALERT: Computed hash does NOT match the anchored blockchain record! The file has been modified.</span>';
+                statusDesc.textContent = data.verificationMessage || 'Integrity check failed.';
+                matchSummary.innerHTML = '<span style="color: #f87171;">⚠️ ALERT: Document integrity mismatch detected!</span>';
             }
-
         } catch (err) {
             alert('Failed to connect to verification API: ' + err.message);
         } finally {
             runVerifyBtn.disabled = false;
-            runVerifyBtn.innerHTML = '🔒 Verify Integrity on Blockchain';
+            runVerifyBtn.textContent = '🔒 Verify Integrity on Blockchain';
         }
     }
 
-    // Tamper Button
-    tamperFileBtn.addEventListener('click', async () => {
-        const id = reportIdInput.value.trim();
-        if (!id) return;
-        if (!confirm(`Inject deliberate tampering into off-chain file for ${id}? This will prove how blockchain catches unauthorized changes.`)) return;
-
-        try {
-            const res = await fetch(`/api/verify/tamper-file/${encodeURIComponent(id)}`, { method: 'POST' });
-            const data = await res.json();
-            alert(data.message);
-            // Re-verify immediately to show MISMATCH
-            verifyReport(id);
-        } catch (e) {
-            alert('Tamper injection failed: ' + e.message);
-        }
-    });
-
-    // Reset / Repair Button
-    repairFileBtn.addEventListener('click', async () => {
-        if (!confirm('Restore consortium database and files to original verified state?')) return;
-        try {
-            const res = await fetch('/api/blockchain/restore', { method: 'POST' });
-            const data = await res.json();
-            alert(data.message);
+    if (tamperFileBtn) {
+        tamperFileBtn.addEventListener('click', async () => {
             const id = reportIdInput.value.trim();
-            if (id) verifyReport(id);
-        } catch (e) {
-            alert('Reset failed: ' + e.message);
-        }
-    });
+            if (!id) return;
+            if (!confirm(`Activate non-destructive in-memory tamper simulation for ${id}? (Requires Admin login in DEMO_MODE; files on disk are NOT modified.)`)) return;
+            try {
+                const res = await fetch(`/api/verify/simulate-tamper/${encodeURIComponent(id)}`, {
+                    method: 'POST',
+                    headers: getOptionalAuthHeaders()
+                });
+                const data = await res.json();
+                alert(data.message || 'Done');
+                verifyReport(id);
+            } catch (e) {
+                alert('Tamper simulation failed: ' + e.message);
+            }
+        });
+    }
+
+    if (repairFileBtn) {
+        repairFileBtn.addEventListener('click', async () => {
+            const id = reportIdInput.value.trim();
+            if (!id) return;
+            try {
+                const res = await fetch(`/api/verify/reset-tamper/${encodeURIComponent(id)}`, {
+                    method: 'POST',
+                    headers: getOptionalAuthHeaders()
+                });
+                const data = await res.json();
+                alert(data.message || 'Simulation reset.');
+                verifyReport(id);
+            } catch (e) {
+                alert('Reset failed: ' + e.message);
+            }
+        });
+    }
 });

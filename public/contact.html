@@ -80,10 +80,10 @@
                 </p>
             </div>
             <div class="step-card">
-                <span class="step-number">STEP 3 • PASSWORDLESS LOGIN</span>
-                <h3>View Reports Using Only Bill No.</h3>
+                <span class="step-number">STEP 3 • SECURE PATIENT ACCESS</span>
+                <h3>View Reports With Bill No. + Access Code</h3>
                 <p>
-                    Open the <a href="/portal" style="color: var(--teal-primary); font-weight: 700;">Hospital Portal</a> or <a href="/reception" style="color: var(--teal-primary); font-weight: 700;">Reception Page</a>, enter <strong>only your Bill Number</strong> (no password required), and download your Doctor Prescription PDF and Verified Lab Report PDF.
+                    Open the <a href="/portal" style="color: var(--teal-primary); font-weight: 700;">Hospital Portal</a> or <a href="/reception" style="color: var(--teal-primary); font-weight: 700;">Reception Page</a>, enter your <strong>Bill Number + 8-Character One-Time Access Code</strong> (issued on your OPD slip), set your personal password, and download your Doctor Prescription PDF and Verified Lab Reports.
                 </p>
             </div>
         </div>
@@ -147,11 +147,12 @@
                         <div style="margin-bottom: 0.9rem;">
                             <label style="display: block; font-size: 0.82rem; font-weight: 700; margin-bottom: 0.3rem;">Department / Query Type</label>
                             <select id="contactDept" class="verifier-input" style="width: 100%; font-family: var(--font-sans);">
-                                <option>OPD Appointment &amp; Bill Number Lookup</option>
-                                <option>Central Pathology Lab Report Inquiry</option>
-                                <option>General Medicine &amp; Cardiology Wing</option>
-                                <option>Orthopedics &amp; Sports Injury Wing</option>
-                                <option>Pulmonology &amp; Allergy Wing</option>
+                                <option value="Billing &amp; Reception Desk">Billing &amp; Reception Desk (Bill No. / Access Code)</option>
+                                <option value="Central Pathology Lab">Central Pathology Lab Report Inquiry</option>
+                                <option value="Cardiology &amp; General Medicine">Cardiology &amp; General Medicine Wing</option>
+                                <option value="Orthopedics &amp; Trauma">Orthopedics &amp; Trauma Wing</option>
+                                <option value="Pulmonology &amp; Respiratory Care">Pulmonology &amp; Respiratory Care Wing</option>
+                                <option value="Neurology &amp; Spine Care">Neurology &amp; Spine Care Wing</option>
                             </select>
                         </div>
                         <div style="margin-bottom: 1.1rem;">
@@ -230,44 +231,43 @@
             const message = document.getElementById('contactMsg').value.trim();
             const box = document.getElementById('contactSuccessBox');
 
-            const ticketId = 'INQ-' + Date.now().toString().slice(-4);
-            const newInq = {
-                ticketId,
-                name,
-                contact,
-                department,
-                message,
-                status: 'OPEN',
-                createdAt: new Date().toISOString()
-            };
-
-            // Save to localStorage so it immediately shows on /reception.html even without server restart
             try {
-                const existing = JSON.parse(localStorage.getItem('sit_hospital_inquiries') || '[]');
-                existing.unshift(newInq);
-                localStorage.setItem('sit_hospital_inquiries', JSON.stringify(existing));
-            } catch (err) {}
-
-            // Also send to backend API
-            try {
-                await fetch('/api/reception/inquiries', {
+                const res = await fetch('/api/reception/inquiries', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ name, contact, department, message })
                 });
-            } catch (err) {}
+                const data = await res.json();
 
-            box.className = 'verify-result-box active';
-            box.innerHTML = `
-                <strong style="color: #15803d;">✓ Helpdesk Ticket (${ticketId}) Sent to Reception Desk!</strong><br/>
-                <span style="font-size: 0.85rem;">Thank you, <strong>${name}</strong>. Your inquiry for <strong>${department}</strong> is now in the Receptionist's Inbox.</span>
-                <div style="margin-top: 0.5rem;">
-                    <a href="/reception.html" style="color: var(--teal-primary); font-weight: 700; font-size: 0.84rem; text-decoration: none;">
-                        🗂️ View in Receptionist Helpdesk Inbox (/reception.html) &rarr;
-                    </a>
-                </div>
-            `;
-            e.target.reset();
+                box.className = 'verify-result-box active';
+                box.innerHTML = '';
+                const title = document.createElement('strong');
+                const detail = document.createElement('div');
+                detail.style.fontSize = '0.85rem';
+                detail.style.marginTop = '4px';
+
+                if (!res.ok || !data.success) {
+                    box.style.borderColor = '#dc2626';
+                    title.style.color = '#dc2626';
+                    title.textContent = 'Could not submit inquiry';
+                    detail.textContent = data.message || 'Please check your input and try again later.';
+                    box.appendChild(title);
+                    box.appendChild(detail);
+                    return;
+                }
+
+                box.style.borderColor = '#16a34a';
+                title.style.color = '#15803d';
+                title.textContent = `✓ Helpdesk Ticket (${data.inquiry.ticketId}) Sent to Reception Desk!`;
+                detail.textContent = `Thank you, ${data.inquiry.name}. Your inquiry for ${data.inquiry.department} has been logged with the Reception Desk.`;
+                box.appendChild(title);
+                box.appendChild(detail);
+                e.target.reset();
+            } catch (err) {
+                box.className = 'verify-result-box active';
+                box.style.borderColor = '#dc2626';
+                box.textContent = 'Network error submitting inquiry: ' + err.message;
+            }
         }
     </script>
 </body>

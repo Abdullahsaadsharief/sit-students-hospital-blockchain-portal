@@ -1,16 +1,18 @@
 const fs = require('fs');
 const path = require('path');
+const config = require('../config');
 const Block = require('./Block');
-
-const LEDGER_FILE_PATH = path.join(__dirname, '..', 'data', 'ledger.json');
+const { atomicWriteJsonSync } = require('../utils/atomicWrite');
 
 /**
- * Permissioned Blockchain Ledger for Medical Report Anchoring
+ * Tamper-Evident Local Hash-Chain Ledger for Medical Report Anchoring
+ * Works standalone as a local hash-chain AND pairs with live Ethereum EVM anchoring via ethereumClient.
  */
 class Blockchain {
     constructor() {
         this.chain = [];
-        this.difficulty = 2; // Fast mining for permissioned network
+        this.difficulty = 2;
+        this.tamperSnapshots = new Map(); // Non-destructive backup of blocks modified during DEMO_MODE tamper demo
         this.nodeNodes = [
             { id: 'NODE-HOSP-01', name: 'SIT Hospital - Medicine & Cardio Wing', type: 'Hospital Wing' },
             { id: 'NODE-LAB-01', name: 'SIT Hospital - Central Pathology Lab', type: 'Diagnostic Lab' },
@@ -20,50 +22,74 @@ class Blockchain {
         this.loadChain();
     }
 
-    /**
-     * Creates genesis block for the hospital ledger
-     */
+    get ledgerFilePath() {
+        return config.LEDGER_FILE_PATH;
+    }
+
     createGenesisBlock() {
         return new Block(
             0,
             '2026-10-01T00:00:00.000Z',
             {
                 message: 'Genesis Block - SIT Students Hospital Internal Document & Lab Ledger Initialized',
-                network: 'SIT Students Hospital Record Network v1.0',
+                network: 'SIT Students Hospital Record Network v2.0',
                 nodes: this.nodeNodes.map(n => n.name)
             },
             '0000000000000000000000000000000000000000000000000000000000000000'
         );
     }
 
+    _hydrateBlocks(parsed) {
+        return parsed.map(b => {
+            const block = new Block(b.index, b.timestamp, b.data, b.previousHash);
+            block.hash = b.hash;
+            block.nonce = b.nonce;
+            return block;
+        });
+    }
+
     /**
-     * Loads ledger from persistent disk, or initializes genesis
+     * Loads ledger from disk. Refuses to silently overwrite a corrupted existing ledger;
+     * attempts recovery from rolling .bak files before failing.
      */
     loadChain() {
-        try {
-            const dataDir = path.dirname(LEDGER_FILE_PATH);
-            if (!fs.existsSync(dataDir)) {
-                fs.mkdirSync(dataDir, { recursive: true });
-            }
-
-            if (fs.existsSync(LEDGER_FILE_PATH)) {
-                const raw = fs.readFileSync(LEDGER_FILE_PATH, 'utf8');
-                const parsed = JSON.parse(raw);
-                if (Array.isArray(parsed) && parsed.length > 0) {
-                    this.chain = parsed.map(b => {
-                        const block = new Block(b.index, b.timestamp, b.data, b.previousHash);
-                        block.hash = b.hash;
-                        block.nonce = b.nonce;
-                        return block;
-                    });
-                    return;
-                }
-            }
-        } catch (e) {
-            console.warn('[Blockchain] Error loading ledger file, recreating genesis:', e.message);
+        const filePath = this.ledgerFilePath;
+        const dataDir = path.dirname(filePath);
+        if (!fs.existsSync(dataDir)) {
+            fs.mkdirSync(dataDir, { recursive: true });
         }
 
-        // Initialize with Genesis block
+        if (fs.existsSync(filePath)) {
+            try {
+                const raw = fs.readFileSync(filePath, 'utf8');
+                const parsed = JSON.parse(raw);
+                if (Array.isArray(parsed) && parsed.length > 0) {
+                    this.chain = this._hydrateBlocks(parsed);
+                    return;
+                }
+                throw new Error('Ledger JSON is empty or not an array');
+            } catch (e) {
+                console.error('[Blockchain] Primary ledger file corrupt or unreadable:', e.message);
+                // Attempt automatic recovery from rolling backups
+                for (let i = 1; i <= 5; i++) {
+                    const bakPath = `${filePath}.bak.${i}`;
+                    if (fs.existsSync(bakPath)) {
+                        try {
+                            const bakParsed = JSON.parse(fs.readFileSync(bakPath, 'utf8'));
+                            if (Array.isArray(bakParsed) && bakParsed.length > 0) {
+                                console.warn(`[Blockchain] Recovered ledger from backup ${path.basename(bakPath)}.`);
+                                this.chain = this._hydrateBlocks(bakParsed);
+                                this.saveChain();
+                                return;
+                            }
+                        } catch (_) {}
+                    }
+                }
+                throw new Error(`[Blockchain] Fatal: Cannot parse ${filePath} and no valid backup exists (${e.message})`);
+            }
+        }
+
+        // Only initialize a fresh Genesis block when no ledger file exists on disk
         const genesis = this.createGenesisBlock();
         genesis.mineBlock(this.difficulty);
         this.chain = [genesis];
@@ -71,18 +97,10 @@ class Blockchain {
     }
 
     /**
-     * Persists chain to disk
+     * Atomically persists chain to disk with rolling backups
      */
     saveChain() {
-        try {
-            const dataDir = path.dirname(LEDGER_FILE_PATH);
-            if (!fs.existsSync(dataDir)) {
-                fs.mkdirSync(dataDir, { recursive: true });
-            }
-            fs.writeFileSync(LEDGER_FILE_PATH, JSON.stringify(this.chain, null, 2), 'utf8');
-        } catch (e) {
-            console.error('[Blockchain] Failed to save ledger:', e.message);
-        }
+        atomicWriteJsonSync(this.ledgerFilePath, this.chain, { maxBackups: 5 });
     }
 
     getLatestBlock() {
@@ -90,10 +108,8 @@ class Blockchain {
     }
 
     /**
-     * Mines and appends a new block for a medical report
-     * @param {object} reportPayload 
-     * @param {string} [nodeId] 
-     * @returns {Block} Newly added block
+     * Mines and appends a new block for a medical report, recording both sourceHash and reportHash
+     * plus optional live EVM on-chain anchoring receipt.
      */
     addReportBlock(reportPayload, nodeId = 'NODE-HOSP-01') {
         const latestBlock = this.getLatestBlock();
@@ -101,15 +117,26 @@ class Blockchain {
 
         const blockData = {
             reportId: reportPayload.reportId,
+            sourceHash: reportPayload.sourceHash || reportPayload.reportHash,
             reportHash: reportPayload.reportHash,
             storageReference: reportPayload.storageReference,
             reportType: reportPayload.reportType,
             testDate: reportPayload.testDate || new Date().toISOString().split('T')[0],
-            patientPseudonym: reportPayload.patientPseudonym || 'PT-' + reportPayload.patientId.slice(-4),
+            patientPseudonym: reportPayload.patientPseudonym || 'PT-' + String(reportPayload.patientId || 'ANON').slice(-4),
             institutionNode: selectedNode.name,
             nodeId: selectedNode.id,
             recordedAt: new Date().toISOString()
         };
+
+        if (reportPayload.onChain && reportPayload.onChain.anchoredOnChain) {
+            blockData.onChain = {
+                network: reportPayload.onChain.network,
+                contractAddress: reportPayload.onChain.contractAddress,
+                txHash: reportPayload.onChain.txHash,
+                ethBlockNumber: reportPayload.onChain.ethBlockNumber,
+                explorerTxUrl: reportPayload.onChain.explorerTxUrl
+            };
+        }
 
         const newBlock = new Block(
             this.chain.length,
@@ -125,24 +152,40 @@ class Blockchain {
     }
 
     /**
-     * Finds block by report SHA-256 hash (used for Duplicate Detection)
-     * @param {string} sha256Hash 
-     * @returns {Block|null}
+     * Finds block matching either sourceHash or reportHash (Duplicate Detection)
      */
     findBlockByHash(sha256Hash) {
+        if (!sha256Hash) return null;
+        const target = String(sha256Hash).toLowerCase();
         for (let i = 1; i < this.chain.length; i++) {
-            if (this.chain[i].data && this.chain[i].data.reportHash === sha256Hash) {
+            const d = this.chain[i].data;
+            if (!d) continue;
+            if (
+                (d.reportHash && String(d.reportHash).toLowerCase() === target) ||
+                (d.sourceHash && String(d.sourceHash).toLowerCase() === target)
+            ) {
                 return this.chain[i];
             }
         }
         return null;
     }
 
-    /**
-     * Finds block by pseudonymous Report ID
-     * @param {string} reportId 
-     * @returns {Block|null}
-     */
+    findBlockBySourceHash(sha256Hash) {
+        if (!sha256Hash) return null;
+        const target = String(sha256Hash).toLowerCase();
+        for (let i = 1; i < this.chain.length; i++) {
+            const d = this.chain[i].data;
+            if (d && d.sourceHash && String(d.sourceHash).toLowerCase() === target) {
+                return this.chain[i];
+            }
+        }
+        return null;
+    }
+
+    findBlockByAnyHash(sha256Hash) {
+        return this.findBlockByHash(sha256Hash);
+    }
+
     findBlockByReportId(reportId) {
         for (let i = 1; i < this.chain.length; i++) {
             if (this.chain[i].data && this.chain[i].data.reportId === reportId) {
@@ -154,14 +197,12 @@ class Blockchain {
 
     /**
      * Full chain verification: checks cryptographic linkages and recomputed block hashes
-     * @returns {{ isValid: boolean, error?: string, brokenBlockIndex?: number }}
      */
     isChainValid() {
         for (let i = 1; i < this.chain.length; i++) {
             const currentBlock = this.chain[i];
             const previousBlock = this.chain[i - 1];
 
-            // Verify current block's hash matches calculated hash
             if (currentBlock.hash !== currentBlock.calculateHash()) {
                 return {
                     isValid: false,
@@ -170,7 +211,6 @@ class Blockchain {
                 };
             }
 
-            // Verify previous hash pointer
             if (currentBlock.previousHash !== previousBlock.hash) {
                 return {
                     isValid: false,
@@ -183,30 +223,46 @@ class Blockchain {
     }
 
     /**
-     * Live Tamper Simulation (for evaluation panel demonstration)
-     * Alters data in block at index to show how the blockchain immediately catches it!
+     * Non-destructive Tamper Simulation (DEMO_MODE ONLY):
+     * Snapshots original block data in memory before altering it so restoreSimulatedTampering()
+     * cleanly reverts ONLY the tampered block without resetting or losing any real data.
      */
     simulateTampering(blockIndex, fakeHash = 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855') {
         if (blockIndex <= 0 || blockIndex >= this.chain.length) {
             throw new Error('Invalid block index for tamper demonstration');
         }
         const block = this.chain[blockIndex];
+        if (!this.tamperSnapshots.has(blockIndex)) {
+            this.tamperSnapshots.set(blockIndex, JSON.parse(JSON.stringify(block.data)));
+        }
         block.data.reportHash = fakeHash;
         block.data.tampered = true;
-        this.saveChain();
+        // Keep in-memory simulation without destroying persisted valid ledger on disk
         return block;
     }
 
     /**
-     * Restores chain from original valid state or recalculates
+     * Non-destructively restores any blocks altered by simulateTampering()
      */
+    restoreSimulatedTampering() {
+        let restoredCount = 0;
+        for (const [idx, originalData] of this.tamperSnapshots.entries()) {
+            if (this.chain[idx]) {
+                this.chain[idx].data = JSON.parse(JSON.stringify(originalData));
+                restoredCount++;
+            }
+        }
+        this.tamperSnapshots.clear();
+        return {
+            restoredCount,
+            validation: this.isChainValid()
+        };
+    }
+
     repairOrReset() {
-        this.loadChain();
-        return this.isChainValid();
+        return this.restoreSimulatedTampering().validation;
     }
 }
 
-// Singleton blockchain instance
 const blockchainInstance = new Blockchain();
-
 module.exports = blockchainInstance;
