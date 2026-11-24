@@ -9,6 +9,7 @@ const { canViewPrescription, canViewPatientBill } = require('../utils/access');
 const { computeSHA256, encryptBuffer, decryptBuffer, TamperDetectedError } = require('../utils/cryptoUtils');
 const { validateUploadedFile, sanitizeDownloadFilename } = require('../utils/fileValidation');
 const { atomicWriteBufferSync } = require('../utils/atomicWrite');
+const { cloudPersistence } = require('../utils/cloudPersistence');
 const { testGeminiApiKey } = require('../utils/aiSummarizer');
 const { generateReceptionBillPDF, generateDoctorPrescriptionPDF } = require('../utils/pdfGenerator');
 
@@ -780,6 +781,15 @@ async function uploadPrescriptionAttachment(req, res) {
             `Doctor uploaded encrypted prescription attachment ${attachmentId} for prescription ${savedRx.prescriptionId} (Patient: ${targetPatient.name})`
         );
 
+        if (cloudPersistence.isEnabled()) {
+            try {
+                await cloudPersistence.saveEncryptedFile(storageReference, encryptedBuffer);
+                await cloudPersistence.flushAll();
+            } catch (cloudErr) {
+                console.error('[Admin Controller] Prescription cloud persistence sync warning:', cloudErr.message);
+            }
+        }
+
         return res.status(201).json({
             success: true,
             message: `Prescription document encrypted and attached to ${savedRx.prescriptionId}.`,
@@ -812,6 +822,9 @@ async function downloadPrescriptionAttachment(req, res) {
         }
 
         const filePath = path.join(config.UPLOADS_DIR, path.basename(rx.attachment.storageReference));
+        if (!fs.existsSync(filePath)) {
+            await cloudPersistence.ensureLocalEncryptedFile(rx.attachment.storageReference);
+        }
         if (!fs.existsSync(filePath)) {
             return res.status(404).json({ success: false, message: 'Encrypted attachment file missing on disk.' });
         }

@@ -5,6 +5,7 @@ const db = require('../models/db');
 const { sanitizeUser } = require('../middleware/authMiddleware');
 const { hashPassword, verifyPassword, verifyAgainstDummy } = require('../utils/passwords');
 const { ethereumClient } = require('../blockchain/ethereumClient');
+const { cloudPersistence } = require('../utils/cloudPersistence');
 
 function signSessionToken(user) {
     return jwt.sign(
@@ -30,7 +31,8 @@ function getPublicConfig(req, res) {
         success: true,
         demoMode: config.DEMO_MODE,
         aiExternalProcessing: config.AI_EXTERNAL_PROCESSING,
-        blockchain: ethereumClient.getStatus()
+        blockchain: ethereumClient.getStatus(),
+        persistence: cloudPersistence.getStatus()
     });
 }
 

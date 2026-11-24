@@ -3,6 +3,7 @@ const path = require('path');
 const config = require('../config');
 const Block = require('./Block');
 const { atomicWriteJsonSync } = require('../utils/atomicWrite');
+const { cloudPersistence } = require('../utils/cloudPersistence');
 
 /**
  * Tamper-Evident Local Hash-Chain Ledger for Medical Report Anchoring
@@ -12,6 +13,7 @@ class Blockchain {
     constructor() {
         this.chain = [];
         this.difficulty = 2;
+        this._suppressCloudSync = false;
         this.tamperSnapshots = new Map(); // Non-destructive backup of blocks modified during DEMO_MODE tamper demo
         this.nodeNodes = [
             { id: 'NODE-HOSP-01', name: 'SIT Hospital - Medicine & Cardio Wing', type: 'Hospital Wing' },
@@ -97,10 +99,26 @@ class Blockchain {
     }
 
     /**
-     * Atomically persists chain to disk with rolling backups
+     * Reloads ledger from disk without triggering an immediate redundant cloud write
+     * (used during Firebase Firestore startup hydration).
+     */
+    reloadFromDisk() {
+        this._suppressCloudSync = true;
+        try {
+            this.loadChain();
+        } finally {
+            this._suppressCloudSync = false;
+        }
+    }
+
+    /**
+     * Atomically persists chain to disk with rolling backups and schedules cloud sync if configured
      */
     saveChain() {
         atomicWriteJsonSync(this.ledgerFilePath, this.chain, { maxBackups: 5 });
+        if (!this._suppressCloudSync) {
+            cloudPersistence.scheduleStateSync('ledger', this.chain);
+        }
     }
 
     getLatestBlock() {

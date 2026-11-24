@@ -156,6 +156,12 @@ const config = {
     BLOCKCHAIN_NETWORK_NAME: (process.env.BLOCKCHAIN_NETWORK_NAME || 'Ethereum Sepolia Testnet').trim(),
     BLOCKCHAIN_EXPLORER_URL: (process.env.BLOCKCHAIN_EXPLORER_URL || 'https://sepolia.etherscan.io').trim().replace(/\/+$/, ''),
 
+    // Firebase Cloud Persistence (Free Spark Firestore + Optional Blaze Cloud Storage)
+    FIREBASE_SERVICE_ACCOUNT_BASE64: (process.env.FIREBASE_SERVICE_ACCOUNT_BASE64 || '').trim(),
+    FIREBASE_SERVICE_ACCOUNT_JSON: (process.env.FIREBASE_SERVICE_ACCOUNT_JSON || '').trim(),
+    FIREBASE_SERVICE_ACCOUNT_PATH: (process.env.FIREBASE_SERVICE_ACCOUNT_PATH || '').trim(),
+    FIREBASE_STORAGE_BUCKET: (process.env.FIREBASE_STORAGE_BUCKET || '').trim(),
+
     // Rate limiting & concurrency controls (overridable via env for tests)
     LOGIN_RATE_LIMIT_MAX: Number(process.env.LOGIN_RATE_LIMIT_MAX) || 5,
     LOGIN_RATE_LIMIT_WINDOW_MS: Number(process.env.LOGIN_RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000,

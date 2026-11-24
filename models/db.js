@@ -6,6 +6,7 @@ const { SAMPLE_USERS, createSeedReports } = require('../utils/seedData');
 const blockchain = require('../blockchain/Blockchain');
 const { hashPassword, isScryptHash } = require('../utils/passwords');
 const { atomicWriteJsonSync } = require('../utils/atomicWrite');
+const { cloudPersistence } = require('../utils/cloudPersistence');
 
 const SEEDED_DEMO_IDS = new Set(SAMPLE_USERS.map(u => u.id));
 
@@ -18,6 +19,7 @@ class Database {
         this.prescriptions = [];
         this.labRequests = [];
         this.inquiries = [];
+        this._suppressCloudSync = false;
         this.init();
     }
 
@@ -325,6 +327,15 @@ class Database {
         return this.reports;
     }
 
+    reloadFromDisk() {
+        this._suppressCloudSync = true;
+        try {
+            this.init();
+        } finally {
+            this._suppressCloudSync = false;
+        }
+    }
+
     persist() {
         const payload = {
             users: this.users,
@@ -336,6 +347,9 @@ class Database {
             inquiries: this.inquiries
         };
         atomicWriteJsonSync(this.dbFilePath, payload, { maxBackups: 5 });
+        if (!this._suppressCloudSync) {
+            cloudPersistence.scheduleStateSync('database', payload);
+        }
     }
 
     // --- Users ---

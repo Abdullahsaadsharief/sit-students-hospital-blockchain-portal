@@ -37,3 +37,8 @@ scratch/
 *.bak.*
 *.tmp
 contracts/*.compiled.json
+
+# Firebase Admin SDK service account private keys (NEVER commit!)
+*-firebase-adminsdk-*.json
+firebase-service-account*.json
+serviceAccountKey*.json

@@ -10,6 +10,9 @@ const config = require('./config');
 const { authenticate, optionalAuthenticate, authorizeRoles } = require('./middleware/authMiddleware');
 const upload = require('./middleware/uploadMiddleware');
 const { ethereumClient } = require('./blockchain/ethereumClient');
+const { cloudPersistence } = require('./utils/cloudPersistence');
+const db = require('./models/db');
+const blockchain = require('./blockchain/Blockchain');
 
 const authController = require('./controllers/authController');
 const adminController = require('./controllers/adminController');
@@ -140,11 +143,13 @@ if (config.DEMO_MODE) {
 // ==========================================
 app.get('/healthz', (req, res) => {
     const eth = ethereumClient.getStatus();
+    const persistence = cloudPersistence.getStatus();
     return res.json({
         ok: true,
         status: 'healthy',
         demoMode: config.DEMO_MODE,
-        blockchainMode: eth.mode
+        blockchainMode: eth.mode,
+        storageMode: persistence.mode
     });
 });
 
@@ -279,18 +284,44 @@ app.use((err, req, res, next) => {
 app.PUBLIC_API_ROUTES = PUBLIC_API_ROUTES;
 
 if (require.main === module) {
-    app.listen(PORT, () => {
-        const eth = ethereumClient.getStatus();
-        console.log('================================================================');
-        console.log('🏥 SIT Students Hospital Portal — Hardened Security Build v2.0');
-        console.log(`🔒 Security Mode:    ${config.DEMO_MODE ? 'DEMO_MODE (Synthetic Academic Demo)' : 'HARDENED (Real Auth Required)'}`);
-        console.log(`⛓️  Blockchain Mode:  ${eth.mode}`);
-        console.log(`🌐 Public Website:   http://localhost:${PORT}`);
-        console.log(`🔐 Staff/Patient:    http://localhost:${PORT}/portal`);
-        console.log(`🩺 Reception Desk:   http://localhost:${PORT}/reception`);
-        console.log(`🔍 QR Verification:  http://localhost:${PORT}/verify.html`);
-        console.log('================================================================');
-    });
+    async function startServer() {
+        if (cloudPersistence.isEnabled()) {
+            try {
+                await cloudPersistence.hydrateOnStartup({ db, blockchain });
+            } catch (err) {
+                console.error('[CloudPersistence] Startup hydration warning (continuing with local disk):', err.message);
+            }
+        }
+
+        const server = app.listen(PORT, () => {
+            const eth = ethereumClient.getStatus();
+            const persistence = cloudPersistence.getStatus();
+            console.log('================================================================');
+            console.log('🏥 SIT Students Hospital Portal — Hardened Security Build v2.0');
+            console.log(`🔒 Security Mode:    ${config.DEMO_MODE ? 'DEMO_MODE (Synthetic Academic Demo)' : 'HARDENED (Real Auth Required)'}`);
+            console.log(`⛓️  Blockchain Mode:  ${eth.mode}`);
+            console.log(`☁️  Storage Mode:     ${persistence.mode}`);
+            console.log(`🌐 Public Website:   http://localhost:${PORT}`);
+            console.log(`🔐 Staff/Patient:    http://localhost:${PORT}/portal`);
+            console.log(`🩺 Reception Desk:   http://localhost:${PORT}/reception`);
+            console.log(`🔍 QR Verification:  http://localhost:${PORT}/verify.html`);
+            console.log('================================================================');
+        });
+
+        const gracefulShutdown = async (signal) => {
+            console.log(`[Server] Received ${signal} — flushing cloud persistence before exit...`);
+            try {
+                await cloudPersistence.flushAll();
+            } catch (_) {}
+            server.close(() => process.exit(0));
+            setTimeout(() => process.exit(0), 5000).unref();
+        };
+
+        process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+        process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+    }
+
+    startServer();
 }
 
 module.exports = app;

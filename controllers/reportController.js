@@ -9,6 +9,7 @@ const { computeSHA256, encryptBuffer, decryptBuffer, generatePseudonymousId, Tam
 const { canViewReport } = require('../utils/access');
 const { validateUploadedFile, sanitizeDownloadFilename, ConcurrencySemaphore } = require('../utils/fileValidation');
 const { atomicWriteBufferSync } = require('../utils/atomicWrite');
+const { cloudPersistence } = require('../utils/cloudPersistence');
 const { sanitizeUser } = require('../middleware/authMiddleware');
 const { processReportOCR } = require('../utils/ocrHelper');
 const { generateClinicalHighlights } = require('../utils/aiSummarizer');
@@ -298,6 +299,15 @@ async function uploadReport(req, res) {
             `Uploaded report ${reportId} for ${targetPatient.name}. Local Block #${block.index}${onChainResult.anchoredOnChain ? ` | On-Chain TX: ${onChainResult.txHash}` : ''}`
         );
 
+        if (cloudPersistence.isEnabled()) {
+            try {
+                await cloudPersistence.saveEncryptedFile(storageReference, encryptedBuffer);
+                await cloudPersistence.flushAll();
+            } catch (cloudErr) {
+                console.error('[Upload Controller] Cloud persistence sync warning:', cloudErr.message);
+            }
+        }
+
         return res.status(201).json({
             success: true,
             message: onChainResult.anchoredOnChain
@@ -440,7 +450,7 @@ function getReportById(req, res) {
     return res.json({ success: true, report });
 }
 
-function downloadDecryptedReport(req, res) {
+async function downloadDecryptedReport(req, res) {
     try {
         const user = req.user;
         const report = db.findReportById(req.params.reportId);
@@ -459,6 +469,9 @@ function downloadDecryptedReport(req, res) {
         }
 
         const filePath = path.join(config.UPLOADS_DIR, path.basename(report.storageReference));
+        if (!fs.existsSync(filePath)) {
+            await cloudPersistence.ensureLocalEncryptedFile(report.storageReference);
+        }
         if (!fs.existsSync(filePath)) {
             return res.status(404).json({ success: false, message: 'Encrypted off-chain file not found.' });
         }

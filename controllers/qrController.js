@@ -8,6 +8,7 @@ const blockchain = require('../blockchain/Blockchain');
 const { ethereumClient } = require('../blockchain/ethereumClient');
 const { computeSHA256, decryptBuffer, TamperDetectedError } = require('../utils/cryptoUtils');
 const { canViewReport } = require('../utils/access');
+const { cloudPersistence } = require('../utils/cloudPersistence');
 
 // Non-destructive in-memory tamper simulation flags (DEMO_MODE ONLY — never modifies files on disk!)
 const simulatedTamperedReports = new Set();
@@ -132,6 +133,9 @@ async function verifyReportIntegrity(req, res) {
             tamperReason = 'DEMO_MODE non-destructive tamper simulation active for this report.';
         } else {
             const filePath = path.join(config.UPLOADS_DIR, path.basename(report.storageReference));
+            if (!fs.existsSync(filePath)) {
+                await cloudPersistence.ensureLocalEncryptedFile(report.storageReference);
+            }
             if (!fs.existsSync(filePath)) {
                 return res.status(404).json({
                     success: false,

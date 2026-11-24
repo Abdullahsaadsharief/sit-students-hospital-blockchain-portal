@@ -7,6 +7,7 @@ const db = require('../models/db');
 const { computeSHA256, decryptBuffer, TamperDetectedError } = require('../utils/cryptoUtils');
 const { canShareReport } = require('../utils/access');
 const { sanitizeDownloadFilename } = require('../utils/fileValidation');
+const { cloudPersistence } = require('../utils/cloudPersistence');
 
 const MIN_SHARE_MINUTES = 1;
 const MAX_SHARE_MINUTES = 1440; // 24 hours max
@@ -234,7 +235,7 @@ function getSharedReport(req, res) {
     }
 }
 
-function downloadSharedReportFile(req, res) {
+async function downloadSharedReportFile(req, res) {
     const { token } = req.query;
     if (!token || typeof token !== 'string') {
         return res.status(400).json({ success: false, message: 'Missing token.' });
@@ -248,6 +249,9 @@ function downloadSharedReportFile(req, res) {
 
         const { report } = result;
         const filePath = path.join(config.UPLOADS_DIR, path.basename(report.storageReference));
+        if (!fs.existsSync(filePath)) {
+            await cloudPersistence.ensureLocalEncryptedFile(report.storageReference);
+        }
         if (!fs.existsSync(filePath)) {
             return res.status(404).json({ success: false, message: 'Storage file not found.' });
         }

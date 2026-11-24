@@ -43,3 +43,7 @@ services:
         value: Ethereum Sepolia Testnet
       - key: BLOCKCHAIN_EXPLORER_URL
         value: https://sepolia.etherscan.io
+      - key: FIREBASE_SERVICE_ACCOUNT_BASE64
+        sync: false # Base64-encoded Firebase Service Account JSON (Free Spark Firestore persistence)
+      - key: FIREBASE_STORAGE_BUCKET
+        sync: false # Optional: set only if using Firebase Cloud Storage bucket on Blaze plan
