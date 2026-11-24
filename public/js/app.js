@@ -880,7 +880,7 @@ async function loadTimeline() {
             let doctorRemarkHtml = '';
             if (item.doctorRemarks) {
                 doctorRemarkHtml = `
-                    <div style="margin: 0.5rem 0; padding: 6px 10px; background: rgba(245, 158, 11, 0.12); border-left: 3px solid var(--accent-warning); border-radius: 4px; font-size: 0.8rem; color: #fde68a;">
+                    <div class="timeline-doctor-remark">
                         <strong>Attending Diagnosis:</strong> ${escapeHtml(item.doctorRemarks.status || 'Evaluated')}<br>
                         ${escapeHtml(item.notes || '')}
                     </div>
@@ -1179,41 +1179,49 @@ async function loadAdminAiConfig() {
 
         if (data.status === 'ONLINE_AI') {
             if (badge) {
-                badge.className = 'status-pill status-completed';
+                badge.className = 'status-pill ai-badge-online';
+                badge.removeAttribute('style');
+                badge.style.fontSize = '0.72rem';
+                badge.style.padding = '2px 8px';
                 badge.textContent = '⚡ Google Gemini AI Active';
-                badge.style.background = 'rgba(16, 185, 129, 0.2)';
-                badge.style.color = '#34d399';
-                badge.style.border = '1px solid #10b981';
             }
             if (engineName) {
                 engineName.textContent = data.activeEngine;
-                engineName.style.color = '#38bdf8';
+                engineName.className = 'ai-engine-online';
+                engineName.style.color = '';
             }
             if (keyStatus) {
                 keyStatus.textContent = `Key: ${data.maskedKey || 'Configured & Active'}`;
-                keyStatus.style.color = '#34d399';
+                keyStatus.className = 'ai-key-online';
+                keyStatus.style.color = '';
             }
             if (keyInput && !keyInput.value) {
                 keyInput.placeholder = `Active Key: ${data.maskedKey || 'Configured'} (Enter new key to replace)`;
             }
         } else {
             if (badge) {
-                badge.className = 'status-pill status-completed';
+                badge.className = 'status-pill ai-badge-offline';
+                badge.removeAttribute('style');
+                badge.style.fontSize = '0.72rem';
+                badge.style.padding = '2px 8px';
                 badge.textContent = '🟢 Offline Local NLP Active';
-                badge.style.background = 'rgba(2, 132, 199, 0.2)';
-                badge.style.color = '#38bdf8';
-                badge.style.border = '1px solid #0284c7';
             }
             if (engineName) {
                 engineName.textContent = data.activeEngine;
-                engineName.style.color = '#f8fafc';
+                engineName.className = 'ai-engine-offline';
+                engineName.style.color = '';
             }
             if (keyStatus) {
-                keyStatus.textContent = 'Key: Not Configured (Offline Mode Active)';
-                keyStatus.style.color = 'var(--text-muted)';
+                keyStatus.textContent = data.hasKey && data.maskedKey
+                    ? `Key: ${data.maskedKey} (Saved — Click Activate to enable Cloud AI)`
+                    : 'Key: Not Configured (Offline Mode Active)';
+                keyStatus.className = 'ai-key-offline';
+                keyStatus.style.color = '';
             }
             if (keyInput) {
-                keyInput.placeholder = 'Paste Google Gemini API Key (e.g. AIzaSy...)';
+                keyInput.placeholder = data.hasKey && data.maskedKey
+                    ? `Saved Key: ${data.maskedKey} (Paste key & click Test & Activate)`
+                    : 'Paste Google Gemini API Key (e.g. AIzaSy...)';
             }
         }
     } catch (e) {
@@ -1256,15 +1264,14 @@ async function saveAdminAiConfig() {
             showToast('✅ Google Gemini API key verified and activated!', 'success');
             if (alertBox) {
                 alertBox.style.display = 'block';
+                alertBox.style.background = '';
+                alertBox.style.border = '';
+                alertBox.style.color = '';
                 if (data.warning) {
-                    alertBox.style.background = 'rgba(245, 158, 11, 0.15)';
-                    alertBox.style.border = '1px solid #f59e0b';
-                    alertBox.style.color = '#fef3c7';
+                    alertBox.className = 'ai-feedback-alert ai-feedback-warning';
                     alertBox.innerHTML = `<strong>⚠️ Verification Succeeded with Hybrid Fallback:</strong> ${escapeHtml(data.warning)}`;
                 } else {
-                    alertBox.style.background = 'rgba(16, 185, 129, 0.15)';
-                    alertBox.style.border = '1px solid #10b981';
-                    alertBox.style.color = '#d1fae5';
+                    alertBox.className = 'ai-feedback-alert ai-feedback-success';
                     alertBox.innerHTML = `<strong>✅ Verification Succeeded:</strong> ${escapeHtml(data.message || 'Cloud connection confirmed!')} All future medical report uploads will utilize real-time clinical AI inference with automatic offline fallback.`;
                 }
             }
@@ -1274,9 +1281,10 @@ async function saveAdminAiConfig() {
             showToast(`❌ ${data.message || 'Verification failed'}`, 'error');
             if (alertBox) {
                 alertBox.style.display = 'block';
-                alertBox.style.background = 'rgba(239, 68, 68, 0.15)';
-                alertBox.style.border = '1px solid #ef4444';
-                alertBox.style.color = '#fee2e2';
+                alertBox.style.background = '';
+                alertBox.style.border = '';
+                alertBox.style.color = '';
+                alertBox.className = 'ai-feedback-alert ai-feedback-error';
                 alertBox.innerHTML = `<strong>❌ Verification Failed:</strong> ${escapeHtml(data.message || 'Invalid key or API connectivity error.')}`;
             }
         }
@@ -1305,9 +1313,10 @@ async function resetAdminAiConfig() {
             if (input) input.value = '';
             if (alertBox) {
                 alertBox.style.display = 'block';
-                alertBox.style.background = 'rgba(2, 132, 199, 0.15)';
-                alertBox.style.border = '1px solid #0284c7';
-                alertBox.style.color = '#e0f2fe';
+                alertBox.style.background = '';
+                alertBox.style.border = '';
+                alertBox.style.color = '';
+                alertBox.className = 'ai-feedback-alert ai-feedback-info';
                 alertBox.innerHTML = `<strong>🔄 Reverted to Offline Mode:</strong> System is operating via the built-in Local Clinical NLP Engine with zero external dependencies.`;
             }
             await loadAdminAiConfig();
@@ -1685,13 +1694,13 @@ async function loadBlockchain() {
                 </div>
                 <div class="hash-row">
                     <span class="hash-label">Prev Hash:</span>
-                    <span style="color: #94a3b8;">${escapeHtml(block.previousHash)}</span>
+                    <span class="block-prev-hash">${escapeHtml(block.previousHash)}</span>
                 </div>
                 ${onChainHtml}
 
-                <div style="background: rgba(0,0,0,0.3); border-radius: var(--radius-sm); padding: 0.75rem 1rem; margin-top: 0.75rem; font-size: 0.82rem;">
+                <div class="block-payload-box">
                     <strong>Block Payload Data:</strong>
-                    <pre style="font-family: var(--font-mono); color: #cbd5e1; margin-top: 4px; white-space: pre-wrap;">${escapeHtml(JSON.stringify(block.data, null, 2))}</pre>
+                    <pre class="block-payload-pre">${escapeHtml(JSON.stringify(block.data, null, 2))}</pre>
                 </div>
             `;
 
@@ -1963,7 +1972,7 @@ async function openReportModal(reportId) {
             }
 
             if (r.sampleContent && (!r.testParameters || r.testParameters.length === 0)) {
-                bodyHtml += `<pre style="font-family: var(--font-mono); font-size: 0.82rem; color: #cbd5e1; white-space: pre-wrap; line-height: 1.5; background: rgba(0,0,0,0.3); padding: 12px; border-radius: 6px;">${escapeHtml(r.sampleContent)}</pre>`;
+                bodyHtml += `<pre class="report-raw-pre">${escapeHtml(r.sampleContent)}</pre>`;
             }
 
             content.innerHTML = bodyHtml || '<div style="color: var(--text-muted);">Decrypted diagnostic investigation archived on blockchain.</div>';
@@ -2194,39 +2203,40 @@ async function runLiveModalVerification() {
         const data = await res.json();
 
         liveResultBox.style.display = 'block';
+        liveResultBox.style.background = '';
+        liveResultBox.style.border = '';
 
         if (data.isAuthentic || data.status === 'MATCH') {
-            liveResultBox.style.background = 'rgba(16, 185, 129, 0.15)';
-            liveResultBox.style.border = '1px solid #10b981';
+            liveResultBox.className = 'verify-live-pass';
             liveResultBox.innerHTML = `
                 <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
                     <span style="font-size: 1.3rem;">✅</span>
-                    <strong style="color: #34d399; font-size: 0.95rem;">VERIFICATION PASSED: AUTHENTIC ORIGINAL</strong>
+                    <strong class="verify-live-title">VERIFICATION PASSED: AUTHENTIC ORIGINAL</strong>
                 </div>
-                <div style="font-size: 0.82rem; color: #e2e8f0; line-height: 1.5; font-family: var(--font-mono);">
-                    <div><strong>Live Computed File Hash:</strong> <span style="color: #38bdf8;">${data.liveComputedHash}</span></div>
-                    <div><strong>Anchored Blockchain Hash:</strong> <span style="color: #34d399;">${data.anchoredBlockchainHash}</span></div>
+                <div class="verify-live-meta">
+                    <div><strong>Live Computed File Hash:</strong> <span class="verify-live-hash-live">${escapeHtml(data.liveComputedHash || 'Verified server-side')}</span></div>
+                    <div><strong>Anchored Blockchain Hash:</strong> <span class="verify-live-hash-anchored">${escapeHtml(data.anchoredBlockchainHash || 'Verified server-side')}</span></div>
                     <div style="margin-top: 6px; color: var(--text-muted); font-family: var(--font-sans);">
-                        ✓ Validated against Block #${data.blockchainDetails ? data.blockchainDetails.blockIndex : 1} (${data.blockchainDetails ? data.blockchainDetails.institutionNode : 'Consortium Node'}). Zero tampering detected.
+                        ✓ Validated against Block #${data.blockchainDetails ? data.blockchainDetails.blockIndex : 1} (${escapeHtml(data.blockchainDetails ? data.blockchainDetails.institutionNode : 'Consortium Node')}). Zero tampering detected.
                     </div>
                 </div>
             `;
         } else {
-            liveResultBox.style.background = 'rgba(239, 68, 68, 0.15)';
-            liveResultBox.style.border = '1px solid #ef4444';
+            liveResultBox.className = 'verify-live-fail';
             liveResultBox.innerHTML = `
                 <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
                     <span style="font-size: 1.3rem;">❌</span>
-                    <strong style="color: #f87171; font-size: 0.95rem;">TAMPER ALERT: HASH MISMATCH</strong>
+                    <strong class="verify-live-title">TAMPER ALERT: HASH MISMATCH</strong>
                 </div>
-                <div style="font-size: 0.82rem; color: #fca5a5; line-height: 1.5;">
+                <div class="verify-live-fail-desc">
                     The live computed hash does not match the ledger block! Document may have been modified or corrupted.
                 </div>
             `;
         }
     } catch (e) {
         liveResultBox.style.display = 'block';
-        liveResultBox.innerHTML = `<span style="color: #f87171;">Verification check failed: ${e.message}</span>`;
+        liveResultBox.className = 'verify-live-fail';
+        liveResultBox.innerHTML = `<span class="verify-live-error">Verification check failed: ${escapeHtml(e.message)}</span>`;
     } finally {
         btn.disabled = false;
         btn.innerHTML = '⚡ Re-verify Hash Against Ledger';

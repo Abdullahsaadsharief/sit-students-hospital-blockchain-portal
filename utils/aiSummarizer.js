@@ -135,8 +135,6 @@ async function generateClinicalHighlights(rawText, metadata = {}) {
     }
 
     try {
-        const ai = new GoogleGenAI({ apiKey });
-
         // Privacy protection: pass only pseudonymous ID, never patient full name
         const safePseudonym = metadata.patientPseudonym || 'PT-ANON';
 
@@ -171,20 +169,23 @@ Return a valid JSON object matching this exact schema:
   "recommendedAction": "1 sentence noting clinician verification is required"
 }`;
 
-        const preferred = process.env.GEMINI_ACTIVE_MODEL || 'gemini-2.5-flash';
-        const CANDIDATE_MODELS = [preferred, 'gemini-2.5-flash', 'gemini-2.0-flash'].filter((v, i, a) => a.indexOf(v) === i);
+        const preferred = process.env.GEMINI_ACTIVE_MODEL || 'gemini-3.8-flash';
+        const CANDIDATE_MODELS = [preferred, 'gemini-3.8-flash', 'gemini-3.5-flash-lite', 'gemini-3.1-flash-lite']
+            .filter((m) => m && !/^gemini-(1\.5|2\.0|2\.5)-/i.test(m))
+            .filter((v, i, a) => a.indexOf(v) === i);
         let response = null;
         let usedModel = null;
         let lastErr = null;
 
+        const timedAi = new GoogleGenAI({ apiKey, httpOptions: { timeout: 20000 } });
+
         for (const model of CANDIDATE_MODELS) {
             try {
-                response = await ai.models.generateContent({
+                response = await timedAi.models.generateContent({
                     model,
                     contents: prompt,
                     config: {
                         responseMimeType: 'application/json',
-                        temperature: 0.1,
                         maxOutputTokens: 1200
                     }
                 });
@@ -252,7 +253,7 @@ async function testGeminiApiKey(apiKey) {
         throw new Error('Please provide a valid, non-empty Google Gemini API key.');
     }
     const cleanKey = apiKey.trim();
-    const ai = new GoogleGenAI({ apiKey: cleanKey });
+    const ai = new GoogleGenAI({ apiKey: cleanKey, httpOptions: { timeout: 15000 } });
 
     let availableModels = [];
     try {
@@ -268,23 +269,28 @@ async function testGeminiApiKey(apiKey) {
         }
     }
 
-    const PREFERRED_MODELS = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-flash-latest'];
+    // Current Gemini 3.x Flash models (gemini-2.5-* and gemini-2.0-* are deprecated for new keys)
+    const PREFERRED_MODELS = ['gemini-3.8-flash', 'gemini-3.5-flash-lite', 'gemini-3.1-flash-lite', 'gemini-3.5-flash'];
+    const dynamicFallback = availableModels.filter(
+        m => /^gemini-3/i.test(m) && m.includes('flash') && !m.includes('tts') && !m.includes('image') && !m.includes('omni') && !PREFERRED_MODELS.includes(m)
+    );
     const candidates = availableModels.length > 0
-        ? PREFERRED_MODELS.filter(m => availableModels.includes(m)).concat(availableModels.filter(m => m.includes('flash') && !PREFERRED_MODELS.includes(m)))
+        ? PREFERRED_MODELS.filter(m => availableModels.includes(m)).concat(dynamicFallback)
         : PREFERRED_MODELS;
+    const effectiveCandidates = candidates.length > 0 ? candidates : PREFERRED_MODELS;
 
-    let activeModel = candidates[0] || 'gemini-2.5-flash';
+    let activeModel = effectiveCandidates[0] || 'gemini-3.8-flash';
     let testSuccess = false;
     let lastError = null;
 
-    for (const model of candidates.slice(0, 3)) {
+    for (const model of effectiveCandidates.slice(0, 4)) {
         try {
             const response = await ai.models.generateContent({
                 model,
-                contents: 'Connection check: reply OK',
-                config: { maxOutputTokens: 5 }
+                contents: 'Reply with only OK',
+                config: { maxOutputTokens: 32 }
             });
-            if (response) {
+            if (response && (response.text || (response.candidates && response.candidates.length > 0))) {
                 activeModel = model;
                 testSuccess = true;
                 break;
@@ -292,7 +298,7 @@ async function testGeminiApiKey(apiKey) {
         } catch (genErr) {
             lastError = genErr;
             const errMsg = String(genErr.message || '');
-            if (errMsg.includes('API_KEY_INVALID') || errMsg.includes('PERMISSION_DENIED')) {
+            if (errMsg.includes('API_KEY_INVALID') || errMsg.includes('API key not valid') || errMsg.includes('PERMISSION_DENIED')) {
                 throw new Error('Google Gemini API key was rejected as invalid by Google AI Studio.');
             }
         }

@@ -12,12 +12,18 @@
             padding: 0 1.5rem;
         }
         .countdown-card {
-            background: linear-gradient(135deg, rgba(14, 23, 42, 0.9), rgba(26, 42, 75, 0.7));
-            border: 1px solid var(--accent-cyan);
+            background: #ffffff;
+            border: 1px solid #bae6fd;
+            border-left: 5px solid var(--accent-cyan);
             border-radius: var(--radius-lg);
             padding: 1.5rem;
             text-align: center;
             margin-bottom: 2rem;
+            box-shadow: 0 4px 16px rgba(2, 132, 199, 0.08);
+        }
+        body.dark-mode .countdown-card {
+            background: linear-gradient(135deg, rgba(14, 23, 42, 0.9), rgba(26, 42, 75, 0.7));
+            border: 1px solid var(--accent-cyan);
             box-shadow: 0 0 25px rgba(0, 229, 255, 0.15);
         }
         .timer-digits {
@@ -34,7 +40,7 @@
         }
         .expired-card {
             display: none;
-            background: rgba(239, 68, 68, 0.1);
+            background: #fef2f2;
             border: 2px solid var(--accent-danger);
             border-radius: var(--radius-lg);
             padding: 3rem 2rem;
@@ -42,6 +48,31 @@
             box-shadow: var(--glow-red);
             animation: fadeIn 0.4s ease;
         }
+        body.dark-mode .expired-card {
+            background: rgba(239, 68, 68, 0.1);
+        }
+        .expired-title { color: #b91c1c; font-size: 1.8rem; margin-bottom: 0.75rem; }
+        body.dark-mode .expired-title { color: #f87171; }
+        .expired-desc { color: #475569; max-width: 600px; margin: 0 auto 1.5rem; line-height: 1.6; }
+        body.dark-mode .expired-desc { color: #cbd5e1; }
+        .shared-snippet-box {
+            background: #f8fafc;
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+        body.dark-mode .shared-snippet-box {
+            background: rgba(0, 0, 0, 0.4);
+        }
+        .shared-snippet-pre {
+            font-family: var(--font-mono);
+            font-size: 0.88rem;
+            color: #1e293b;
+            white-space: pre-wrap;
+            line-height: 1.6;
+        }
+        body.dark-mode .shared-snippet-pre { color: #e2e8f0; }
         .content-card {
             display: none;
         }
@@ -78,8 +109,8 @@
         <!-- Expired State Box -->
         <div id="expiredCard" class="expired-card">
             <div style="font-size: 4rem; margin-bottom: 1rem;">🚫</div>
-            <h2 style="color: #f87171; font-size: 1.8rem; margin-bottom: 0.75rem;">HTTP 403: Access Expired</h2>
-            <p style="color: #cbd5e1; max-width: 600px; margin: 0 auto 1.5rem; line-height: 1.6;">
+            <h2 class="expired-title">HTTP 403: Access Expired</h2>
+            <p class="expired-desc">
                 This time-limited secure link has exceeded its configured duration. Access to this medical record has been permanently revoked by the patient’s security policy.
             </p>
             <p style="font-size: 0.82rem; color: var(--text-muted);">
@@ -110,17 +141,17 @@
             </div>
 
             <!-- Report Content Preview -->
-            <div style="background: rgba(0, 0, 0, 0.4); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1.5rem; margin: 1.5rem 0;">
+            <div class="shared-snippet-box">
                 <h4 style="font-size: 0.85rem; color: var(--accent-cyan); text-transform: uppercase; margin-bottom: 0.75rem; letter-spacing: 0.05em;">
                     Decrypted Diagnostic Findings:
                 </h4>
-                <pre id="repSnippet" style="font-family: var(--font-mono); font-size: 0.88rem; color: #e2e8f0; white-space: pre-wrap; line-height: 1.6;"></pre>
+                <pre id="repSnippet" class="shared-snippet-pre"></pre>
             </div>
 
             <!-- Actions -->
-            <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 1.25rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-subtle); padding-top: 1.25rem;">
                 <div style="font-size: 0.8rem; color: var(--text-muted);">
-                    Recipient Doctor: <strong id="repRecipient" style="color: #fff;"></strong>
+                    Recipient Doctor: <strong id="repRecipient" style="color: var(--text-primary);"></strong>
                 </div>
                 <a id="downloadBtn" href="#" class="btn btn-primary" download>
                     📥 Download Decrypted Report
@@ -130,6 +161,7 @@
 
     </main>
 
+    <script>if (localStorage.getItem('sit_hospital_theme') === 'dark') document.body.classList.add('dark-mode');</script>
     <script src="/js/shared.js"></script>
 </body>
 </html>

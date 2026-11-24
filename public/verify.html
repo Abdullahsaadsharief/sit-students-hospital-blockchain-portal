@@ -18,10 +18,13 @@
         .verify-hero h1 {
             font-size: 2.2rem;
             font-weight: 800;
+            color: #162d4c;
+            margin-bottom: 0.5rem;
+        }
+        body.dark-mode .verify-hero h1 {
             background: linear-gradient(90deg, #ffffff, var(--accent-cyan));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            margin-bottom: 0.5rem;
         }
         .result-card {
             display: none;
@@ -40,14 +43,24 @@
             letter-spacing: 0.05em;
         }
         .status-badge-match {
-            background: rgba(16, 185, 129, 0.2);
+            background: #ecfdf5;
             border: 2px solid #10b981;
+            color: #065f46;
+            box-shadow: 0 4px 16px rgba(16, 185, 129, 0.16);
+        }
+        body.dark-mode .status-badge-match {
+            background: rgba(16, 185, 129, 0.2);
             color: #34d399;
             box-shadow: 0 0 30px rgba(16, 185, 129, 0.35);
         }
         .status-badge-mismatch {
-            background: rgba(239, 68, 68, 0.2);
+            background: #fef2f2;
             border: 2px solid #ef4444;
+            color: #991b1b;
+            box-shadow: 0 4px 16px rgba(239, 68, 68, 0.16);
+        }
+        body.dark-mode .status-badge-mismatch {
+            background: rgba(239, 68, 68, 0.2);
             color: #f87171;
             box-shadow: 0 0 30px rgba(239, 68, 68, 0.35);
         }
@@ -55,14 +68,40 @@
             display: grid;
             grid-template-columns: 1fr;
             gap: 1rem;
-            background: rgba(0, 0, 0, 0.4);
+            background: #f8fafc;
             border: 1px solid var(--border-subtle);
             border-radius: var(--radius-md);
             padding: 1.5rem;
             margin: 1.5rem 0;
             font-family: var(--font-mono);
             font-size: 0.85rem;
+            color: #1e293b;
         }
+        body.dark-mode .hash-compare-grid {
+            background: rgba(0, 0, 0, 0.4);
+            color: #e2e8f0;
+        }
+        .verify-status-desc { font-size: 1rem; color: #334155; max-width: 700px; margin: 0 auto; }
+        body.dark-mode .verify-status-desc { color: #cbd5e1; }
+        .verify-live-hash { color: #0369a1; font-weight: 600; word-break: break-all; }
+        body.dark-mode .verify-live-hash { color: #38bdf8; }
+        .verify-anchored-hash { color: #047857; font-weight: 600; word-break: break-all; }
+        body.dark-mode .verify-anchored-hash { color: #34d399; }
+        .verify-forensic-box {
+            background: #f8fafc;
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+            padding: 1.25rem;
+            color: #1e293b;
+        }
+        body.dark-mode .verify-forensic-box {
+            background: rgba(14, 23, 42, 0.6);
+            color: #f1f5f9;
+        }
+        .verify-match-ok { color: #047857; }
+        body.dark-mode .verify-match-ok { color: #34d399; }
+        .verify-match-err { color: #b91c1c; }
+        body.dark-mode .verify-match-err { color: #f87171; }
     </style>
 </head>
 <body>
@@ -124,7 +163,7 @@
                     <span id="statusIcon">✓</span>
                     <span id="statusText">MATCH: REPORT AUTHENTIC</span>
                 </div>
-                <p id="statusDesc" style="font-size: 1rem; color: #cbd5e1; max-width: 700px; margin: 0 auto;"></p>
+                <p id="statusDesc" class="verify-status-desc"></p>
             </div>
 
             <!-- Hash Comparison Section -->
@@ -133,28 +172,28 @@
                     <div style="color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; margin-bottom: 4px;">
                         1. Computed Live SHA-256 Fingerprint (Decrypted Off-Chain File)
                     </div>
-                    <div id="liveHashDisplay" style="color: #38bdf8; word-break: break-all;"></div>
+                    <div id="liveHashDisplay" class="verify-live-hash"></div>
                 </div>
 
-                <div style="border-top: 1px solid rgba(255,255,255,0.08); padding-top: 0.75rem;">
+                <div style="border-top: 1px solid var(--border-subtle); padding-top: 0.75rem;">
                     <div style="color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; margin-bottom: 4px;">
                         2. Anchored Cryptographic Hash on Blockchain Ledger
                     </div>
-                    <div id="anchoredHashDisplay" style="color: #34d399; word-break: break-all;"></div>
+                    <div id="anchoredHashDisplay" class="verify-anchored-hash"></div>
                 </div>
 
-                <div id="matchSummary" style="border-top: 1px solid rgba(255,255,255,0.08); padding-top: 0.75rem; font-weight: 700;"></div>
+                <div id="matchSummary" style="border-top: 1px solid var(--border-subtle); padding-top: 0.75rem; font-weight: 700;"></div>
             </div>
 
             <!-- Blockchain Forensic Record -->
-            <div style="background: rgba(14, 23, 42, 0.6); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1.25rem;">
+            <div class="verify-forensic-box">
                 <h4 style="font-size: 0.95rem; color: var(--accent-cyan); margin-bottom: 0.75rem;">Blockchain Ledger Provenance</h4>
                 <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; font-size: 0.85rem;">
                     <div><strong>Report ID:</strong> <span id="resReportId"></span></div>
                     <div><strong>Patient Pseudonym:</strong> <span id="resPatient"></span></div>
                     <div><strong>Block Height:</strong> <span id="resBlockIndex"></span></div>
                     <div><strong>Consortium Node:</strong> <span id="resNode"></span></div>
-                    <div style="grid-column: span 2;"><strong>Block Hash:</strong> <span id="resBlockHash" style="font-family: var(--font-mono); color: #94a3b8; font-size: 0.8rem;"></span></div>
+                    <div style="grid-column: span 2;"><strong>Block Hash:</strong> <span id="resBlockHash" class="block-prev-hash" style="font-size: 0.8rem;"></span></div>
                     <div style="grid-column: span 2;"><strong>Anchored Timestamp:</strong> <span id="resTimestamp"></span></div>
                 </div>
             </div>

@@ -1,4 +1,7 @@
 document.addEventListener('DOMContentLoaded', async () => {
+    if (localStorage.getItem('sit_hospital_theme') === 'dark') {
+        document.body.classList.add('dark-mode');
+    }
     const reportIdInput = document.getElementById('reportIdInput');
     const runVerifyBtn = document.getElementById('runVerifyBtn');
     const resultCard = document.getElementById('resultCard');
@@ -104,13 +107,13 @@ document.addEventListener('DOMContentLoaded', async () => {
                 statusIcon.textContent = '✓';
                 statusText.textContent = 'MATCH: REPORT AUTHENTIC';
                 statusDesc.textContent = (data.verificationMessage || 'Authentic report.') + ethNote;
-                matchSummary.innerHTML = `<span style="color: #34d399;">✓ Cryptographic integrity verified.${ethNote}</span>`;
+                matchSummary.innerHTML = `<span class="verify-match-ok">✓ Cryptographic integrity verified.${ethNote}</span>`;
             } else {
                 statusBadge.className = 'status-badge-big status-badge-mismatch';
                 statusIcon.textContent = '⚠️';
                 statusText.textContent = 'MISMATCH: TAMPERING DETECTED';
                 statusDesc.textContent = data.verificationMessage || 'Integrity check failed.';
-                matchSummary.innerHTML = '<span style="color: #f87171;">⚠️ ALERT: Document integrity mismatch detected!</span>';
+                matchSummary.innerHTML = '<span class="verify-match-err">⚠️ ALERT: Document integrity mismatch detected!</span>';
             }
         } catch (err) {
             alert('Failed to connect to verification API: ' + err.message);

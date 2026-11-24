@@ -231,14 +231,16 @@ function getAiConfig(req, res) {
     const hasKey = Boolean(key && key.trim());
     const maskedKey = hasKey ? `${key.trim().slice(0, 6)}...${key.trim().slice(-4)}` : null;
     const externalEnabled = config.AI_EXTERNAL_PROCESSING === true;
+    const activeModel = process.env.GEMINI_ACTIVE_MODEL || 'gemini-3.8-flash';
 
     return res.json({
         success: true,
         hasKey,
         externalProcessingEnabled: externalEnabled,
         maskedKey,
+        activeModel: (hasKey && externalEnabled) ? activeModel : null,
         activeEngine: (hasKey && externalEnabled)
-            ? `Google Gemini (${process.env.GEMINI_ACTIVE_MODEL || 'gemini-2.5-flash'}) — De-identified`
+            ? `Google Gemini (${activeModel}) — De-identified`
             : 'Local Clinical Rule Engine (Offline)',
         status: (hasKey && externalEnabled) ? 'ONLINE_AI' : 'OFFLINE_FALLBACK'
     });
@@ -254,26 +256,27 @@ async function updateAiConfig(req, res) {
         const cleanKey = apiKey.trim();
         const testResult = await testGeminiApiKey(cleanKey);
 
+        // Explicit authenticated Admin opt-in activates de-identified Gemini cloud summarization
         process.env.GEMINI_API_KEY = cleanKey;
+        process.env.AI_EXTERNAL_PROCESSING = 'true';
+        config.AI_EXTERNAL_PROCESSING = true;
         syncEnvFile('GEMINI_API_KEY', cleanKey);
+        syncEnvFile('AI_EXTERNAL_PROCESSING', 'true');
 
         db.logAudit(
             'AI_GATEWAY_CONFIGURED',
             req.user.name,
-            `Admin verified Google Gemini API key (Model: ${testResult.activeModel}; externalProcessing=${config.AI_EXTERNAL_PROCESSING})`
+            `Admin verified and activated Google Gemini API key (Model: ${testResult.activeModel}; de-identified external processing enabled)`
         );
 
         const maskedKey = `${cleanKey.slice(0, 6)}...${cleanKey.slice(-4)}`;
         return res.json({
             success: true,
-            message: config.AI_EXTERNAL_PROCESSING
-                ? (testResult.message || 'Google Gemini API key verified and activated.')
-                : 'Google Gemini API key verified and saved. Note: AI_EXTERNAL_PROCESSING=false in environment, so clinical uploads stay local until explicitly enabled.',
-            activeEngine: config.AI_EXTERNAL_PROCESSING
-                ? `Google Gemini (${testResult.activeModel})`
-                : 'Local Clinical Rule Engine (External AI Disabled by Policy)',
-            status: config.AI_EXTERNAL_PROCESSING ? 'ONLINE_AI' : 'OFFLINE_FALLBACK',
-            externalProcessingEnabled: config.AI_EXTERNAL_PROCESSING,
+            message: testResult.message || `Google Gemini (${testResult.activeModel}) verified and activated.`,
+            activeModel: testResult.activeModel,
+            activeEngine: `Google Gemini (${testResult.activeModel}) — De-identified`,
+            status: 'ONLINE_AI',
+            externalProcessingEnabled: true,
             maskedKey,
             warning: testResult.warning || null
         });
@@ -288,7 +291,11 @@ async function updateAiConfig(req, res) {
 function resetAiConfig(req, res) {
     try {
         delete process.env.GEMINI_API_KEY;
+        delete process.env.GEMINI_ACTIVE_MODEL;
+        process.env.AI_EXTERNAL_PROCESSING = 'false';
+        config.AI_EXTERNAL_PROCESSING = false;
         syncEnvFile('GEMINI_API_KEY', '');
+        syncEnvFile('AI_EXTERNAL_PROCESSING', 'false');
 
         db.logAudit('AI_GATEWAY_RESET', req.user.name, 'Admin reset AI Gateway to Local Clinical Rule Engine (Offline)');
 
@@ -297,6 +304,7 @@ function resetAiConfig(req, res) {
             message: 'AI Gateway reverted to Local Clinical Rule Engine (Offline).',
             activeEngine: 'Local Clinical Rule Engine (Offline)',
             status: 'OFFLINE_FALLBACK',
+            externalProcessingEnabled: false,
             maskedKey: null
         });
     } catch (err) {
