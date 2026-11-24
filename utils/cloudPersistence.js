@@ -103,13 +103,16 @@ function createCloudPersistence({
     storageBucket = null,
     projectId = null,
     chunkSizeBytes = CHUNK_SIZE_BYTES,
-    syncDebounceMs = 1000
+    syncDebounceMs = 1000,
+    requireHydrationBeforeSync = true
 } = {}) {
     let firestore = firestoreClient;
     let bucket = storageBucket;
     let detectedProjectId = projectId;
     let initError = null;
     let enabled = Boolean(firestore);
+    let readyForWrites = !requireHydrationBeforeSync;
+    let lastHydration = null;
 
     // Track coalesced serialized state sync queues per key ('database', 'ledger')
     const syncQueues = new Map();
@@ -189,6 +192,8 @@ function createCloudPersistence({
             mode: isEnabled()
                 ? (bucket ? 'FIREBASE_STORAGE_AND_FIRESTORE' : 'FIREBASE_FIRESTORE_PERSISTENT')
                 : 'LOCAL_EPHEMERAL_DISK',
+            readyForWrites: isEnabled() ? readyForWrites : false,
+            lastHydration,
             note: initError || null
         };
     }
@@ -316,7 +321,7 @@ function createCloudPersistence({
      * guaranteeing strict write ordering and immediate flush via flushAll().
      */
     function scheduleStateSync(stateKey, payloadSnapshot) {
-        if (!isEnabled()) return;
+        if (!isEnabled() || !readyForWrites) return;
 
         // Deep-clone synchronously at call time so later mutations cannot mutate an in-flight snapshot
         let cloned;
@@ -489,6 +494,16 @@ function createCloudPersistence({
         }
 
         if (restoredDb || restoredLedger) {
+            readyForWrites = true;
+            lastHydration = {
+                status: 'restored_from_cloud',
+                restoredDb,
+                restoredLedger,
+                users: db.users.length,
+                reports: db.reports.length,
+                blocks: blockchain.chain.length,
+                at: new Date().toISOString()
+            };
             console.log(
                 `[CloudPersistence] ✓ Restored persistent hospital state from Firebase Firestore ` +
                 `(${db.users.length} users, ${db.reports.length} reports, ${blockchain.chain.length} ledger blocks).`
@@ -530,6 +545,15 @@ function createCloudPersistence({
             }
         }
 
+        readyForWrites = true;
+        lastHydration = {
+            status: 'seeded_initial_baseline',
+            syncedFiles,
+            users: db.users.length,
+            reports: db.reports.length,
+            blocks: blockchain.chain.length,
+            at: new Date().toISOString()
+        };
         console.log(`[CloudPersistence] ✓ Initial baseline synced to Firebase Firestore (${syncedFiles} encrypted files).`);
         return { hydrated: false, seededCloud: true, syncedFiles };
     }

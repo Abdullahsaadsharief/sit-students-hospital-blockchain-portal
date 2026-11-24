@@ -309,7 +309,8 @@ test('CloudPersistence: debounced scheduleStateSync coalesces burst writes and f
         config: {},
         firestoreClient: mockFs,
         projectId: 'sit-debounce-test',
-        syncDebounceMs: 500
+        syncDebounceMs: 500,
+        requireHydrationBeforeSync: false
     });
 
     for (let i = 1; i <= 5; i++) {
@@ -322,4 +323,93 @@ test('CloudPersistence: debounced scheduleStateSync coalesces burst writes and f
 
     const loaded = await cp.loadJsonState('database');
     assert.equal(loaded.version, 5);
+});
+
+test('CloudPersistence: pre-hydration startup persist() NEVER overwrites fresher Firestore state on redeploy', async () => {
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'sit-prehydrate-guard-'));
+    const dataDir = path.join(tmpDir, 'data');
+    const uploadsDir = path.join(tmpDir, 'uploads');
+    fs.mkdirSync(dataDir, { recursive: true });
+    fs.mkdirSync(uploadsDir, { recursive: true });
+
+    try {
+        const mockFs = createMockFirestore();
+        const cfg = {
+            DATA_DIR: dataDir,
+            UPLOADS_DIR: uploadsDir,
+            DB_FILE_PATH: path.join(dataDir, 'database.json'),
+            LEDGER_FILE_PATH: path.join(dataDir, 'ledger.json')
+        };
+
+        // Existing cloud state already has 2 completed lab requests & 11 reports
+        const writerCp = createCloudPersistence({
+            config: cfg,
+            firestoreClient: mockFs,
+            projectId: 'sit-students-hospital',
+            requireHydrationBeforeSync: false
+        });
+        await writerCp.saveJsonStateNow('database', {
+            users: [{ id: 'usr_pat_01', name: 'John Doe' }],
+            reports: [{ reportId: 'REP-SEED1' }, { reportId: 'REP-UPLOADED-1' }, { reportId: 'REP-UPLOADED-2' }],
+            labRequests: [
+                { requestId: 'LABREQ-201', status: 'COMPLETED', linkedReportId: 'REP-UPLOADED-1' },
+                { requestId: 'LABREQ-202', status: 'COMPLETED', linkedReportId: 'REP-UPLOADED-2' }
+            ]
+        });
+        await writerCp.saveJsonStateNow('ledger', [{ index: 0, hash: 'g' }, { index: 1, hash: 'b1' }, { index: 2, hash: 'b2' }]);
+
+        // Simulate fresh Render container boot on redeploy
+        const bootCp = createCloudPersistence({
+            config: cfg,
+            firestoreClient: mockFs,
+            projectId: 'sit-students-hospital',
+            syncDebounceMs: 20,
+            requireHydrationBeforeSync: true
+        });
+
+        // Simulate stale repo database.json calling scheduleStateSync() BEFORE hydrateOnStartup()
+        bootCp.scheduleStateSync('database', {
+            users: [{ id: 'usr_pat_01', name: 'John Doe' }],
+            reports: [{ reportId: 'REP-SEED1' }],
+            labRequests: [
+                { requestId: 'LABREQ-201', status: 'PENDING_UPLOAD' },
+                { requestId: 'LABREQ-202', status: 'PENDING_UPLOAD' }
+            ]
+        });
+
+        const liveDb = {
+            users: [],
+            reports: [],
+            labRequests: [],
+            reloadFromDisk() {
+                const parsed = JSON.parse(fs.readFileSync(cfg.DB_FILE_PATH, 'utf8'));
+                this.users = parsed.users;
+                this.reports = parsed.reports;
+                this.labRequests = parsed.labRequests;
+            }
+        };
+        const liveChain = {
+            chain: [],
+            reloadFromDisk() {
+                this.chain = JSON.parse(fs.readFileSync(cfg.LEDGER_FILE_PATH, 'utf8'));
+            }
+        };
+
+        const res = await bootCp.hydrateOnStartup({ db: liveDb, blockchain: liveChain });
+        await new Promise(r => setTimeout(r, 60));
+        await bootCp.flushAll();
+
+        assert.equal(res.hydrated, true);
+        assert.equal(liveDb.reports.length, 3);
+        assert.equal(liveDb.labRequests[0].status, 'COMPLETED');
+        assert.equal(liveDb.labRequests[1].status, 'COMPLETED');
+
+        // Verify Firestore itself was NOT overwritten by the pre-hydration stale call!
+        const cloudDbAfterBoot = await bootCp.loadJsonState('database');
+        assert.equal(cloudDbAfterBoot.reports.length, 3);
+        assert.equal(cloudDbAfterBoot.labRequests[0].status, 'COMPLETED');
+        assert.equal(cloudDbAfterBoot.labRequests[1].status, 'COMPLETED');
+    } finally {
+        fs.rmSync(tmpDir, { recursive: true, force: true });
+    }
 });

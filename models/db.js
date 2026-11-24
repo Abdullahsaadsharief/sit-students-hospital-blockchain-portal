@@ -19,8 +19,14 @@ class Database {
         this.prescriptions = [];
         this.labRequests = [];
         this.inquiries = [];
-        this._suppressCloudSync = false;
-        this.init();
+        // Suppress cloud writes during synchronous module-load init() so local repo seed
+        // can NEVER overwrite fresher Firebase Firestore state before hydrateOnStartup() runs.
+        this._suppressCloudSync = true;
+        try {
+            this.init();
+        } finally {
+            this._suppressCloudSync = false;
+        }
     }
 
     get dbFilePath() {

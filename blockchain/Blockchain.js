@@ -21,7 +21,13 @@ class Blockchain {
             { id: 'NODE-CLINIC-01', name: 'SIT Hospital - Ortho & Pulmonology Wing', type: 'Specialty Wing' },
             { id: 'NODE-PHARM-01', name: 'SIT Hospital - Reception & Pharmacy Desk', type: 'Front Desk' }
         ];
-        this.loadChain();
+        // Suppress cloud writes during synchronous module-load loadChain() until hydrateOnStartup() finishes
+        this._suppressCloudSync = true;
+        try {
+            this.loadChain();
+        } finally {
+            this._suppressCloudSync = false;
+        }
     }
 
     get ledgerFilePath() {
