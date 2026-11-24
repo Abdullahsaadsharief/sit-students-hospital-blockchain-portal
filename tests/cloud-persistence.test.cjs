@@ -5,6 +5,17 @@ const os = require('os');
 const path = require('path');
 const crypto = require('crypto');
 
+// Ensure CI environments (e.g. GitHub Actions with no .env file) can load config.js cleanly
+if (!process.env.JWT_SECRET) {
+    process.env.JWT_SECRET = 'ci-test-only-jwt-secret-32-chars-minimum-111111';
+}
+if (!process.env.SHARE_JWT_SECRET) {
+    process.env.SHARE_JWT_SECRET = 'ci-test-only-share-secret-32-chars-minimum-222222';
+}
+if (!process.env.ENCRYPTION_KEY) {
+    process.env.ENCRYPTION_KEY = crypto.randomBytes(32).toString('hex');
+}
+
 const {
     createCloudPersistence,
     parseServiceAccountFromConfig,
