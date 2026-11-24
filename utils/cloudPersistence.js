@@ -10,11 +10,17 @@ const FILES_COLLECTION = 'sit_hospital_encrypted_files';
 const CHUNKS_SUBCOLLECTION = 'chunks';
 const CHUNK_SIZE_BYTES = 600 * 1024; // 600 KiB raw Bytes per Firestore chunk (< 1 MiB limit with safe headroom)
 
-let firebaseAdminLib = null;
+let firebaseAppMod = null;
+let firebaseFirestoreMod = null;
+let firebaseStorageMod = null;
 try {
-    firebaseAdminLib = require('firebase-admin');
+    firebaseAppMod = require('firebase-admin/app');
+    firebaseFirestoreMod = require('firebase-admin/firestore');
+    firebaseStorageMod = require('firebase-admin/storage');
 } catch (_) {
-    firebaseAdminLib = null;
+    firebaseAppMod = null;
+    firebaseFirestoreMod = null;
+    firebaseStorageMod = null;
 }
 
 function sha256Hex(buffer) {
@@ -126,7 +132,7 @@ function createCloudPersistence({
             initError = null;
             return;
         }
-        if (!firebaseAdminLib) {
+        if (!firebaseAppMod || !firebaseFirestoreMod) {
             initError = 'firebase-admin package is not installed';
             enabled = false;
             console.warn(`[CloudPersistence] Disabled: ${initError}`);
@@ -135,21 +141,22 @@ function createCloudPersistence({
 
         try {
             const appName = 'sit-hospital-persistence';
-            let app = firebaseAdminLib.apps.find(a => a && a.name === appName);
+            const existingApps = typeof firebaseAppMod.getApps === 'function' ? firebaseAppMod.getApps() : [];
+            let app = existingApps.find(a => a && a.name === appName);
             if (!app) {
                 const appOptions = {
-                    credential: firebaseAdminLib.credential.cert(credential)
+                    credential: firebaseAppMod.cert(credential)
                 };
                 if (config.FIREBASE_STORAGE_BUCKET) {
                     appOptions.storageBucket = config.FIREBASE_STORAGE_BUCKET;
                 }
-                app = firebaseAdminLib.initializeApp(appOptions, appName);
+                app = firebaseAppMod.initializeApp(appOptions, appName);
             }
-            firestore = app.firestore();
+            firestore = firebaseFirestoreMod.getFirestore(app);
             detectedProjectId = credential.project_id;
-            if (config.FIREBASE_STORAGE_BUCKET) {
+            if (config.FIREBASE_STORAGE_BUCKET && firebaseStorageMod) {
                 try {
-                    bucket = app.storage().bucket(config.FIREBASE_STORAGE_BUCKET);
+                    bucket = firebaseStorageMod.getStorage(app).bucket(config.FIREBASE_STORAGE_BUCKET);
                 } catch (bucketErr) {
                     console.warn('[CloudPersistence] Optional Storage bucket init warning (falling back to Firestore chunks):', bucketErr.message);
                     bucket = null;

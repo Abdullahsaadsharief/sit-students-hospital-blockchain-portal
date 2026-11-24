@@ -246,3 +246,40 @@ test('CloudPersistence: GCS bucket upload falls back cleanly to Firestore chunks
     const loaded = await cp.loadEncryptedFile('REP-FALLBACK_encrypted.bin');
     assert.deepEqual(loaded, data);
 });
+
+test('CloudPersistence: real firebase-admin v13 modular SDK initializes cleanly with generated RSA key', async () => {
+    const { privateKey } = crypto.generateKeyPairSync('rsa', {
+        modulusLength: 2048,
+        privateKeyEncoding: { type: 'pkcs8', format: 'pem' },
+        publicKeyEncoding: { type: 'spki', format: 'pem' }
+    });
+
+    const fakeServiceAccount = {
+        type: 'service_account',
+        project_id: 'sit-hospital-sdk-init-test',
+        private_key_id: 'test-key-id',
+        private_key: privateKey,
+        client_email: 'firebase-adminsdk@sit-hospital-sdk-init-test.iam.gserviceaccount.com',
+        client_id: '1234567890'
+    };
+
+    const cp = createCloudPersistence({
+        config: {
+            FIREBASE_SERVICE_ACCOUNT_BASE64: Buffer.from(JSON.stringify(fakeServiceAccount), 'utf8').toString('base64'),
+            FIREBASE_STORAGE_BUCKET: ''
+        }
+    });
+
+    const status = cp.getStatus();
+    assert.equal(status.cloudEnabled, true, `Expected Firebase Admin SDK to initialize cleanly, got note: ${status.note}`);
+    assert.equal(status.projectId, 'sit-hospital-sdk-init-test');
+    assert.equal(status.mode, 'FIREBASE_FIRESTORE_PERSISTENT');
+
+    // Clean up test Firebase app instance so Node exits promptly
+    const { getApps, deleteApp } = require('firebase-admin/app');
+    for (const app of getApps()) {
+        if (app.name === 'sit-hospital-persistence') {
+            await deleteApp(app);
+        }
+    }
+});
