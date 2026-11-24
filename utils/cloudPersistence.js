@@ -102,7 +102,8 @@ function createCloudPersistence({
     firestoreClient = null,
     storageBucket = null,
     projectId = null,
-    chunkSizeBytes = CHUNK_SIZE_BYTES
+    chunkSizeBytes = CHUNK_SIZE_BYTES,
+    syncDebounceMs = 1000
 } = {}) {
     let firestore = firestoreClient;
     let bucket = storageBucket;
@@ -288,9 +289,31 @@ function createCloudPersistence({
         return JSON.parse(rawJsonBuf.toString('utf8'));
     }
 
+    function startSyncLoop(stateKey, entry) {
+        if (entry.running || entry.latest === null) return;
+        entry.running = true;
+        const runLoop = (async () => {
+            while (entry.latest !== null) {
+                const nextSnapshot = entry.latest;
+                entry.latest = null;
+                try {
+                    await saveJsonStateNow(stateKey, nextSnapshot);
+                } catch (err) {
+                    console.error(`[CloudPersistence] Failed to sync ${stateKey} to Firestore:`, err.message);
+                }
+            }
+            entry.running = false;
+            entry.promise = null;
+        })();
+        entry.promise = runLoop;
+        pendingInFlightPromises.add(runLoop);
+        runLoop.finally(() => pendingInFlightPromises.delete(runLoop));
+    }
+
     /**
-     * Coalescing serialized write queue: ensures rapid successive mutations to 'database' or 'ledger'
-     * never race or write stale snapshots out of order.
+     * Coalescing debounced & serialized write queue: bundles rapid successive mutations
+     * (e.g., multiple audit logs during portal load) into a single Firestore write while
+     * guaranteeing strict write ordering and immediate flush via flushAll().
      */
     function scheduleStateSync(stateKey, payloadSnapshot) {
         if (!isEnabled()) return;
@@ -306,33 +329,38 @@ function createCloudPersistence({
 
         let entry = syncQueues.get(stateKey);
         if (!entry) {
-            entry = { latest: null, running: false, promise: null };
+            entry = { latest: null, running: false, promise: null, timer: null };
             syncQueues.set(stateKey, entry);
         }
         entry.latest = cloned;
 
-        if (!entry.running) {
-            entry.running = true;
-            const runLoop = (async () => {
-                while (entry.latest !== null) {
-                    const nextSnapshot = entry.latest;
-                    entry.latest = null;
-                    try {
-                        await saveJsonStateNow(stateKey, nextSnapshot);
-                    } catch (err) {
-                        console.error(`[CloudPersistence] Failed to sync ${stateKey} to Firestore:`, err.message);
-                    }
-                }
-                entry.running = false;
-                entry.promise = null;
-            })();
-            entry.promise = runLoop;
-            pendingInFlightPromises.add(runLoop);
-            runLoop.finally(() => pendingInFlightPromises.delete(runLoop));
+        if (entry.running) {
+            // Active loop will automatically pick up entry.latest on its next iteration
+            return;
+        }
+
+        if (syncDebounceMs > 0) {
+            if (entry.timer) clearTimeout(entry.timer);
+            entry.timer = setTimeout(() => {
+                entry.timer = null;
+                startSyncLoop(stateKey, entry);
+            }, syncDebounceMs);
+            if (typeof entry.timer.unref === 'function') entry.timer.unref();
+        } else {
+            startSyncLoop(stateKey, entry);
         }
     }
 
     async function flushAll() {
+        for (const [stateKey, entry] of syncQueues.entries()) {
+            if (entry.timer) {
+                clearTimeout(entry.timer);
+                entry.timer = null;
+            }
+            if (!entry.running && entry.latest !== null) {
+                startSyncLoop(stateKey, entry);
+            }
+        }
         const active = Array.from(pendingInFlightPromises);
         if (active.length > 0) {
             await Promise.allSettled(active);

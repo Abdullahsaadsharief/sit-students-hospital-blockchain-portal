@@ -283,3 +283,43 @@ test('CloudPersistence: real firebase-admin v13 modular SDK initializes cleanly 
         }
     }
 });
+
+test('CloudPersistence: debounced scheduleStateSync coalesces burst writes and flushes immediately via flushAll()', async () => {
+    const mockFs = createMockFirestore();
+    let manifestWrites = 0;
+    const origCollection = mockFs.collection.bind(mockFs);
+    mockFs.collection = (name) => {
+        const col = origCollection(name);
+        const origDoc = col.doc.bind(col);
+        col.doc = (docId) => {
+            const ref = origDoc(docId);
+            if (name === 'sit_hospital_state' && docId === 'database') {
+                const origSet = ref.set.bind(ref);
+                ref.set = async (data) => {
+                    manifestWrites++;
+                    return origSet(data);
+                };
+            }
+            return ref;
+        };
+        return col;
+    };
+
+    const cp = createCloudPersistence({
+        config: {},
+        firestoreClient: mockFs,
+        projectId: 'sit-debounce-test',
+        syncDebounceMs: 500
+    });
+
+    for (let i = 1; i <= 5; i++) {
+        cp.scheduleStateSync('database', { version: i, users: [], reports: [] });
+    }
+    assert.equal(manifestWrites, 0, 'Burst writes should be debounced rather than firing immediately');
+
+    await cp.flushAll();
+    assert.equal(manifestWrites, 1, 'flushAll() must coalesce all 5 burst writes into exactly 1 Firestore commit');
+
+    const loaded = await cp.loadJsonState('database');
+    assert.equal(loaded.version, 5);
+});

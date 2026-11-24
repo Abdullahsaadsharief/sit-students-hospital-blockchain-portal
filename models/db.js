@@ -4,7 +4,7 @@ const crypto = require('crypto');
 const config = require('../config');
 const { SAMPLE_USERS, createSeedReports } = require('../utils/seedData');
 const blockchain = require('../blockchain/Blockchain');
-const { hashPassword, isScryptHash } = require('../utils/passwords');
+const { hashPassword, verifyPassword, isScryptHash } = require('../utils/passwords');
 const { atomicWriteJsonSync } = require('../utils/atomicWrite');
 const { cloudPersistence } = require('../utils/cloudPersistence');
 
@@ -85,6 +85,11 @@ class Database {
                     u.isDemoAccount = true;
                     dbUpdated = true;
                 }
+                if (config.DEMO_MODE && SEEDED_DEMO_IDS.has(u.id) && !u.isDemoAccount) {
+                    // Restore demo login capability for seeded accounts (e.g., usr_adm_01) in DEMO_MODE
+                    u.isDemoAccount = true;
+                    dbUpdated = true;
+                }
                 if (typeof u.tokenVersion !== 'number') {
                     u.tokenVersion = 0;
                     dbUpdated = true;
@@ -153,9 +158,12 @@ class Database {
             }
             const existing = this.users.find(u => u.email && u.email.toLowerCase() === email);
             if (existing) {
-                if (existing.isDemoAccount || existing.role !== 'Admin') {
+                const keepDemoFlag = Boolean(config.DEMO_MODE && SEEDED_DEMO_IDS.has(existing.id));
+                const targetIsDemo = keepDemoFlag;
+                const needsDemoPasswordSync = keepDemoFlag && (!existing.passwordHash || !verifyPassword(password, existing.passwordHash));
+                if (existing.isDemoAccount !== targetIsDemo || existing.role !== 'Admin' || needsDemoPasswordSync) {
                     existing.role = 'Admin';
-                    existing.isDemoAccount = false;
+                    existing.isDemoAccount = targetIsDemo;
                     existing.disabled = false;
                     existing.mustChangePassword = false;
                     existing.passwordHash = hashPassword(password);
@@ -336,7 +344,7 @@ class Database {
         }
     }
 
-    persist() {
+    persist({ rotateBackups = true } = {}) {
         const payload = {
             users: this.users,
             reports: this.reports,
@@ -346,7 +354,7 @@ class Database {
             labRequests: this.labRequests,
             inquiries: this.inquiries
         };
-        atomicWriteJsonSync(this.dbFilePath, payload, { maxBackups: 5 });
+        atomicWriteJsonSync(this.dbFilePath, payload, { maxBackups: rotateBackups ? 5 : 0 });
         if (!this._suppressCloudSync) {
             cloudPersistence.scheduleStateSync('database', payload);
         }
@@ -579,7 +587,7 @@ class Database {
         if (this.auditLogs.length > 500) {
             this.auditLogs.length = 500;
         }
-        this.persist();
+        this.persist({ rotateBackups: false });
         return entry;
     }
 

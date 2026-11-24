@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
+const compression = require('compression');
 const rateLimit = require('express-rate-limit');
 const path = require('path');
 
@@ -33,6 +34,11 @@ if (config.TRUST_PROXY !== false) {
 app.use(helmet({
     contentSecurityPolicy: false, // Inline event handlers exist across legacy HTML templates; tracked in SECURITY_BACKLOG.md
     crossOriginEmbedderPolicy: false
+}));
+
+// Gzip compression for HTML, CSS, JS, and API JSON responses (skips already-compressed binaries/images)
+app.use(compression({
+    threshold: 1024
 }));
 
 // Allow-listed CORS (same-origin allowed; cross-origin requires CORS_ORIGINS allow-list)
@@ -161,7 +167,19 @@ app.get('/about', (req, res) => res.sendFile(path.join(__dirname, 'public', 'abo
 app.get('/departments', (req, res) => res.sendFile(path.join(__dirname, 'public', 'departments.html')));
 app.get('/contact', (req, res) => res.sendFile(path.join(__dirname, 'public', 'contact.html')));
 
-app.use(express.static(path.join(__dirname, 'public'), { index: false, extensions: ['html'] }));
+// Cache static hospital photos aggressively (7 days) while keeping HTML/CSS/JS ETag-revalidated
+app.use('/images', express.static(path.join(__dirname, 'public', 'images'), {
+    maxAge: '7d',
+    etag: true,
+    lastModified: true
+}));
+
+app.use(express.static(path.join(__dirname, 'public'), {
+    index: false,
+    extensions: ['html'],
+    etag: true,
+    lastModified: true
+}));
 
 // Evaluation Demo Kit static files ONLY mounted in DEMO_MODE
 if (config.DEMO_MODE) {

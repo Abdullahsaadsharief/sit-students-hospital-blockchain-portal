@@ -888,6 +888,38 @@ describe('DEMO_MODE, Encryption Migration, Route Guard Audit & Solidity Compiler
         }
     });
 
+    test('DEMO_MODE=true preserves usr_adm_01 demo login even when BOOTSTRAP_ADMIN_EMAIL=admin@sithospital.org, and gzips HTML', async () => {
+        const demoSrv = await startServer({
+            DEMO_MODE: 'true',
+            BOOTSTRAP_ADMIN_EMAIL: 'admin@sithospital.org',
+            BOOTSTRAP_ADMIN_PASSWORD: TEST_ADMIN_PASSWORD
+        });
+        try {
+            const demoAdmin = await demoSrv.requestJson('/api/auth/demo-login', {
+                method: 'POST',
+                headers: { 'content-type': 'application/json' },
+                body: JSON.stringify({ userId: 'usr_adm_01' })
+            });
+            assert.equal(demoAdmin.response.status, 200, 'usr_adm_01 one-click demo login must remain available in DEMO_MODE');
+            assert.equal(demoAdmin.body.user.role, 'Admin');
+
+            const realAdmin = await demoSrv.requestJson('/api/auth/login', {
+                method: 'POST',
+                headers: { 'content-type': 'application/json' },
+                body: JSON.stringify({ email: 'admin@sithospital.org', password: TEST_ADMIN_PASSWORD })
+            });
+            assert.equal(realAdmin.response.status, 200, 'Bootstrap password login must also work');
+
+            const compressedRes = await fetch(`${demoSrv.baseUrl}/portal`, {
+                headers: { 'Accept-Encoding': 'gzip' }
+            });
+            assert.equal(compressedRes.status, 200);
+            assert.equal(compressedRes.headers.get('content-encoding'), 'gzip');
+        } finally {
+            await demoSrv.stop();
+        }
+    });
+
     test('migrate-encryption script upgrades legacy CBC files to AES-256-GCM v2 idempotently', () => {
         const fixture = makeTempFixture();
         try {
