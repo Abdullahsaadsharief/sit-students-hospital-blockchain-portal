@@ -232,6 +232,7 @@ app.get('/api/prescriptions/:prescriptionId/pdf', authenticate, authorizeRoles('
 app.get('/api/prescriptions/:prescriptionId/attachment', authenticate, authorizeRoles('Doctor', 'Patient', 'Admin'), adminController.downloadPrescriptionAttachment);
 
 app.get('/api/lab-requests', authenticate, authorizeRoles('Lab Staff', 'Doctor', 'Receptionist', 'Admin'), adminController.getLabRequests);
+app.delete('/api/lab-requests/:requestId', authenticate, authorizeRoles('Lab Staff', 'Doctor', 'Admin'), adminController.deleteLabRequest);
 
 // ==========================================
 // 2. DIAGNOSTIC REPORTS ROUTES (Strict RBAC)

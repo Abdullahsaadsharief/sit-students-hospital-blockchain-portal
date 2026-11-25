@@ -2432,8 +2432,15 @@ async function loadPrescriptions() {
     }
 }
 
+let isSubmittingPrescription = false;
+const removingLabRequestIds = new Set();
+let lastLabQueueRemoveAt = 0;
+
 async function handleCreatePrescription(e) {
     e.preventDefault();
+    if (isSubmittingPrescription) return;
+    isSubmittingPrescription = true;
+
     const btn = document.getElementById('btnSubmitPrescription');
     if (btn) {
         btn.disabled = true;
@@ -2480,8 +2487,15 @@ async function handleCreatePrescription(e) {
         await loadPrescriptions();
         await loadLabRequestsQueue();
     } catch (err) {
-        alert('Error creating prescription: ' + err.message);
+        const msg = err && err.message === 'Failed to fetch'
+            ? 'Temporary connection hiccup while contacting the server. Refreshing queue to check if it already saved...'
+            : ('Error creating prescription: ' + (err ? err.message : 'Unknown error'));
+        showToast(msg, 'warning');
+        alert(msg);
+        await loadPrescriptions();
+        await loadLabRequestsQueue();
     } finally {
+        isSubmittingPrescription = false;
         if (btn) {
             btn.disabled = false;
             btn.textContent = '🩺 Save Checkup Prescription & Generate Official Slip';
@@ -2501,19 +2515,34 @@ async function loadLabRequestsQueue() {
             return;
         }
 
+        const canRemoveOrder = Boolean(currentUser && ['Lab Staff', 'Doctor', 'Admin'].includes(currentUser.role));
+
         tbody.innerHTML = data.labRequests.map(lr => {
             const isPending = lr.status === 'PENDING_UPLOAD';
             const badgeHtml = isPending
                 ? '<span style="background: #fef3c7; color: #92400e; border: 1px solid #fde68a; padding: 2px 8px; border-radius: 4px; font-size: 0.74rem; font-weight: 700;">⏳ PENDING LAB UPLOAD</span>'
                 : `<span style="background: #dcfce7; color: #166534; border: 1px solid #86efac; padding: 2px 8px; border-radius: 4px; font-size: 0.74rem; font-weight: 700;">✓ UPLOADED (${escapeHtml(lr.linkedReportId || 'Done')})</span>`;
 
+            const safeIdAttr = escapeHtml(lr.requestId);
+            const safePatientAttr = escapeHtml(lr.patientName || 'Patient').replace(/'/g, "\\'");
+            const safeTitleAttr = escapeHtml(lr.testTitle || 'Lab Test').replace(/'/g, "\\'");
+            const removeBtnHtml = canRemoveOrder
+                ? `<button type="button" class="btn btn-secondary" data-remove-req="${safeIdAttr}" style="font-size: 0.72rem; padding: 4px 8px; color: var(--accent-danger); border-color: rgba(185, 28, 28, 0.35);" onclick="removeLabRequestFromQueue(this, '${safeIdAttr}', '${safePatientAttr}', '${safeTitleAttr}', ${isPending ? 'true' : 'false'})">${isPending ? '🗑️ Remove' : '✕ Clear'}</button>`
+                : '';
+
             const actionHtml = isPending
-                ? `<button type="button" class="btn btn-primary" style="font-size: 0.76rem; padding: 5px 10px;" onclick="selectLabRequestForUpload('${escapeHtml(lr.requestId)}', '${escapeHtml(lr.patientId)}', '${escapeHtml(lr.testTitle)}', '${escapeHtml(lr.reportType || 'Pathology / Biochemistry')}')">📤 Select &amp; Upload Report</button>`
-                : `<span style="font-size: 0.76rem; color: var(--text-muted);">Anchored on Ledger</span>`;
+                ? `<div style="display: flex; flex-wrap: wrap; gap: 6px; align-items: center;">
+                        <button type="button" class="btn btn-primary" style="font-size: 0.76rem; padding: 5px 10px;" onclick="selectLabRequestForUpload('${safeIdAttr}', '${escapeHtml(lr.patientId)}', '${safeTitleAttr}', '${escapeHtml(lr.reportType || 'Pathology / Biochemistry')}')">📤 Select &amp; Upload Report</button>
+                        ${removeBtnHtml}
+                   </div>`
+                : `<div style="display: flex; flex-wrap: wrap; gap: 6px; align-items: center;">
+                        <span style="font-size: 0.76rem; color: var(--text-muted);">Anchored on Ledger</span>
+                        ${removeBtnHtml}
+                   </div>`;
 
             return `
                 <tr>
-                    <td style="font-family: var(--font-mono); font-weight: 700; font-size: 0.8rem;">${escapeHtml(lr.requestId)}</td>
+                    <td style="font-family: var(--font-mono); font-weight: 700; font-size: 0.8rem;">${safeIdAttr}</td>
                     <td>
                         <strong>${escapeHtml(lr.patientName)}</strong><br/>
                         <span style="font-family: var(--font-mono); font-size: 0.74rem; color: var(--text-muted);">${escapeHtml(lr.patientUhid || '')} | ${escapeHtml(lr.billNumber || '')}</span>
@@ -2527,6 +2556,63 @@ async function loadLabRequestsQueue() {
         }).join('');
     } catch (err) {
         console.error('Error loading lab requests queue:', err);
+    }
+}
+
+async function removeLabRequestFromQueue(btnEl, requestId, patientName, testTitle, isPending) {
+    // Double-click & rapid mis-click guard: ignore clicks if this order is already being removed or within 700ms cooldown
+    const now = Date.now();
+    if (!requestId || removingLabRequestIds.has(requestId) || (now - lastLabQueueRemoveAt) < 700) {
+        return;
+    }
+
+    const promptMsg = isPending
+        ? `Remove pending lab order ${requestId} ("${testTitle}" for ${patientName}) from the queue?`
+        : `Clear completed lab order ${requestId} ("${testTitle}" for ${patientName}) from the queue?\n\nNote: This ONLY removes the queue entry — the uploaded report and Ethereum blockchain record remain permanently intact.`;
+
+    if (!confirm(promptMsg)) {
+        return;
+    }
+
+    removingLabRequestIds.add(requestId);
+    lastLabQueueRemoveAt = Date.now();
+    if (btnEl) {
+        btnEl.disabled = true;
+        btnEl.textContent = 'Removing...';
+    }
+
+    try {
+        const res = await fetch(`/api/lab-requests/${encodeURIComponent(requestId)}`, {
+            method: 'DELETE',
+            headers: getAuthHeaders()
+        });
+        const data = await res.json();
+        if (!res.ok || !data.success) {
+            showToast(`❌ ${data.message || 'Could not remove lab order.'}`, 'error');
+            if (btnEl) {
+                btnEl.disabled = false;
+                btnEl.textContent = isPending ? '🗑️ Remove' : '✕ Clear';
+            }
+            return;
+        }
+
+        // If this order was currently selected in the Upload form, clear the hidden binding
+        const activeReqInput = document.getElementById('activeLabRequestId');
+        if (activeReqInput && activeReqInput.value === requestId) {
+            activeReqInput.value = '';
+        }
+
+        lastLabQueueRemoveAt = Date.now();
+        showToast(`✓ ${data.message}`, 'success');
+        await loadLabRequestsQueue();
+    } catch (err) {
+        showToast(`❌ Network error removing order: ${err.message}`, 'error');
+        if (btnEl) {
+            btnEl.disabled = false;
+            btnEl.textContent = isPending ? '🗑️ Remove' : '✕ Clear';
+        }
+    } finally {
+        removingLabRequestIds.delete(requestId);
     }
 }
 
@@ -2680,6 +2766,7 @@ window.loadPrescriptions = loadPrescriptions;
 window.handleCreatePrescription = handleCreatePrescription;
 window.loadLabRequestsQueue = loadLabRequestsQueue;
 window.selectLabRequestForUpload = selectLabRequestForUpload;
+window.removeLabRequestFromQueue = removeLabRequestFromQueue;
 window.saveHospitalReceptionSettings = saveHospitalReceptionSettings;
 window.resetHospitalReceptionSettings = resetHospitalReceptionSettings;
 window.loginWithBillNumber = loginWithBillAndSecret;

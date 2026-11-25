@@ -666,19 +666,29 @@ function createPrescription(req, res) {
 
         let createdLabRequest = null;
         if (newRx.labTestOrdered && newRx.labTestOrdered !== 'None') {
-            createdLabRequest = db.addLabRequest({
-                requestId: `LABREQ-${crypto.randomBytes(3).toString('hex').toUpperCase()}`,
-                patientId: targetPatient.id,
-                patientName: targetPatient.name,
-                patientUhid: targetPatient.patientId || null,
-                billNumber: targetPatient.billNumber || null,
-                requestedBy: `${user.name} (${user.department || 'Hospital Doctor'})`,
-                testTitle: newRx.labTestOrdered,
-                reportType: labReportType || 'Pathology / Biochemistry',
-                priority: 'Doctor Ordered',
-                status: 'PENDING_UPLOAD',
-                createdAt: new Date().toISOString()
-            });
+            const cleanTitleLower = newRx.labTestOrdered.toLowerCase();
+            const existingPending = db.getLabRequests().find(r =>
+                r.patientId === targetPatient.id &&
+                r.status === 'PENDING_UPLOAD' &&
+                String(r.testTitle || '').trim().toLowerCase() === cleanTitleLower
+            );
+            if (existingPending) {
+                createdLabRequest = existingPending;
+            } else {
+                createdLabRequest = db.addLabRequest({
+                    requestId: `LABREQ-${crypto.randomBytes(3).toString('hex').toUpperCase()}`,
+                    patientId: targetPatient.id,
+                    patientName: targetPatient.name,
+                    patientUhid: targetPatient.patientId || null,
+                    billNumber: targetPatient.billNumber || null,
+                    requestedBy: `${user.name} (${user.department || 'Hospital Doctor'})`,
+                    testTitle: newRx.labTestOrdered,
+                    reportType: labReportType || 'Pathology / Biochemistry',
+                    priority: 'Doctor Ordered',
+                    status: 'PENDING_UPLOAD',
+                    createdAt: new Date().toISOString()
+                });
+            }
         }
 
         db.logAudit(
@@ -905,6 +915,44 @@ function getLabRequests(req, res) {
     }
 }
 
+async function deleteLabRequest(req, res) {
+    try {
+        const { requestId } = req.params;
+        const cleanId = String(requestId || '').trim();
+        if (!cleanId) {
+            return res.status(400).json({ success: false, message: 'Lab request ID is required.' });
+        }
+
+        const removed = db.deleteLabRequest(cleanId);
+        if (!removed) {
+            return res.status(404).json({ success: false, message: `Lab order '${cleanId}' was not found or was already removed.` });
+        }
+
+        db.logAudit(
+            'LAB_REQUEST_REMOVED',
+            req.user.name,
+            `Removed lab order ${removed.requestId} ("${removed.testTitle}" for ${removed.patientName}, previous status: ${removed.status}). Uploaded reports & blockchain anchors remain untouched.`
+        );
+
+        if (cloudPersistence.isEnabled()) {
+            try {
+                await cloudPersistence.flushAll();
+            } catch (cloudErr) {
+                console.warn('[Admin Controller] Lab request delete cloud flush warning:', cloudErr.message);
+            }
+        }
+
+        return res.json({
+            success: true,
+            message: `Removed lab order ${removed.requestId} from the queue.`,
+            removedRequestId: removed.requestId,
+            previousStatus: removed.status
+        });
+    } catch (err) {
+        return res.status(500).json({ success: false, message: 'Failed to remove lab request.' });
+    }
+}
+
 function getReceptionInquiries(req, res) {
     try {
         return res.json({ success: true, inquiries: db.getInquiries() });
@@ -982,6 +1030,7 @@ module.exports = {
     downloadPrescriptionAttachment,
     downloadPrescriptionPDF,
     getLabRequests,
+    deleteLabRequest,
     getReceptionInquiries,
     createReceptionInquiry,
     resolveReceptionInquiry

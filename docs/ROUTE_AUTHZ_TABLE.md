@@ -31,6 +31,7 @@ Every API route registered in `server.js` is either authenticated via `Authoriza
 | `GET /api/prescriptions/:prescriptionId/pdf` | Bearer JWT | `Doctor`, `Patient` (own), `Admin` | Enforces `canViewPrescription` |
 | `GET /api/prescriptions/:prescriptionId/attachment` | Bearer JWT | `Doctor`, `Patient` (own), `Admin` | Authenticated decryption + SHA-256 check |
 | `GET /api/lab-requests` | Bearer JWT | `Lab Staff`, `Doctor`, `Receptionist`, `Admin` | `Patient` denied (`403`) |
+| `DELETE /api/lab-requests/:requestId` | Bearer JWT | `Lab Staff`, `Doctor`, `Admin` | Removes queue entry only (preserves uploaded reports & blockchain anchors); `Patient`/`Receptionist` denied (`403`) |
 | `POST /api/reports/upload` | Bearer JWT | `Lab Staff`, `Admin` (rate-limited) | Magic bytes, `sourceHash` dedupe lock, `labRequestId` check, AES-256-GCM, EVM anchor |
 | `GET /api/reports` | Bearer JWT | `Patient` (own), `Doctor`, `Lab Staff` (`[]`), `Admin` | `Receptionist` denied (`403`) |
 | `GET /api/reports/search` | Bearer JWT | `Patient` (own), `Doctor`, `Admin` | `Receptionist` & `Lab Staff` denied (`403`) |

@@ -833,6 +833,69 @@ describe('Hardened Auth, RBAC, Crypto, Clinical Integrity & Blockchain Suite', (
         });
         assert.equal(limited.response.status, 429);
     });
+
+    test('DELETE /api/lab-requests/:requestId enforces RBAC, deduplicates repeat orders, and preserves uploaded reports', async () => {
+        const doctorId = seedDb.users.find(u => u.role === 'Doctor').id;
+        const labId = seedDb.users.find(u => u.role === 'Lab Staff').id;
+        const patientId = seedDb.users.find(u => u.role === 'Patient').id;
+        const receptionistId = seedDb.users.find(u => u.role === 'Receptionist').id;
+        const docTok = tokenFor(doctorId, { role: 'Doctor' });
+        const labTok = tokenFor(labId, { role: 'Lab Staff' });
+        const patTok = tokenFor(patientId, { role: 'Patient' });
+        const recTok = tokenFor(receptionistId, { role: 'Receptionist' });
+
+        // Create two identical prescriptions with the same lab test — second should NOT duplicate the pending order
+        const rxPayload = {
+            patientId,
+            symptoms: 'Fatigue check',
+            diagnosis: 'Rule out anemia',
+            medicines: [{ name: 'Tab. Iron 100mg', dosage: '0-1-0', duration: '15 Days' }],
+            labTestOrdered: 'Serum Ferritin Panel'
+        };
+        const rx1 = await srv.requestJson('/api/prescriptions', {
+            method: 'POST',
+            headers: { authorization: `Bearer ${docTok}`, 'content-type': 'application/json' },
+            body: JSON.stringify(rxPayload)
+        });
+        assert.equal(rx1.response.status, 201);
+        const reqId = rx1.body.labRequest.requestId;
+
+        const rx2 = await srv.requestJson('/api/prescriptions', {
+            method: 'POST',
+            headers: { authorization: `Bearer ${docTok}`, 'content-type': 'application/json' },
+            body: JSON.stringify(rxPayload)
+        });
+        assert.equal(rx2.response.status, 201);
+        assert.equal(rx2.body.labRequest.requestId, reqId, 'Duplicate pending lab test order should reuse existing pending request');
+
+        // Unauthenticated, Patient, and Receptionist must be blocked
+        const noAuth = await srv.requestJson(`/api/lab-requests/${encodeURIComponent(reqId)}`, { method: 'DELETE' });
+        assert.equal(noAuth.response.status, 401);
+        const patDel = await srv.requestJson(`/api/lab-requests/${encodeURIComponent(reqId)}`, {
+            method: 'DELETE',
+            headers: { authorization: `Bearer ${patTok}` }
+        });
+        assert.equal(patDel.response.status, 403);
+        const recDel = await srv.requestJson(`/api/lab-requests/${encodeURIComponent(reqId)}`, {
+            method: 'DELETE',
+            headers: { authorization: `Bearer ${recTok}` }
+        });
+        assert.equal(recDel.response.status, 403);
+
+        // Lab Staff can remove the queue order; repeat delete returns 404 (idempotent/safe on double-click)
+        const labDel = await srv.requestJson(`/api/lab-requests/${encodeURIComponent(reqId)}`, {
+            method: 'DELETE',
+            headers: { authorization: `Bearer ${labTok}` }
+        });
+        assert.equal(labDel.response.status, 200);
+        assert.equal(labDel.body.removedRequestId, reqId);
+
+        const secondDel = await srv.requestJson(`/api/lab-requests/${encodeURIComponent(reqId)}`, {
+            method: 'DELETE',
+            headers: { authorization: `Bearer ${labTok}` }
+        });
+        assert.equal(secondDel.response.status, 404);
+    });
 });
 
 // ============================================================================

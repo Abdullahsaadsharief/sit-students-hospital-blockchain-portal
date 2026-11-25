@@ -653,6 +653,14 @@ class Database {
         return item;
     }
 
+    deleteLabRequest(requestId) {
+        const idx = this.labRequests.findIndex(r => r.requestId === requestId);
+        if (idx === -1) return null;
+        const [removed] = this.labRequests.splice(idx, 1);
+        this.persist();
+        return removed;
+    }
+
     // --- Patient Helpdesk Inquiries ---
     getInquiries() {
         return this.inquiries;
