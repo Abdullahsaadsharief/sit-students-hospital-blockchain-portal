@@ -10,6 +10,7 @@ const { computeSHA256, encryptBuffer, decryptBuffer, TamperDetectedError } = req
 const { validateUploadedFile, sanitizeDownloadFilename } = require('../utils/fileValidation');
 const { atomicWriteBufferSync } = require('../utils/atomicWrite');
 const { cloudPersistence } = require('../utils/cloudPersistence');
+const { savePersistedAiConfig } = require('../utils/aiConfigStore');
 const { testGeminiApiKey } = require('../utils/aiSummarizer');
 const { generateReceptionBillPDF, generateDoctorPrescriptionPDF } = require('../utils/pdfGenerator');
 
@@ -30,6 +31,9 @@ const ALLOWED_INQUIRY_DEPARTMENTS = new Set([
 ]);
 
 function syncEnvFile(key, value) {
+    if (config.NODE_ENV === 'test' || config.NODE_ENV === 'production') {
+        return;
+    }
     try {
         let content = '';
         if (fs.existsSync(ENV_FILE_PATH)) {
@@ -237,6 +241,7 @@ function getAiConfig(req, res) {
         success: true,
         hasKey,
         externalProcessingEnabled: externalEnabled,
+        persistedToCloud: cloudPersistence.isEnabled(),
         maskedKey,
         activeModel: (hasKey && externalEnabled) ? activeModel : null,
         activeEngine: (hasKey && externalEnabled)
@@ -258,25 +263,38 @@ async function updateAiConfig(req, res) {
 
         // Explicit authenticated Admin opt-in activates de-identified Gemini cloud summarization
         process.env.GEMINI_API_KEY = cleanKey;
+        process.env.GEMINI_ACTIVE_MODEL = testResult.activeModel || 'gemini-3.8-flash';
         process.env.AI_EXTERNAL_PROCESSING = 'true';
         config.AI_EXTERNAL_PROCESSING = true;
         syncEnvFile('GEMINI_API_KEY', cleanKey);
         syncEnvFile('AI_EXTERNAL_PROCESSING', 'true');
 
+        // Persist AES-256-GCM encrypted API key to Firebase Firestore + local disk so it survives Render restarts
+        const saveResult = await savePersistedAiConfig({
+            apiKey: cleanKey,
+            externalProcessingEnabled: true,
+            activeModel: testResult.activeModel || 'gemini-3.8-flash',
+            updatedBy: req.user.name
+        });
+
         db.logAudit(
             'AI_GATEWAY_CONFIGURED',
             req.user.name,
-            `Admin verified and activated Google Gemini API key (Model: ${testResult.activeModel}; de-identified external processing enabled)`
+            `Admin verified and activated Google Gemini API key (Model: ${testResult.activeModel}; persisted encrypted to ${saveResult.savedToCloud ? 'Firebase Firestore + local disk' : 'local disk'})`
         );
 
         const maskedKey = `${cleanKey.slice(0, 6)}...${cleanKey.slice(-4)}`;
+        const persistNote = saveResult.savedToCloud
+            ? ' Saved permanently (AES-256-GCM encrypted in Firebase) — stays active across server restarts until changed.'
+            : ' Saved locally (AES-256-GCM encrypted) across restarts.';
         return res.json({
             success: true,
-            message: testResult.message || `Google Gemini (${testResult.activeModel}) verified and activated.`,
+            message: (testResult.message || `Google Gemini (${testResult.activeModel}) verified and activated.`) + persistNote,
             activeModel: testResult.activeModel,
             activeEngine: `Google Gemini (${testResult.activeModel}) — De-identified`,
             status: 'ONLINE_AI',
             externalProcessingEnabled: true,
+            persistedToCloud: saveResult.savedToCloud,
             maskedKey,
             warning: testResult.warning || null
         });
@@ -288,7 +306,7 @@ async function updateAiConfig(req, res) {
     }
 }
 
-function resetAiConfig(req, res) {
+async function resetAiConfig(req, res) {
     try {
         delete process.env.GEMINI_API_KEY;
         delete process.env.GEMINI_ACTIVE_MODEL;
@@ -297,14 +315,22 @@ function resetAiConfig(req, res) {
         syncEnvFile('GEMINI_API_KEY', '');
         syncEnvFile('AI_EXTERNAL_PROCESSING', 'false');
 
-        db.logAudit('AI_GATEWAY_RESET', req.user.name, 'Admin reset AI Gateway to Local Clinical Rule Engine (Offline)');
+        await savePersistedAiConfig({
+            apiKey: null,
+            externalProcessingEnabled: false,
+            activeModel: null,
+            updatedBy: req.user.name
+        });
+
+        db.logAudit('AI_GATEWAY_RESET', req.user.name, 'Admin reset AI Gateway to Local Clinical Rule Engine (Offline) and cleared persisted encrypted key');
 
         return res.json({
             success: true,
-            message: 'AI Gateway reverted to Local Clinical Rule Engine (Offline).',
+            message: 'AI Gateway reverted to Local Clinical Rule Engine (Offline). This setting persists across restarts until a new key is activated.',
             activeEngine: 'Local Clinical Rule Engine (Offline)',
             status: 'OFFLINE_FALLBACK',
             externalProcessingEnabled: false,
+            persistedToCloud: cloudPersistence.isEnabled(),
             maskedKey: null
         });
     } catch (err) {

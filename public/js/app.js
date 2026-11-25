@@ -1195,7 +1195,8 @@ async function loadAdminAiConfig() {
                 engineName.style.color = '';
             }
             if (keyStatus) {
-                keyStatus.textContent = `Key: ${data.maskedKey || 'Configured & Active'}`;
+                const persistTag = data.persistedToCloud ? ' • Saved Permanently in Encrypted Firebase Vault' : '';
+                keyStatus.textContent = `Key: ${data.maskedKey || 'Configured & Active'}${persistTag}`;
                 keyStatus.className = 'ai-key-online';
                 keyStatus.style.color = '';
             }
