@@ -182,9 +182,11 @@ function switchLoginMode(mode) {
     const quickTab = document.getElementById('tabQuickLogin');
     const billTab = document.getElementById('tabBillLogin');
     const credsTab = document.getElementById('tabCredsLogin');
+    const recTab = document.getElementById('tabReceptionLogin');
     const quickView = document.getElementById('quickLoginView');
     const billView = document.getElementById('billLoginView');
     const credsView = document.getElementById('credsLoginView');
+    const recView = document.getElementById('receptionLoginView');
 
     if (mode === 'quick' && !serverPublicConfig.demoMode) {
         mode = 'creds';
@@ -193,10 +195,12 @@ function switchLoginMode(mode) {
     if (quickTab) quickTab.classList.toggle('active', mode === 'quick');
     if (billTab) billTab.classList.toggle('active', mode === 'bill');
     if (credsTab) credsTab.classList.toggle('active', mode === 'creds');
+    if (recTab) recTab.classList.toggle('active', mode === 'reception');
 
     if (quickView) quickView.style.display = mode === 'quick' ? 'block' : 'none';
     if (billView) billView.style.display = mode === 'bill' ? 'block' : 'none';
     if (credsView) credsView.style.display = mode === 'creds' ? 'block' : 'none';
+    if (recView) recView.style.display = mode === 'reception' ? 'block' : 'none';
 }
 
 async function loginWithBillAndSecret(billNumber, secret, isAccessCode = true) {
@@ -289,9 +293,45 @@ async function loginWithCredentials(emailOrId, password) {
             return;
         }
 
+        if (data.user && data.user.role === 'Receptionist') {
+            localStorage.setItem('sit_rec_token', data.token);
+            localStorage.setItem('sit_rec_user', JSON.stringify(data.user));
+            window.location.href = '/reception';
+            return;
+        }
+
         applySession(data.token, data.user);
     } catch (err) {
         alert('Login communication error: ' + err.message);
+    }
+}
+
+async function loginAsReceptionistWithCredentials(email, password) {
+    const cleanEmail = (email || '').trim();
+    if (!cleanEmail || !password) {
+        alert('Please enter both Receptionist email and password.');
+        return;
+    }
+    try {
+        const res = await fetch('/api/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ identifier: cleanEmail, password })
+        });
+        const data = await res.json();
+        if (!res.ok || !data.success) {
+            alert('Receptionist authentication failed: ' + (data.message || 'Invalid credentials'));
+            return;
+        }
+        if (!data.user || (data.user.role !== 'Receptionist' && data.user.role !== 'Admin')) {
+            alert('Access denied: Only Receptionist or Hospital Admin accounts can open the Reception Desk.');
+            return;
+        }
+        localStorage.setItem('sit_rec_token', data.token);
+        localStorage.setItem('sit_rec_user', JSON.stringify(data.user));
+        window.location.href = '/reception';
+    } catch (err) {
+        alert('Receptionist login error: ' + err.message);
     }
 }
 
@@ -1495,6 +1535,17 @@ function initFormListeners() {
             const secret = document.getElementById('portalBillSecretInput').value;
             const useCode = document.getElementById('portalUseAccessCodeCheckbox')?.checked !== false;
             loginWithBillAndSecret(billNo, secret, useCode);
+        });
+    }
+
+    // 1b-2. Receptionist Desk Login Form on Portal
+    const portalRecForm = document.getElementById('portalReceptionLoginForm');
+    if (portalRecForm) {
+        portalRecForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const email = document.getElementById('portalRecEmailInput').value;
+            const password = document.getElementById('portalRecPasswordInput').value;
+            loginAsReceptionistWithCredentials(email, password);
         });
     }
 
@@ -2878,6 +2929,7 @@ window.handleUploadPrescriptionDocument = handleUploadPrescriptionDocument;
 window.revokeIssuedShareLink = revokeIssuedShareLink;
 window.loginWithBillAndSecret = loginWithBillAndSecret;
 window.loginAsDemoReceptionist = loginAsDemoReceptionist;
+window.loginAsReceptionistWithCredentials = loginAsReceptionistWithCredentials;
 window.selectDoctorPatient = selectDoctorPatient;
 window.clearDoctorSelectedPatient = clearDoctorSelectedPatient;
 window.renderDoctorPatientDirectory = renderDoctorPatientDirectory;

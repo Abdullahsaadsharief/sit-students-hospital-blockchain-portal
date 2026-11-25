@@ -17,8 +17,11 @@
     <section id="loginScreen" class="login-screen-wrapper">
         <div class="login-card">
             <div class="login-brand-header">
-                <div class="login-brand-icon">🏥</div>
-                <h1 class="login-brand-title">SIT Students Hospital Portal</h1>
+                <a href="/" title="Go to SIT Students Hospital Homepage"
+                    style="text-decoration: none; color: inherit; display: inline-block; cursor: pointer;">
+                    <div class="login-brand-icon">🏥</div>
+                    <h1 class="login-brand-title">SIT Students Hospital Portal</h1>
+                </a>
                 <p class="login-brand-subtitle">
                     Single-Hospital Medical Document &amp; Diagnostic Management System • Multi-Doctor &amp; Lab Access
                 </p>
@@ -41,7 +44,7 @@
             </div>
 
             <!-- Mode Selector Tabs -->
-            <div class="login-mode-tabs">
+            <div class="login-mode-tabs" style="flex-wrap: wrap;">
                 <button type="button" class="login-mode-tab" id="tabQuickLogin" style="display: none;"
                     onclick="switchLoginMode('quick')">
                     ⚡ Demo Quick Access
@@ -52,6 +55,10 @@
                 <button type="button" class="login-mode-tab" id="tabBillLogin"
                     onclick="switchLoginMode('bill')">
                     🧾 Patient Portal Sign-In (Bill + Code)
+                </button>
+                <button type="button" class="login-mode-tab" id="tabReceptionLogin"
+                    onclick="switchLoginMode('reception')">
+                    🗂️ Receptionist Sign-In
                 </button>
             </div>
 
@@ -225,6 +232,33 @@
                         <button type="submit" id="loginSubmitBtn" class="btn btn-primary"
                             style="width: 100%; padding: 12px; margin-top: 0.5rem;">
                             🔒 Sign In to SIT Students Hospital Portal
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Mode 3: Receptionist Desk Credentials Login -->
+            <div id="receptionLoginView" style="display: none;">
+                <div class="login-form-box">
+                    <form id="portalReceptionLoginForm">
+                        <div class="form-group">
+                            <label class="form-label">Receptionist / Admin Email *</label>
+                            <input type="email" id="portalRecEmailInput" class="form-control"
+                                placeholder="e.g. reception@sithospital.org"
+                                autocomplete="username" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Password *</label>
+                            <input type="password" id="portalRecPasswordInput" class="form-control"
+                                placeholder="Enter Receptionist password"
+                                autocomplete="current-password" required>
+                            <p style="font-size: 0.74rem; color: var(--text-muted); margin-top: 4px;">
+                                Authenticates front-desk staff and opens the OPD Patient Registration &amp; Billing Desk (<code>/reception</code>).
+                            </p>
+                        </div>
+                        <button type="submit" id="portalRecSubmitBtn" class="btn btn-primary"
+                            style="width: 100%; padding: 12px; margin-top: 0.5rem;">
+                            🗂️ Sign In &amp; Open Reception Desk
                         </button>
                     </form>
                 </div>
