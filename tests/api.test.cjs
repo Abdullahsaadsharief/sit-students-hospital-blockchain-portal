@@ -896,6 +896,69 @@ describe('Hardened Auth, RBAC, Crypto, Clinical Integrity & Blockchain Suite', (
         });
         assert.equal(secondDel.response.status, 404);
     });
+
+    test('GET /api/prescriptions/:id/pdf streams valid PDF (attachment & inline), enforces patient scoping, and handles long clinical text', async () => {
+        const doctorId = seedDb.users.find(u => u.role === 'Doctor').id;
+        const patients = seedDb.users.filter(u => u.role === 'Patient');
+        const pat1 = patients[0];
+        const pat2 = patients[1];
+        const recId = seedDb.users.find(u => u.role === 'Receptionist').id;
+
+        const docTok = tokenFor(doctorId, { role: 'Doctor' });
+        const pat1Tok = tokenFor(pat1.id, { role: 'Patient' });
+        const pat2Tok = tokenFor(pat2.id, { role: 'Patient' });
+        const recTok = tokenFor(recId, { role: 'Receptionist' });
+
+        // Create a prescription with long multi-line symptoms & diagnosis (like live OPD cases)
+        const created = await srv.requestJson('/api/prescriptions', {
+            method: 'POST',
+            headers: { authorization: `Bearer ${docTok}`, 'content-type': 'application/json' },
+            body: JSON.stringify({
+                patientId: pat1.id,
+                vitals: 'BP: 134/86 mmHg | Pulse: 84 bpm | Temp: 98.6°F | SpO2: 98%',
+                symptoms: 'Patient reports 3 weeks of persistent fatigue and mild dizziness during exam prep. Physical exam stable. Ordering CBC and Glycemic Profile (Fasting Blood Sugar & HbA1c) before starting long-term therapy.',
+                diagnosis: 'Suspected Iron-Deficiency Anemia & Borderline Hyperglycemia (Awaiting Central Pathology Lab Confirmation)',
+                medicines: [
+                    { name: 'Tab. Paracetamol 650mg', dosage: '1-0-1', duration: '5 Days', instructions: 'After Food' },
+                    { name: 'Tab. Pantoprazole 40mg', dosage: '1-0-0', duration: '5 Days', instructions: 'Before Breakfast' }
+                ],
+                advice: 'Reduce refined sugar, 30 minutes brisk walk daily, iron-rich diet, and drink plenty of warm water.',
+                labTestOrdered: 'Complete Blood Count (CBC) & Differential',
+                followUpDate: '2026-12-10'
+            })
+        });
+        assert.equal(created.response.status, 201);
+        const rxId = created.body.prescription.prescriptionId;
+
+        // Owner patient downloads PDF as attachment
+        const patDl = await srv.requestJson(`/api/prescriptions/${encodeURIComponent(rxId)}/pdf`, {
+            headers: { authorization: `Bearer ${pat1Tok}` }
+        });
+        assert.equal(patDl.response.status, 200);
+        assert.equal(patDl.response.headers.get('content-type'), 'application/pdf');
+        assert.match(patDl.response.headers.get('content-disposition') || '', /^attachment;/i);
+        const pdfBuf = Buffer.from(patDl.body);
+        assert.equal(pdfBuf.subarray(0, 5).toString('ascii'), '%PDF-');
+        assert.ok(pdfBuf.length > 1500, 'Generated prescription PDF should contain full content');
+
+        // Inline preview mode (?inline=true) returns inline disposition
+        const inlineRes = await srv.requestJson(`/api/prescriptions/${encodeURIComponent(rxId)}/pdf?inline=true`, {
+            headers: { authorization: `Bearer ${pat1Tok}` }
+        });
+        assert.equal(inlineRes.response.status, 200);
+        assert.match(inlineRes.response.headers.get('content-disposition') || '', /^inline;/i);
+
+        // Another patient and Receptionist must be blocked (403)
+        const otherPatRes = await srv.requestJson(`/api/prescriptions/${encodeURIComponent(rxId)}/pdf`, {
+            headers: { authorization: `Bearer ${pat2Tok}` }
+        });
+        assert.equal(otherPatRes.response.status, 403);
+
+        const recRes = await srv.requestJson(`/api/prescriptions/${encodeURIComponent(rxId)}/pdf`, {
+            headers: { authorization: `Bearer ${recTok}` }
+        });
+        assert.equal(recRes.response.status, 403);
+    });
 });
 
 // ============================================================================

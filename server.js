@@ -12,6 +12,7 @@ const { authenticate, optionalAuthenticate, authorizeRoles } = require('./middle
 const upload = require('./middleware/uploadMiddleware');
 const { ethereumClient } = require('./blockchain/ethereumClient');
 const { cloudPersistence } = require('./utils/cloudPersistence');
+const { hydrateAiConfigOnStartup } = require('./utils/aiConfigStore');
 const db = require('./models/db');
 const blockchain = require('./blockchain/Blockchain');
 
@@ -312,14 +313,22 @@ if (require.main === module) {
             }
         }
 
+        try {
+            await hydrateAiConfigOnStartup({ config, cloudPersistence });
+        } catch (aiErr) {
+            console.warn('[AI Gateway] Startup config hydration warning:', aiErr.message);
+        }
+
         const server = app.listen(PORT, () => {
             const eth = ethereumClient.getStatus();
             const persistence = cloudPersistence.getStatus();
+            const aiActive = Boolean(config.AI_EXTERNAL_PROCESSING && process.env.GEMINI_API_KEY);
             console.log('================================================================');
             console.log('🏥 SIT Students Hospital Portal — Hardened Security Build v2.0');
             console.log(`🔒 Security Mode:    ${config.DEMO_MODE ? 'DEMO_MODE (Synthetic Academic Demo)' : 'HARDENED (Real Auth Required)'}`);
             console.log(`⛓️  Blockchain Mode:  ${eth.mode}`);
             console.log(`☁️  Storage Mode:     ${persistence.mode}`);
+            console.log(`🤖 AI Gateway:       ${aiActive ? `Google Gemini (${process.env.GEMINI_ACTIVE_MODEL || 'gemini-3.8-flash'})` : 'Local Clinical Rule Engine (Offline)'}`);
             console.log(`🌐 Public Website:   http://localhost:${PORT}`);
             console.log(`🔐 Staff/Patient:    http://localhost:${PORT}/portal`);
             console.log(`🩺 Reception Desk:   http://localhost:${PORT}/reception`);

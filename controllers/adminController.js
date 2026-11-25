@@ -816,7 +816,7 @@ async function uploadPrescriptionAttachment(req, res) {
         });
     } catch (err) {
         if (writtenPath && fs.existsSync(writtenPath)) {
-            try { fs.unlinkSync(writtenPath); } catch (_) {}
+            try { fs.unlinkSync(writtenPath); } catch (_) { }
         }
         return res.status(500).json({ success: false, message: 'Failed to upload prescription document.' });
     }
@@ -896,12 +896,14 @@ async function downloadPrescriptionPDF(req, res) {
 
         const pdfBuffer = await generateDoctorPrescriptionPDF(rx);
         const safeName = sanitizeDownloadFilename(`SIT_Hospital_Prescription_${rx.prescriptionId}.pdf`, 'SIT_Hospital_Prescription.pdf');
+        const isInline = String(req.query && req.query.inline || '').toLowerCase() === 'true';
 
         res.setHeader('Content-Type', 'application/pdf');
-        res.setHeader('Content-Disposition', `attachment; filename="${safeName}"`);
+        res.setHeader('Content-Disposition', `${isInline ? 'inline' : 'attachment'}; filename="${safeName}"`);
         res.setHeader('Content-Length', pdfBuffer.length);
         return res.send(pdfBuffer);
     } catch (err) {
+        console.error('[Admin Controller] Prescription PDF generation error:', err.message);
         return res.status(500).json({ success: false, message: 'Failed to generate prescription PDF.' });
     }
 }

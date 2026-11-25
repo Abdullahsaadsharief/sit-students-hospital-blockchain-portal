@@ -365,7 +365,7 @@ async function refreshConsortiumUsers() {
 
 function updateUserDisplay(user) {
     const avatar = user.role === 'Doctor' ? '👨‍⚕️' : user.role === 'Lab Staff' ? '🔬' : user.role === 'Admin' ? '🛡️' : '👤';
-    
+
     // Header Identity
     const headerAvatar = document.getElementById('headerUserAvatar');
     const headerName = document.getElementById('headerUserName');
@@ -380,7 +380,7 @@ function updateUserDisplay(user) {
     const bannerRole = document.getElementById('userRoleDisplay');
     if (bannerAvatar) bannerAvatar.textContent = avatar;
     if (bannerName) bannerName.textContent = user.name;
-    
+
     let desc = user.role;
     if (user.department) desc += ` • ${user.department}`;
     if (user.hospital) desc += ` • ${user.hospital}`;
@@ -432,6 +432,7 @@ function applyRolePermissions(role) {
     const uploadForm = document.getElementById('uploadForm');
     const timelinePatientSelectorWrapper = document.getElementById('timelinePatientSelectorWrapper');
     const doctorRxFormCard = document.getElementById('doctorPrescriptionFormCard');
+    const prescriptionsGridWrapper = document.getElementById('prescriptionsGridWrapper');
 
     // Reset default display
     if (tabRecords) tabRecords.style.display = 'inline-flex';
@@ -448,6 +449,7 @@ function applyRolePermissions(role) {
     if (uploadForm) uploadForm.style.opacity = '1';
     if (timelinePatientSelectorWrapper) timelinePatientSelectorWrapper.style.display = 'flex';
     if (doctorRxFormCard) doctorRxFormCard.style.display = 'block';
+    if (prescriptionsGridWrapper) prescriptionsGridWrapper.style.gridTemplateColumns = '';
 
     if (role === 'Patient') {
         // Patient sees ONLY their own reports, doctor checkup prescriptions, and medical timeline
@@ -457,6 +459,7 @@ function applyRolePermissions(role) {
         if (tabBlockchain) tabBlockchain.style.display = 'none';
         if (tabAudit) tabAudit.style.display = 'none';
         if (doctorRxFormCard) doctorRxFormCard.style.display = 'none';
+        if (prescriptionsGridWrapper) prescriptionsGridWrapper.style.gridTemplateColumns = '1fr';
 
         if (patientNotice) patientNotice.style.display = 'flex';
         if (timelinePatientSelectorWrapper) timelinePatientSelectorWrapper.style.display = 'none';
@@ -519,6 +522,7 @@ function initTabs() {
             if (targetId === 'timelineTab') loadTimeline();
             if (targetId === 'adminTab') loadAdminUsers();
             if (targetId === 'recordsTab') loadReports();
+            if (targetId === 'prescriptionsTab') loadPrescriptions();
         });
     });
 }
@@ -534,7 +538,7 @@ async function loadStats() {
             document.getElementById('metricReports').textContent = data.stats.totalReports;
             document.getElementById('metricBlocks').textContent = data.stats.totalBlocks;
             document.getElementById('metricDuplicates').textContent = data.stats.duplicatesPrevented;
-            
+
             const statusEl = document.getElementById('metricChainStatus');
             if (data.stats.isBlockchainValid) {
                 statusEl.textContent = 'VALID';
@@ -706,7 +710,7 @@ function renderReports(reports) {
 
     let filtered = reports;
     if (activeTagFilter) {
-        filtered = filtered.filter(r => 
+        filtered = filtered.filter(r =>
             (r.keywords && r.keywords.some(k => k.toLowerCase().includes(activeTagFilter.toLowerCase()))) ||
             (r.title && r.title.toLowerCase().includes(activeTagFilter.toLowerCase()))
         );
@@ -1007,8 +1011,8 @@ function initUploadDropzone() {
             // Objective 2 Demonstration: DUPLICATE REJECTED
             if (res.status === 409 || data.duplicateDetected) {
                 alert(`⚠️ OBJECTIVE 2 ENFORCED: DUPLICATE MEDICAL REPORT DETECTED!\n\n` +
-                      `Cryptographic SHA-256 fingerprint:\n${data.fileHash}\n\n` +
-                      `This report is already anchored on the blockchain. Redundant upload was blocked to prevent duplicate records and save storage!`);
+                    `Cryptographic SHA-256 fingerprint:\n${data.fileHash}\n\n` +
+                    `This report is already anchored on the blockchain. Redundant upload was blocked to prevent duplicate records and save storage!`);
                 loadStats();
                 return;
             }
@@ -1018,7 +1022,7 @@ function initUploadDropzone() {
             }
 
             alert(`✓ SUCCESS: Report encrypted with AES-256 and anchored to Blockchain Block #${data.block.index}!\n` +
-                  `OCR Extracted Tags: [${(data.ocrInfo.extractedKeywords || []).join(', ')}]`);
+                `OCR Extracted Tags: [${(data.ocrInfo.extractedKeywords || []).join(', ')}]`);
 
             form.reset();
             selectedUploadFile = null;
@@ -1084,9 +1088,9 @@ Signed: Alex Smith, Senior Biochemist`;
 
         if (res.status === 409 || data.duplicateDetected) {
             alert(`🛑 OBJECTIVE 2 LIVE VERIFICATION:\n\n` +
-                  `STATUS: 409 CONFLICT (Duplicate Detected!)\n` +
-                  `SHA-256 Hash: ${data.fileHash.slice(0, 32)}...\n\n` +
-                  `The blockchain detected that this diagnostic document already exists. Redundant upload was successfully prevented!`);
+                `STATUS: 409 CONFLICT (Duplicate Detected!)\n` +
+                `SHA-256 Hash: ${data.fileHash.slice(0, 32)}...\n\n` +
+                `The blockchain detected that this diagnostic document already exists. Redundant upload was successfully prevented!`);
             loadStats();
         } else {
             alert('Upload response: ' + JSON.stringify(data));
@@ -1115,7 +1119,7 @@ function openEditReportModal(reportId) {
     document.getElementById('editReportBadge').textContent = report.reportId;
     document.getElementById('editReportTitle').textContent = `Clinical Evaluation: ${report.title}`;
     document.getElementById('editReportSubtitle').textContent = `Patient: ${report.patientName} (${report.patientPseudonym}) • Date: ${report.testDate}`;
-    
+
     document.getElementById('editReportNotes').value = report.notes || '';
     if (report.doctorRemarks) {
         document.getElementById('editDiagnosisStatus').value = report.doctorRemarks.status || 'Confirmed Diagnosis';
@@ -1354,9 +1358,9 @@ function renderAdminUsersTable(users) {
                 <td style="font-size: 0.78rem; color: var(--text-secondary);">${escapeHtml(licenseOrNode)}</td>
                 <td>
                     ${u.role !== 'Admin'
-                        ? `<button class="btn btn-secondary" style="padding: 4px 10px; font-size: 0.75rem; color: var(--accent-danger); border-color: rgba(239, 68, 68, 0.4);" onclick="deleteAdminUser('${escapeHtml(u.id)}')">🗑️ Remove Staff</button>`
-                        : `<span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 700;">Protected Admin</span>`
-                    }
+                    ? `<button class="btn btn-secondary" style="padding: 4px 10px; font-size: 0.75rem; color: var(--accent-danger); border-color: rgba(239, 68, 68, 0.4);" onclick="deleteAdminUser('${escapeHtml(u.id)}')">🗑️ Remove Staff</button>`
+                    : `<span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 700;">Protected Admin</span>`
+                }
                 </td>
             `;
             staffTbody.appendChild(tr);
@@ -1411,20 +1415,20 @@ function populatePatientDropdowns(users) {
     const billChipsBox = document.getElementById('portalBillChipsBox');
 
     if (uploadSelect) {
-        uploadSelect.innerHTML = patients.map(p => 
+        uploadSelect.innerHTML = patients.map(p =>
             `<option value="${p.id}">${escapeHtml(p.name)} (${p.patientId || p.id}${p.billNumber ? ' | ' + p.billNumber : ''}, Age: ${p.age || 'N/A'}, ${p.gender || 'N/A'})</option>`
         ).join('');
     }
 
     if (timelineSelect) {
-        timelineSelect.innerHTML = patients.map(p => 
+        timelineSelect.innerHTML = patients.map(p =>
             `<option value="${p.id}">${escapeHtml(p.name)} (${p.patientId || p.id}${p.billNumber ? ' | ' + p.billNumber : ''})</option>`
         ).join('');
         if (selectedDoctorPatientId) timelineSelect.value = selectedDoctorPatientId;
     }
 
     if (rxPatientSelect) {
-        rxPatientSelect.innerHTML = patients.map(p => 
+        rxPatientSelect.innerHTML = patients.map(p =>
             `<option value="${p.id}">${escapeHtml(p.name)} (${p.patientId || p.id}${p.billNumber ? ' | ' + p.billNumber : ''})</option>`
         ).join('');
         if (selectedDoctorPatientId) rxPatientSelect.value = selectedDoctorPatientId;
@@ -1809,7 +1813,7 @@ function showToast(message, type = 'info') {
 
     toast.style.cssText = `background: ${bg}; color: #ffffff; padding: 12px 18px; border-radius: 8px; border: 1px solid ${border}; box-shadow: 0 10px 25px rgba(0,0,0,0.45); font-size: 0.88rem; font-weight: 500; display: flex; align-items: center; gap: 10px; pointer-events: auto; backdrop-filter: blur(8px); transition: all 0.3s ease;`;
     toast.innerHTML = `<span style="font-size: 1.1rem;">${isError ? '⚠️' : isSuccess ? '✅' : 'ℹ️'}</span><span style="flex: 1;">${message}</span>`;
-    
+
     container.appendChild(toast);
     setTimeout(() => {
         toast.style.opacity = '0';
@@ -2055,7 +2059,7 @@ async function loadModalPdfPreview(reportId, pdfFrame) {
         const blob = await pdfRes.blob();
         currentModalPdfBlobUrl = URL.createObjectURL(blob);
         if (pdfFrame) pdfFrame.src = currentModalPdfBlobUrl;
-    } catch (_) {}
+    } catch (_) { }
 }
 
 /**
@@ -2071,7 +2075,7 @@ async function downloadReportFile(reportId, preferredFileName) {
             try {
                 const errData = await res.json();
                 errMsg = errData.message || errMsg;
-            } catch (ignored) {}
+            } catch (ignored) { }
             showToast(`❌ ${errMsg}`, 'error');
             return;
         }
@@ -2080,14 +2084,15 @@ async function downloadReportFile(reportId, preferredFileName) {
         const blobUrl = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.style.display = 'none';
+        a.rel = 'noopener';
         a.href = blobUrl;
         a.download = preferredFileName || `${reportId}.pdf`;
         document.body.appendChild(a);
         a.click();
         setTimeout(() => {
             window.URL.revokeObjectURL(blobUrl);
-            document.body.removeChild(a);
-        }, 150);
+            if (a.parentNode) a.parentNode.removeChild(a);
+        }, 60000);
         showToast('✅ Authentic PDF decrypted & downloaded successfully!', 'success');
     } catch (err) {
         showToast(`❌ Download error: ${err.message}`, 'error');
@@ -2274,9 +2279,9 @@ async function loadActiveShareLinks() {
                         <div style="font-size: 0.72rem; color: var(--text-muted);">Expires: ${new Date(l.expiresAt).toLocaleString()} • <strong style="color: ${statusColor};">${statusText}</strong></div>
                     </div>
                     ${(!isRevoked && !isExpired)
-                        ? `<button type="button" class="btn btn-secondary" style="padding: 3px 8px; font-size: 0.72rem; color: var(--accent-danger);" onclick="revokeIssuedShareLink('${escapeHtml(l.jti)}')">🚫 Revoke</button>`
-                        : ''
-                    }
+                    ? `<button type="button" class="btn btn-secondary" style="padding: 3px 8px; font-size: 0.72rem; color: var(--accent-danger);" onclick="revokeIssuedShareLink('${escapeHtml(l.jti)}')">🚫 Revoke</button>`
+                    : ''
+                }
                 </div>
             `;
         }).join('');
@@ -2321,6 +2326,14 @@ function copyShareUrl() {
 function closeModal(id) {
     const modal = document.getElementById(id);
     if (modal) modal.classList.remove('active');
+    if (id === 'prescriptionPdfModal') {
+        const frame = document.getElementById('prescriptionPdfFrame');
+        if (frame) frame.src = 'about:blank';
+        if (currentPrescriptionPdfBlobUrl) {
+            window.URL.revokeObjectURL(currentPrescriptionPdfBlobUrl);
+            currentPrescriptionPdfBlobUrl = null;
+        }
+    }
 }
 
 function escapeHtml(str) {
@@ -2377,18 +2390,24 @@ async function loadPrescriptions() {
         }
 
         container.innerHTML = data.prescriptions.map(rx => {
-            const medsHtml = (rx.medicines || []).map(m => `
-                <li style="margin-bottom: 3px;">
-                    <strong>${escapeHtml(m.name)}</strong> — <span style="color: var(--accent-teal); font-weight: 700;">${escapeHtml(m.dosage || '1-0-1')}</span> (${escapeHtml(m.duration || '5 Days')}, ${escapeHtml(m.instructions || 'After Food')})
-                </li>
-            `).join('');
+            const medsList = Array.isArray(rx.medicines) ? rx.medicines : [];
+            const medsHtml = medsList.length > 0
+                ? `<ul style="margin: 4px 0 0 18px; padding: 0;">${medsList.map(m => `
+                    <li style="margin-bottom: 3px;">
+                        <strong>${escapeHtml(m.name)}</strong> — <span style="color: var(--accent-teal); font-weight: 700;">${escapeHtml(m.dosage || '1-0-1')}</span> (${escapeHtml(m.duration || '5 Days')}, ${escapeHtml(m.instructions || 'After Food')})
+                    </li>
+                `).join('')}</ul>`
+                : `<div style="margin-top: 4px; font-size: 0.8rem; color: var(--text-muted);">${rx.attachment ? 'Uploaded signed prescription document — use <strong>Download Attached File</strong> above or <strong>View PDF</strong> to inspect.' : 'No structured medicines recorded.'}</div>`;
+
+            const safeRxId = escapeHtml(rx.prescriptionId);
+            const safeAttachName = rx.attachment ? escapeHtml(rx.attachment.fileName || 'prescription_attachment') : '';
 
             return `
                 <div class="theme-subbox" style="border-left: 4px solid var(--accent-blue); border-radius: 8px; padding: 1.15rem;">
                     <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.65rem;">
                         <div>
                             <span class="report-id-badge">
-                                ${escapeHtml(rx.prescriptionId)} • ${escapeHtml((rx.createdAt || '').slice(0, 10))}
+                                ${safeRxId} • ${escapeHtml((rx.createdAt || '').slice(0, 10))}
                             </span>
                             <h4 style="font-size: 1.02rem; color: var(--text-primary); margin-top: 0.35rem;">
                                 Patient: ${escapeHtml(rx.patientName)} (${escapeHtml(rx.patientUhid || '')} | ${escapeHtml(rx.billNumber || '')})
@@ -2398,11 +2417,14 @@ async function loadPrescriptions() {
                             </div>
                         </div>
                         <div style="display: flex; gap: 0.45rem; flex-wrap: wrap;">
-                            <button type="button" class="btn btn-primary" style="font-size: 0.78rem; padding: 6px 12px;" onclick="downloadPrescriptionPdf('${escapeHtml(rx.prescriptionId)}')">
+                            <button type="button" class="btn btn-secondary" style="font-size: 0.78rem; padding: 6px 12px;" onclick="viewPrescriptionPdfModal('${safeRxId}', this)">
+                                👁️ View / Print PDF
+                            </button>
+                            <button type="button" class="btn btn-primary" style="font-size: 0.78rem; padding: 6px 12px;" onclick="downloadPrescriptionPdf('${safeRxId}', this)">
                                 📄 Download Prescription PDF
                             </button>
                             ${rx.attachment ? `
-                                <button type="button" class="btn btn-secondary" style="font-size: 0.78rem; padding: 6px 12px;" onclick="downloadPrescriptionAttachment('${escapeHtml(rx.prescriptionId)}', '${escapeHtml(rx.attachment.fileName || 'prescription_attachment')}')">
+                                <button type="button" class="btn btn-secondary" style="font-size: 0.78rem; padding: 6px 12px;" data-filename="${safeAttachName}" onclick="downloadPrescriptionAttachment('${safeRxId}', this.dataset.filename, this)">
                                     📎 Download Attached File (${escapeHtml(rx.attachment.fileName || 'Document')})
                                 </button>
                             ` : ''}
@@ -2410,14 +2432,14 @@ async function loadPrescriptions() {
                     </div>
 
                     <div class="card" style="font-size: 0.82rem; padding: 0.6rem 0.8rem; border-radius: 6px; margin-bottom: 0.65rem;">
-                        <div><strong>Vitals:</strong> ${escapeHtml(rx.vitals || 'Normal')}</div>
-                        <div><strong>Complaints:</strong> ${escapeHtml(rx.symptoms || '-')}</div>
-                        <div style="color: var(--accent-teal);"><strong>Clinical Diagnosis:</strong> ${escapeHtml(rx.diagnosis || '-')}</div>
+                        <div><strong>Vitals:</strong> ${escapeHtml(rx.vitals || 'Not recorded')}</div>
+                        <div><strong>Complaints:</strong> ${escapeHtml(rx.symptoms || 'Not recorded')}</div>
+                        <div style="color: var(--accent-teal);"><strong>Clinical Diagnosis:</strong> ${escapeHtml(rx.diagnosis || 'Not recorded')}</div>
                     </div>
 
                     <div style="font-size: 0.83rem; color: var(--text-primary); margin-bottom: 0.5rem;">
                         <strong>Rx — Prescribed Medicines:</strong>
-                        <ul style="margin: 4px 0 0 18px; padding: 0;">${medsHtml}</ul>
+                        ${medsHtml}
                     </div>
 
                     <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; font-size: 0.78rem; color: var(--text-muted); border-top: 1px solid var(--border-subtle); padding-top: 0.5rem;">
@@ -2655,49 +2677,145 @@ function updateThemeToggleLabels() {
     });
 }
 
-async function downloadPrescriptionPdf(prescriptionId) {
+let currentPrescriptionPdfBlobUrl = null;
+
+function triggerBlobDownload(blob, fileName) {
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.style.display = 'none';
+    a.rel = 'noopener';
+    a.href = url;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    // Keep Blob URL alive for 60s so Chrome/Edge download manager never aborts mid-handoff
+    setTimeout(() => {
+        window.URL.revokeObjectURL(url);
+        if (a.parentNode) a.parentNode.removeChild(a);
+    }, 60000);
+}
+
+async function fetchPrescriptionPdfBlob(prescriptionId, inline = false) {
+    const query = inline ? '?inline=true' : '';
+    const res = await fetch(`/api/prescriptions/${encodeURIComponent(prescriptionId)}/pdf${query}`, {
+        headers: getAuthHeaders()
+    });
+    if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.message || `Server returned HTTP ${res.status} while generating prescription PDF.`);
+    }
+    const arrayBuffer = await res.arrayBuffer();
+    if (!arrayBuffer || arrayBuffer.byteLength === 0) {
+        throw new Error('Generated prescription PDF was empty.');
+    }
+    return new Blob([arrayBuffer], { type: 'application/pdf' });
+}
+
+async function downloadPrescriptionPdf(prescriptionId, btnEl) {
+    if (!prescriptionId) return;
+    if (btnEl && btnEl.disabled) return;
+    const origLabel = btnEl ? btnEl.textContent : '';
+    if (btnEl) {
+        btnEl.disabled = true;
+        btnEl.textContent = '⏳ Generating PDF...';
+    }
+    showToast(`📄 Generating Prescription PDF (${prescriptionId})...`, 'info');
     try {
-        const res = await fetch(`/api/prescriptions/${encodeURIComponent(prescriptionId)}/pdf`, {
-            headers: getAuthHeaders()
-        });
-        if (!res.ok) {
-            const err = await res.json().catch(() => ({}));
-            alert(err.message || 'Failed to download prescription PDF.');
-            return;
-        }
-        const blob = await res.blob();
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `SIT_Hospital_Prescription_${prescriptionId}.pdf`;
-        document.body.appendChild(a);
-        a.click();
-        setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 150);
+        const blob = await fetchPrescriptionPdfBlob(prescriptionId, false);
+        const fileName = `SIT_Hospital_Prescription_${prescriptionId}.pdf`;
+        triggerBlobDownload(blob, fileName);
+        showToast(`✅ Downloaded ${fileName}`, 'success');
     } catch (err) {
+        showToast(`❌ ${err.message}`, 'error');
         alert('Error downloading prescription PDF: ' + err.message);
+    } finally {
+        if (btnEl) {
+            btnEl.disabled = false;
+            btnEl.textContent = origLabel || '📄 Download Prescription PDF';
+        }
     }
 }
 
-async function downloadPrescriptionAttachment(prescriptionId, fileName) {
+async function viewPrescriptionPdfModal(prescriptionId, btnEl) {
+    if (!prescriptionId) return;
+    if (btnEl && btnEl.disabled) return;
+    const origLabel = btnEl ? btnEl.textContent : '';
+    if (btnEl) {
+        btnEl.disabled = true;
+        btnEl.textContent = '⏳ Opening...';
+    }
+    showToast(`📄 Loading Prescription PDF preview (${prescriptionId})...`, 'info');
+    try {
+        const blob = await fetchPrescriptionPdfBlob(prescriptionId, true);
+        if (currentPrescriptionPdfBlobUrl) {
+            window.URL.revokeObjectURL(currentPrescriptionPdfBlobUrl);
+            currentPrescriptionPdfBlobUrl = null;
+        }
+        currentPrescriptionPdfBlobUrl = window.URL.createObjectURL(blob);
+
+        const modal = document.getElementById('prescriptionPdfModal');
+        const badge = document.getElementById('rxPdfModalBadge');
+        const title = document.getElementById('rxPdfModalTitle');
+        const frame = document.getElementById('prescriptionPdfFrame');
+        const openTabBtn = document.getElementById('rxPdfOpenTabBtn');
+        const downloadBtn = document.getElementById('rxPdfDownloadBtn');
+
+        if (badge) badge.textContent = prescriptionId;
+        if (title) title.textContent = `SIT Students Hospital Prescription Slip — ${prescriptionId}`;
+        if (frame) frame.src = currentPrescriptionPdfBlobUrl;
+        if (openTabBtn) openTabBtn.href = currentPrescriptionPdfBlobUrl;
+        if (downloadBtn) {
+            downloadBtn.onclick = () => {
+                const fileName = `SIT_Hospital_Prescription_${prescriptionId}.pdf`;
+                triggerBlobDownload(blob, fileName);
+                showToast(`✅ Downloaded ${fileName}`, 'success');
+            };
+        }
+        if (modal) {
+            modal.classList.add('active');
+        } else {
+            window.open(currentPrescriptionPdfBlobUrl, '_blank', 'noopener,noreferrer');
+        }
+    } catch (err) {
+        showToast(`❌ ${err.message}`, 'error');
+        alert('Error opening prescription PDF preview: ' + err.message);
+    } finally {
+        if (btnEl) {
+            btnEl.disabled = false;
+            btnEl.textContent = origLabel || '👁️ View / Print PDF';
+        }
+    }
+}
+
+async function downloadPrescriptionAttachment(prescriptionId, fileName, btnEl) {
+    if (!prescriptionId) return;
+    if (btnEl && btnEl.disabled) return;
+    const origLabel = btnEl ? btnEl.textContent : '';
+    if (btnEl) {
+        btnEl.disabled = true;
+        btnEl.textContent = '⏳ Decrypting...';
+    }
+    showToast(`🔓 Decrypting attached prescription file (${prescriptionId})...`, 'info');
     try {
         const res = await fetch(`/api/prescriptions/${encodeURIComponent(prescriptionId)}/attachment`, {
             headers: getAuthHeaders()
         });
         if (!res.ok) {
             const err = await res.json().catch(() => ({}));
-            alert(err.message || 'Failed to download attached prescription document.');
-            return;
+            throw new Error(err.message || 'Failed to download attached prescription document.');
         }
         const blob = await res.blob();
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = fileName || `${prescriptionId}_attachment`;
-        document.body.appendChild(a);
-        a.click();
-        setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 150);
+        const outName = fileName || `${prescriptionId}_attachment`;
+        triggerBlobDownload(blob, outName);
+        showToast(`✅ Downloaded ${outName}`, 'success');
     } catch (err) {
+        showToast(`❌ ${err.message}`, 'error');
         alert('Error downloading attachment: ' + err.message);
+    } finally {
+        if (btnEl) {
+            btnEl.disabled = false;
+            btnEl.textContent = origLabel || '📎 Download Attached File';
+        }
     }
 }
 
@@ -2753,6 +2871,7 @@ async function handleUploadPrescriptionDocument(e) {
 
 window.togglePortalTheme = togglePortalTheme;
 window.downloadPrescriptionPdf = downloadPrescriptionPdf;
+window.viewPrescriptionPdfModal = viewPrescriptionPdfModal;
 window.downloadPrescriptionAttachment = downloadPrescriptionAttachment;
 window.handleUploadPrescriptionDocument = handleUploadPrescriptionDocument;
 window.revokeIssuedShareLink = revokeIssuedShareLink;

@@ -21,6 +21,11 @@ const {
     parseServiceAccountFromConfig,
     splitBufferIntoChunks
 } = require('../utils/cloudPersistence');
+const {
+    savePersistedAiConfig,
+    hydrateAiConfigOnStartup,
+    getLocalAiConfigPath
+} = require('../utils/aiConfigStore');
 
 /**
  * In-memory Firestore mock supporting collections, documents, subcollections, set/get/delete
@@ -420,6 +425,99 @@ test('CloudPersistence: pre-hydration startup persist() NEVER overwrites fresher
         assert.equal(cloudDbAfterBoot.reports.length, 3);
         assert.equal(cloudDbAfterBoot.labRequests[0].status, 'COMPLETED');
         assert.equal(cloudDbAfterBoot.labRequests[1].status, 'COMPLETED');
+    } finally {
+        fs.rmSync(tmpDir, { recursive: true, force: true });
+    }
+});
+
+test('AIConfigStore: Gemini API key is encrypted with AES-256-GCM in Firestore and restored permanently across Render restarts until changed/reset', async () => {
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'sit-aiconfig-test-'));
+    const dataDir = path.join(tmpDir, 'data');
+    fs.mkdirSync(dataDir, { recursive: true });
+
+    try {
+        const mockFs = createMockFirestore();
+        const encKeyBuf = crypto.randomBytes(32);
+        const testCfg = {
+            DATA_DIR: dataDir,
+            ENCRYPTION_KEY_BUF: encKeyBuf,
+            AI_EXTERNAL_PROCESSING: false
+        };
+        const cp = createCloudPersistence({
+            config: testCfg,
+            firestoreClient: mockFs,
+            projectId: 'sit-students-hospital-test',
+            requireHydrationBeforeSync: false
+        });
+
+        const fakeSecretKey = 'AIzaSyTEST_PERMANENT_GEMINI_KEY_99887766';
+        const saveRes = await savePersistedAiConfig(
+            {
+                apiKey: fakeSecretKey,
+                externalProcessingEnabled: true,
+                activeModel: 'gemini-3.8-flash',
+                updatedBy: 'Hospital IT Admin'
+            },
+            { config: testCfg, cloudPersistence: cp }
+        );
+        assert.equal(saveRes.savedLocally, true);
+        assert.equal(saveRes.savedToCloud, true);
+
+        // Plaintext API key MUST NEVER appear on disk or inside Firestore!
+        const localRaw = fs.readFileSync(getLocalAiConfigPath(testCfg), 'utf8');
+        assert.equal(localRaw.includes(fakeSecretKey), false, 'Local ai_config.json must store ciphertext, not plaintext API key');
+        const cloudRecord = await cp.loadJsonState('ai_config');
+        assert.equal(JSON.stringify(cloudRecord).includes(fakeSecretKey), false, 'Firestore ai_config must store ciphertext, not plaintext API key');
+        assert.equal(cloudRecord.mode, 'ONLINE_AI');
+
+        // Simulate full Render container restart: wipe local disk & clear runtime env/config
+        fs.unlinkSync(getLocalAiConfigPath(testCfg));
+        const bootEnv = {};
+        const bootCfg = {
+            DATA_DIR: dataDir,
+            ENCRYPTION_KEY_BUF: encKeyBuf,
+            AI_EXTERNAL_PROCESSING: false
+        };
+
+        const restored = await hydrateAiConfigOnStartup({
+            config: bootCfg,
+            cloudPersistence: cp,
+            env: bootEnv
+        });
+        assert.equal(restored.hydrated, true);
+        assert.equal(restored.source, 'firebase_firestore');
+        assert.equal(restored.mode, 'ONLINE_AI');
+        assert.equal(bootEnv.GEMINI_API_KEY, fakeSecretKey);
+        assert.equal(bootEnv.GEMINI_ACTIVE_MODEL, 'gemini-3.8-flash');
+        assert.equal(bootCfg.AI_EXTERNAL_PROCESSING, true);
+
+        // Now Admin resets to Offline Mode -> must stay offline across subsequent Render restart even if an env var was set!
+        await savePersistedAiConfig(
+            {
+                apiKey: null,
+                externalProcessingEnabled: false,
+                activeModel: null,
+                updatedBy: 'Hospital IT Admin'
+            },
+            { config: bootCfg, cloudPersistence: cp }
+        );
+        fs.unlinkSync(getLocalAiConfigPath(bootCfg));
+
+        const rebootEnv = { GEMINI_API_KEY: 'old-env-key', AI_EXTERNAL_PROCESSING: 'true' };
+        const rebootCfg = {
+            DATA_DIR: dataDir,
+            ENCRYPTION_KEY_BUF: encKeyBuf,
+            AI_EXTERNAL_PROCESSING: true
+        };
+        const afterReset = await hydrateAiConfigOnStartup({
+            config: rebootCfg,
+            cloudPersistence: cp,
+            env: rebootEnv
+        });
+        assert.equal(afterReset.hydrated, true);
+        assert.equal(afterReset.mode, 'OFFLINE_FALLBACK');
+        assert.equal(rebootEnv.GEMINI_API_KEY, undefined);
+        assert.equal(rebootCfg.AI_EXTERNAL_PROCESSING, false);
     } finally {
         fs.rmSync(tmpDir, { recursive: true, force: true });
     }

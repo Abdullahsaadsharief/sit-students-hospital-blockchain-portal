@@ -732,11 +732,13 @@
                 const blob = await res.blob();
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
+                a.style.display = 'none';
+                a.rel = 'noopener';
                 a.href = url;
                 a.download = `SIT_Hospital_OPD_Bill_${billNo || patientId}.pdf`;
                 document.body.appendChild(a);
                 a.click();
-                setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 150);
+                setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 60000);
             } catch (err) {
                 alert('Download error: ' + err.message);
             }
