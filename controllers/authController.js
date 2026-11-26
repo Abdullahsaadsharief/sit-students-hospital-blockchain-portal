@@ -42,8 +42,10 @@ function getPublicConfig(req, res) {
  */
 function getAllUsers(req, res) {
     const canSeeBillingAndContact = req.user.role === 'Receptionist' || req.user.role === 'Admin';
+    const roleFilter = (req.query && typeof req.query.role === 'string') ? req.query.role.trim().toLowerCase() : '';
     const users = db.getAllUsers()
         .filter(u => !u.disabled)
+        .filter(u => !roleFilter || (u.role && u.role.toLowerCase() === roleFilter))
         .map(u => {
             if (canSeeBillingAndContact) {
                 return sanitizeUser(u, { includeBillNumber: true, includeContact: true });
@@ -229,10 +231,10 @@ function changePassword(req, res) {
     const user = req.user;
     const { currentPassword, newPassword } = req.body || {};
 
-    if (typeof newPassword !== 'string' || newPassword.length < 10) {
+    if (typeof newPassword !== 'string' || newPassword.trim().length < 10) {
         return res.status(400).json({
             success: false,
-            message: 'New password must be at least 10 characters long.'
+            message: 'New password must contain at least 10 non-whitespace characters.'
         });
     }
 
@@ -251,6 +253,13 @@ function changePassword(req, res) {
                 message: 'Current password is incorrect.'
             });
         }
+    }
+
+    if (user.passwordHash && verifyPassword(newPassword, user.passwordHash)) {
+        return res.status(400).json({
+            success: false,
+            message: 'New password must be different from your current password.'
+        });
     }
 
     const nextVersion = (Number(user.tokenVersion) || 0) + 1;

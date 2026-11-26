@@ -160,13 +160,15 @@ app.get('/healthz', (req, res) => {
     });
 });
 
-app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public', 'home.html')));
-app.get('/home', (req, res) => res.sendFile(path.join(__dirname, 'public', 'home.html')));
-app.get('/portal', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
-app.get('/reception', (req, res) => res.sendFile(path.join(__dirname, 'public', 'reception.html')));
-app.get('/about', (req, res) => res.sendFile(path.join(__dirname, 'public', 'about.html')));
-app.get('/departments', (req, res) => res.sendFile(path.join(__dirname, 'public', 'departments.html')));
-app.get('/contact', (req, res) => res.sendFile(path.join(__dirname, 'public', 'contact.html')));
+const SEND_FILE_OPTS = { dotfiles: 'allow' };
+
+app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public', 'home.html'), SEND_FILE_OPTS));
+app.get('/home', (req, res) => res.sendFile(path.join(__dirname, 'public', 'home.html'), SEND_FILE_OPTS));
+app.get('/portal', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html'), SEND_FILE_OPTS));
+app.get('/reception', (req, res) => res.sendFile(path.join(__dirname, 'public', 'reception.html'), SEND_FILE_OPTS));
+app.get('/about', (req, res) => res.sendFile(path.join(__dirname, 'public', 'about.html'), SEND_FILE_OPTS));
+app.get('/departments', (req, res) => res.sendFile(path.join(__dirname, 'public', 'departments.html'), SEND_FILE_OPTS));
+app.get('/contact', (req, res) => res.sendFile(path.join(__dirname, 'public', 'contact.html'), SEND_FILE_OPTS));
 
 // Cache static hospital photos aggressively (7 days) while keeping HTML/CSS/JS ETag-revalidated
 app.use('/images', express.static(path.join(__dirname, 'public', 'images'), {
@@ -288,7 +290,7 @@ app.use((req, res) => {
     if (req.path.startsWith('/api/')) {
         return res.status(404).json({ success: false, message: `API route not found: ${req.method} ${req.path}` });
     }
-    return res.sendFile(path.join(__dirname, 'public', 'index.html'));
+    return res.sendFile(path.join(__dirname, 'public', 'index.html'), SEND_FILE_OPTS);
 });
 
 // Centralized error handler (never leaks raw stack traces in production)

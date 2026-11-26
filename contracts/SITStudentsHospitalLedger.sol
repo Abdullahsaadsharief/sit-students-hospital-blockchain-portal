@@ -58,6 +58,7 @@ contract SITStudentsHospitalLedger {
 
     function authorizeDepartmentNode(address nodeAddress, bool status) external {
         require(msg.sender == hospitalAdmin, "Only Hospital Admin can manage authorized signers");
+        require(nodeAddress != address(0), "Invalid node address: cannot be zero address");
         authorizedHospitalNodes[nodeAddress] = status;
     }
 
@@ -73,6 +74,9 @@ contract SITStudentsHospitalLedger {
         string memory _patientPseudonym,
         string memory _departmentNodeId
     ) external onlyAuthorizedNode returns (bool) {
+        require(bytes(_reportId).length > 0, "Report ID cannot be empty");
+        require(bytes(_sourceHash).length > 0, "Source hash cannot be empty");
+        require(bytes(_reportHash).length > 0, "Report hash cannot be empty");
         require(!anchoredHashes[_sourceHash], "Duplicate medical report sourceHash rejected");
         require(!anchoredHashes[_reportHash], "Duplicate medical report reportHash rejected");
         require(!reportsById[_reportId].exists, "Report ID already exists on blockchain");
@@ -100,7 +104,7 @@ contract SITStudentsHospitalLedger {
     }
 
     /**
-     * @notice Verifies if a live computed SHA-256 hash matches the immutable hash anchored on-chain
+     * @notice Verifies if a live computed SHA-256 hash matches either the anchored reportHash or sourceHash on-chain
      */
     function verifyReportIntegrity(
         string memory _reportId,
@@ -108,7 +112,11 @@ contract SITStudentsHospitalLedger {
     ) external view returns (bool isAuthentic, string memory anchoredHash, uint256 anchoredAt) {
         require(reportsById[_reportId].exists, "Report ID not found on SIT Students Hospital contract");
         AnchoredReport memory rep = reportsById[_reportId];
-        bool matchStatus = (keccak256(bytes(rep.reportHash)) == keccak256(bytes(_liveComputedHash)));
+        bytes32 liveDigest = keccak256(bytes(_liveComputedHash));
+        bool matchStatus = (
+            keccak256(bytes(rep.reportHash)) == liveDigest ||
+            keccak256(bytes(rep.sourceHash)) == liveDigest
+        );
         return (matchStatus, rep.reportHash, rep.anchoredAt);
     }
 

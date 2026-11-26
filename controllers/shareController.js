@@ -34,8 +34,19 @@ function createExpiringShareLink(req, res) {
             });
         }
 
-        // Strict duration bounds validation: 1..1440 minutes
-        const parsedDuration = Number(durationMinutes !== undefined ? durationMinutes : 60);
+        // Strict duration bounds & type validation: 1..1440 minutes (rejects booleans/arrays/null/blank strings)
+        let parsedDuration = 60;
+        if (durationMinutes !== undefined) {
+            const isCleanNumber = typeof durationMinutes === 'number' && Number.isFinite(durationMinutes);
+            const isCleanIntString = typeof durationMinutes === 'string' && /^\d+$/.test(durationMinutes.trim());
+            if (!isCleanNumber && !isCleanIntString) {
+                return res.status(400).json({
+                    success: false,
+                    message: `durationMinutes must be an integer between ${MIN_SHARE_MINUTES} and ${MAX_SHARE_MINUTES} (24 hours max).`
+                });
+            }
+            parsedDuration = Number(durationMinutes);
+        }
         if (!Number.isInteger(parsedDuration) || parsedDuration < MIN_SHARE_MINUTES || parsedDuration > MAX_SHARE_MINUTES) {
             return res.status(400).json({
                 success: false,
@@ -247,7 +258,7 @@ async function downloadSharedReportFile(req, res) {
             return res.status(result.errorStatus).json({ success: false, status: result.status, message: result.message });
         }
 
-        const { report } = result;
+        const { link, report } = result;
         const filePath = path.join(config.UPLOADS_DIR, path.basename(report.storageReference));
         if (!fs.existsSync(filePath)) {
             await cloudPersistence.ensureLocalEncryptedFile(report.storageReference);
@@ -271,6 +282,12 @@ async function downloadSharedReportFile(req, res) {
         if (liveHash !== report.reportHash) {
             return res.status(400).json({ success: false, tampered: true, message: 'SECURITY ALERT: File hash mismatch.' });
         }
+
+        db.logAudit(
+            'SHARED_LINK_DOWNLOADED',
+            `External Viewer (${link.recipientDoctor})`,
+            `Downloaded decrypted report ${report.reportId} via share link ${link.jti}`
+        );
 
         const safeFileName = sanitizeDownloadFilename(report.fileName, `${report.reportId}.pdf`);
         res.setHeader('Content-Type', report.mimeType || 'application/pdf');

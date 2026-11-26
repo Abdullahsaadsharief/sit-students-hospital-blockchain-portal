@@ -1,6 +1,26 @@
 const crypto = require('crypto');
 
 /**
+ * Deterministic canonical JSON serialization (sorts object keys recursively)
+ * so identical payloads always hash identically regardless of property insertion order.
+ */
+function canonicalStringify(value) {
+    if (value === null || typeof value !== 'object') {
+        return JSON.stringify(value);
+    }
+    if (Array.isArray(value)) {
+        return `[${value.map(item => (item === undefined ? 'null' : canonicalStringify(item))).join(',')}]`;
+    }
+    const keys = Object.keys(value).sort();
+    const entries = [];
+    for (const key of keys) {
+        if (value[key] === undefined) continue;
+        entries.push(`${JSON.stringify(key)}:${canonicalStringify(value[key])}`);
+    }
+    return `{${entries.join(',')}}`;
+}
+
+/**
  * Block data structure representing an immutable ledger entry
  */
 class Block {
@@ -26,10 +46,23 @@ class Block {
     }
 
     /**
-     * Calculates SHA-256 cryptographic hash of the block contents
+     * Calculates canonical SHA-256 cryptographic hash of the block contents
      * @returns {string} Hexadecimal block hash
      */
     calculateHash() {
+        const payload = this.index +
+            this.previousHash +
+            this.timestamp +
+            canonicalStringify(this.data) +
+            this.nonce;
+        return crypto.createHash('sha256').update(payload).digest('hex');
+    }
+
+    /**
+     * Legacy non-sorted JSON hash retained ONLY for verifying pre-existing persisted blocks
+     * mined before canonical JSON serialization was introduced.
+     */
+    calculateLegacyHash() {
         const payload = this.index +
             this.previousHash +
             this.timestamp +

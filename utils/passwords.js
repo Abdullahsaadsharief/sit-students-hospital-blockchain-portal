@@ -51,9 +51,17 @@ function verifyPassword(plaintext, storedHash) {
     const salt = parts[4];
     const expectedHex = parts[5];
 
-    if (!N || !r || !p || !salt || !expectedHex) return false;
+    if (!Number.isInteger(N) || N <= 0 || !Number.isInteger(r) || r <= 0 || !Number.isInteger(p) || p <= 0 || !salt || !expectedHex) {
+        return false;
+    }
+    if (expectedHex.length < 32 || expectedHex.length % 2 !== 0 || !/^[0-9a-f]+$/i.test(expectedHex)) {
+        return false;
+    }
 
     const expectedBuf = Buffer.from(expectedHex, 'hex');
+    if (expectedBuf.length === 0 || expectedBuf.length * 2 !== expectedHex.length) {
+        return false;
+    }
     const actualBuf = crypto.scryptSync(plaintext, salt, expectedBuf.length, { N, r, p });
     if (actualBuf.length !== expectedBuf.length) return false;
     return crypto.timingSafeEqual(actualBuf, expectedBuf);

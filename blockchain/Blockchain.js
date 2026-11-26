@@ -220,14 +220,28 @@ class Blockchain {
     }
 
     /**
-     * Full chain verification: checks cryptographic linkages and recomputed block hashes
+     * Full chain verification: checks Genesis block, Proof-of-Work difficulty,
+     * cryptographic linkages, and recomputed block hashes (supporting canonical & legacy blocks).
      */
     isChainValid() {
-        for (let i = 1; i < this.chain.length; i++) {
-            const currentBlock = this.chain[i];
-            const previousBlock = this.chain[i - 1];
+        if (!Array.isArray(this.chain) || this.chain.length === 0) {
+            return {
+                isValid: false,
+                error: 'Blockchain ledger is empty or missing Genesis block.',
+                brokenBlockIndex: 0
+            };
+        }
 
-            if (currentBlock.hash !== currentBlock.calculateHash()) {
+        const powPrefix = '0'.repeat(Math.max(0, Number(this.difficulty) || 0));
+
+        for (let i = 0; i < this.chain.length; i++) {
+            const currentBlock = this.chain[i];
+            const canonicalHash = currentBlock.calculateHash();
+            const legacyHash = typeof currentBlock.calculateLegacyHash === 'function'
+                ? currentBlock.calculateLegacyHash()
+                : canonicalHash;
+
+            if (currentBlock.hash !== canonicalHash && currentBlock.hash !== legacyHash) {
                 return {
                     isValid: false,
                     error: `Tampering detected at Block #${currentBlock.index}! Recalculated hash does not match block hash.`,
@@ -235,12 +249,23 @@ class Blockchain {
                 };
             }
 
-            if (currentBlock.previousHash !== previousBlock.hash) {
+            if (powPrefix && (typeof currentBlock.hash !== 'string' || !currentBlock.hash.startsWith(powPrefix))) {
                 return {
                     isValid: false,
-                    error: `Broken chain link at Block #${currentBlock.index}! previousHash (${currentBlock.previousHash.slice(0, 16)}...) does not match Block #${previousBlock.index} hash (${previousBlock.hash.slice(0, 16)}...).`,
+                    error: `Proof-of-Work violation at Block #${currentBlock.index}! Hash does not meet difficulty prefix '${powPrefix}'.`,
                     brokenBlockIndex: currentBlock.index
                 };
+            }
+
+            if (i > 0) {
+                const previousBlock = this.chain[i - 1];
+                if (currentBlock.previousHash !== previousBlock.hash) {
+                    return {
+                        isValid: false,
+                        error: `Broken chain link at Block #${currentBlock.index}! previousHash (${String(currentBlock.previousHash || '').slice(0, 16)}...) does not match Block #${previousBlock.index} hash (${String(previousBlock.hash || '').slice(0, 16)}...).`,
+                        brokenBlockIndex: currentBlock.index
+                    };
+                }
             }
         }
         return { isValid: true };
@@ -252,7 +277,7 @@ class Blockchain {
      * cleanly reverts ONLY the tampered block without resetting or losing any real data.
      */
     simulateTampering(blockIndex, fakeHash = 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855') {
-        if (blockIndex <= 0 || blockIndex >= this.chain.length) {
+        if (!Number.isInteger(blockIndex) || blockIndex <= 0 || blockIndex >= this.chain.length) {
             throw new Error('Invalid block index for tamper demonstration');
         }
         const block = this.chain[blockIndex];

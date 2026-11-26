@@ -405,7 +405,9 @@ function registerPatientAtReception(req, res) {
             visitReason,
             billAmount,
             customBillNumber,
-            customPatientId
+            customPatientId,
+            billNumber: bodyBillNumber,
+            patientId: bodyPatientId
         } = req.body || {};
 
         if (!name || !String(name).trim()) {
@@ -415,12 +417,14 @@ function registerPatientAtReception(req, res) {
         const existingPatients = db.getAllUsers().filter(u => u.role === 'Patient');
         const { nextIndex, suggestedBillNumber, suggestedPatientId } = getNextPatientIdentifiers(existingPatients);
 
-        const billNumber = (customBillNumber && String(customBillNumber).trim())
-            ? String(customBillNumber).trim().toUpperCase()
+        const rawBillInput = customBillNumber || bodyBillNumber;
+        const billNumber = (rawBillInput && String(rawBillInput).trim())
+            ? String(rawBillInput).trim().toUpperCase()
             : suggestedBillNumber;
 
-        const patientId = (customPatientId && String(customPatientId).trim())
-            ? String(customPatientId).trim().toUpperCase()
+        const rawPatientIdInput = customPatientId || bodyPatientId;
+        const patientId = (rawPatientIdInput && String(rawPatientIdInput).trim())
+            ? String(rawPatientIdInput).trim().toUpperCase()
             : suggestedPatientId;
 
         const duplicateBill = existingPatients.find(p =>
@@ -431,6 +435,17 @@ function registerPatientAtReception(req, res) {
             return res.status(409).json({
                 success: false,
                 message: `Bill / Reception ID '${billNumber}' is already assigned to patient ${duplicateBill.name}.`
+            });
+        }
+
+        const duplicatePatientId = existingPatients.find(p =>
+            (p.patientId && p.patientId.toUpperCase() === patientId) ||
+            (p.billNumber && p.billNumber.toUpperCase() === patientId)
+        );
+        if (duplicatePatientId) {
+            return res.status(409).json({
+                success: false,
+                message: `Patient UHID '${patientId}' is already assigned to patient ${duplicatePatientId.name}.`
             });
         }
 

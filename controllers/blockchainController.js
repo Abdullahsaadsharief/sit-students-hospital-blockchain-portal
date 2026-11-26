@@ -40,10 +40,11 @@ function simulateTamper(req, res) {
     }
     try {
         const { blockIndex, maliciousHash } = req.body || {};
-        const targetIndex = parseInt(blockIndex, 10) || 1;
+        const hasExplicitIndex = blockIndex !== undefined && blockIndex !== null && blockIndex !== '';
+        const targetIndex = hasExplicitIndex ? Number(blockIndex) : 1;
 
-        if (targetIndex <= 0 || targetIndex >= blockchain.chain.length) {
-            return res.status(400).json({ success: false, message: 'Block index does not exist in chain.' });
+        if (!Number.isInteger(targetIndex) || targetIndex <= 0 || targetIndex >= blockchain.chain.length) {
+            return res.status(400).json({ success: false, message: 'Block index does not exist in chain or cannot tamper Genesis block.' });
         }
 
         const tamperedBlock = blockchain.simulateTampering(targetIndex, maliciousHash);

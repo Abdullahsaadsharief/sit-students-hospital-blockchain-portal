@@ -93,12 +93,30 @@ async function uploadReport(req, res) {
         // Step 1: Compute SHA-256 cryptographic hash of raw uploaded source bytes BEFORE any OCR/PDF
         const sourceHash = computeSHA256(rawBuffer);
 
-        // Step 2: Atomic Duplicate Detection (checks in-flight set, DB sourceHash/reportHash, local ledger, and on-chain EVM)
+        // Step 2: Synchronously reserve inFlightSourceHashes BEFORE any async RPC await (prevents TOCTOU race)
+        if (inFlightSourceHashes.has(sourceHash)) {
+            db.logAudit(
+                'DUPLICATE_REPORT_PREVENTED',
+                user.name,
+                `Concurrent duplicate upload rejected. Source SHA-256 ${sourceHash.slice(0, 16)}... already in flight`
+            );
+            return res.status(409).json({
+                success: false,
+                duplicateDetected: true,
+                message: 'Duplicate medical report detected! An identical report upload is already in progress. Redundant upload prevented.',
+                existingReportId: 'IN_FLIGHT_UPLOAD',
+                fileHash: sourceHash
+            });
+        }
+        inFlightSourceHashes.add(sourceHash);
+        reservedSourceHash = sourceHash;
+
+        // Atomic Duplicate Detection (checks DB sourceHash/reportHash, local ledger, and on-chain EVM)
         const existingBlock = blockchain.findBlockByAnyHash(sourceHash);
         const existingReport = db.findReportByAnyHash(sourceHash);
         const onChainDup = await ethereumClient.isHashAnchoredOnChain(sourceHash);
 
-        if (inFlightSourceHashes.has(sourceHash) || existingBlock || existingReport || onChainDup === true) {
+        if (existingBlock || existingReport || onChainDup === true) {
             const existingId = existingReport ? existingReport.reportId : (existingBlock ? existingBlock.data.reportId : 'ON_CHAIN_RECORD');
             db.logAudit(
                 'DUPLICATE_REPORT_PREVENTED',
@@ -114,10 +132,6 @@ async function uploadReport(req, res) {
                 fileHash: sourceHash
             });
         }
-
-        // Reserve this sourceHash synchronously before entering async OCR/PDF work
-        inFlightSourceHashes.add(sourceHash);
-        reservedSourceHash = sourceHash;
 
         // Step 3 & 4: Bounded OCR, De-identified Clinical Summary & Standardized PDF Generation
         const reportId = generatePseudonymousId('REP');

@@ -43,7 +43,74 @@ function extractMedicalKeywords(rawText) {
 }
 
 /**
- * Performs OCR on image buffer using Tesseract.js with graceful fallback
+ * Lightweight structural validation for image buffers BEFORE sending to Tesseract WASM.
+ * Prevents truncated/corrupted PNG/JPEG/WEBP uploads from triggering fatal Leptonica worker crashes (DoS).
+ */
+function isStructurallyValidImageBuffer(buf, mimeType = '') {
+    if (!Buffer.isBuffer(buf) || buf.length < 16) return false;
+    const mime = String(mimeType || '').toLowerCase();
+
+    // PNG structural check: must contain valid length-bounded IHDR, at least one IDAT, and terminating IEND chunk
+    const isPng = mime.includes('png') ||
+        (buf.length >= 8 && buf[0] === 0x89 && buf[1] === 0x50 && buf[2] === 0x4E && buf[3] === 0x47);
+    if (isPng) {
+        if (buf.length < 33) return false;
+        let offset = 8;
+        let hasIhdr = false;
+        let hasIdat = false;
+        let hasIend = false;
+        while (offset + 12 <= buf.length) {
+            const chunkLen = buf.readUInt32BE(offset);
+            const chunkType = buf.subarray(offset + 4, offset + 8).toString('ascii');
+            const nextOffset = offset + 12 + chunkLen;
+            if (nextOffset > buf.length || chunkLen > 50 * 1024 * 1024) {
+                return false; // Truncated chunk payload or corrupt length
+            }
+            if (chunkType === 'IHDR') {
+                if (chunkLen !== 13) return false;
+                const width = buf.readUInt32BE(offset + 8);
+                const height = buf.readUInt32BE(offset + 12);
+                if (width === 0 || height === 0 || width > 20000 || height > 20000) return false;
+                hasIhdr = true;
+            } else if (chunkType === 'IDAT') {
+                hasIdat = true;
+            } else if (chunkType === 'IEND') {
+                hasIend = true;
+                break;
+            }
+            offset = nextOffset;
+        }
+        return hasIhdr && hasIdat && hasIend;
+    }
+
+    // JPEG structural check: must start with SOI (FF D8) and contain EOI (FF D9)
+    const isJpeg = mime.includes('jpeg') || mime.includes('jpg') ||
+        (buf[0] === 0xFF && buf[1] === 0xD8 && buf[2] === 0xFF);
+    if (isJpeg) {
+        if (buf.length < 100) return false;
+        let hasEoi = false;
+        for (let i = buf.length - 2; i >= 2; i--) {
+            if (buf[i] === 0xFF && buf[i + 1] === 0xD9) {
+                hasEoi = true;
+                break;
+            }
+        }
+        return hasEoi;
+    }
+
+    // WEBP structural check: RIFF header size must fit inside buffer
+    const isWebp = mime.includes('webp') ||
+        (buf.subarray(0, 4).toString('ascii') === 'RIFF' && buf.subarray(8, 12).toString('ascii') === 'WEBP');
+    if (isWebp) {
+        const declaredSize = buf.readUInt32LE(4) + 8;
+        return declaredSize >= 20 && declaredSize <= buf.length;
+    }
+
+    return true;
+}
+
+/**
+ * Performs OCR on image buffer using Tesseract.js with structural pre-check & worker error isolation
  * @param {Buffer|string} inputBufferOrPath 
  * @param {string} mimeType 
  * @param {string} [hintText] Optional hint text from doctor/lab staff notes
@@ -57,31 +124,55 @@ async function processReportOCR(inputBufferOrPath, mimeType = '', hintText = '')
         extractedText += hintText + ' ';
     }
 
-    // Try Tesseract OCR on images (PNG, JPEG, TIFF)
-    const isImage = mimeType.startsWith('image/') || 
+    // Try Tesseract OCR on images (PNG, JPEG, WEBP)
+    const isImage = mimeType.startsWith('image/') ||
                    (typeof inputBufferOrPath === 'string' && /\.(png|jpe?g|bmp|webp)$/i.test(inputBufferOrPath));
 
     if (isImage) {
-        try {
-            // Run Tesseract with 10s timeout to prevent hanging in testing
-            const ocrPromise = Tesseract.recognize(inputBufferOrPath, 'eng', {
-                logger: () => {} // quiet mode
-            });
+        const bufferLooksValid = !Buffer.isBuffer(inputBufferOrPath) ||
+            isStructurallyValidImageBuffer(inputBufferOrPath, mimeType);
 
-            const timeoutPromise = new Promise((_, reject) => 
-                setTimeout(() => reject(new Error('OCR Timeout')), 12000)
-            );
+        if (!bufferLooksValid) {
+            console.warn('[OCR Engine] Skipping Tesseract OCR: uploaded image buffer is truncated or structurally malformed.');
+        } else {
+            let worker = null;
+            let timeoutHandle = null;
+            try {
+                let workerReject = null;
+                const workerErrorPromise = new Promise((_, reject) => {
+                    workerReject = reject;
+                });
 
-            const result = await Promise.race([ocrPromise, timeoutPromise]);
-            if (result && result.data && result.data.text) {
-                extractedText += ' ' + result.data.text;
-            }
-        } catch (err) {
-            console.warn('[OCR Engine] Tesseract recognition fallback:', err.message);
-            // Non-fatal fallback: use text buffer strings if any
-            if (Buffer.isBuffer(inputBufferOrPath)) {
-                const asciiGuess = inputBufferOrPath.toString('utf8', 0, Math.min(2048, inputBufferOrPath.length));
-                extractedText += ' ' + asciiGuess.replace(/[\x00-\x1F\x7F-\x9F]/g, ' ');
+                worker = await Tesseract.createWorker('eng', 1, {
+                    logger: () => {},
+                    errorHandler: (workerErr) => {
+                        const errObj = workerErr instanceof Error ? workerErr : new Error(String(workerErr || 'OCR worker error'));
+                        if (workerReject) workerReject(errObj);
+                    }
+                });
+
+                const ocrPromise = worker.recognize(inputBufferOrPath);
+                const timeoutPromise = new Promise((_, reject) => {
+                    timeoutHandle = setTimeout(() => reject(new Error('OCR Timeout')), 12000);
+                    if (typeof timeoutHandle.unref === 'function') timeoutHandle.unref();
+                });
+
+                const result = await Promise.race([ocrPromise, workerErrorPromise, timeoutPromise]);
+                if (result && result.data && result.data.text) {
+                    extractedText += ' ' + result.data.text;
+                }
+            } catch (err) {
+                console.warn('[OCR Engine] Tesseract recognition fallback:', err.message);
+                // Non-fatal fallback: use text buffer strings if any
+                if (Buffer.isBuffer(inputBufferOrPath)) {
+                    const asciiGuess = inputBufferOrPath.toString('utf8', 0, Math.min(2048, inputBufferOrPath.length));
+                    extractedText += ' ' + asciiGuess.replace(/[\x00-\x1F\x7F-\x9F]/g, ' ');
+                }
+            } finally {
+                if (timeoutHandle) clearTimeout(timeoutHandle);
+                if (worker) {
+                    try { await worker.terminate(); } catch (_) {}
+                }
             }
         }
     } else {
